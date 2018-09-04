@@ -9,7 +9,7 @@ import copy
 import ipaddress
 import cflw时间 as 时间
 import cflw字符串 as 字符串
-import cflw算法 as 算法
+import cflw工具_运算 as 运算
 class I设备:
 	def __init__(self):
 		self.m间隔 = 0.1
@@ -381,6 +381,7 @@ class I全局配置模式(I模式):
 		raise NotImplementedError()
 	def f模式_虚拟局域网(self, a序号):	#vlan
 		raise NotImplementedError()
+	#模式_路由
 	def f模式_静态路由(self, a版本 = E版本.e网络协议4):
 		raise NotImplementedError()
 	def f模式_路由信息协议(self, a进程号 = 0, a版本 = E版本.e网络协议4):	#rip
@@ -393,11 +394,14 @@ class I全局配置模式(I模式):
 		raise NotImplementedError()
 	def f模式_中间系统到中间系统(self, a进程号):	#isis
 		raise NotImplementedError()
+	#模式_其它
 	def f模式_访问控制列表(self, a名称, a类型):
 		raise NotImplementedError()
 	def f模式_端口安全(self):
 		raise NotImplementedError()
 	def f模式_接口端口安全(self, a接口):
+		raise NotImplementedError()
+	def f模式_远端登入(self):	#telnet
 		raise NotImplementedError()
 	def f模式_安全外壳(self):	#ssh
 		raise NotImplementedError()
@@ -572,7 +576,7 @@ class S接口:
 	def fc字符串(a字符串, a全称字典 = g接口名称字典, ai字典字符串在右 = True):
 		if ai字典字符串在右:
 			va字符串 = a全称字典.values()
-			vf类型 = 算法.f字典按值找键
+			vf类型 = 运算.f字典按值找键
 		else:
 			va字符串 = a全称字典.keys()
 			vf类型 = dict.__getitem__
@@ -1282,8 +1286,15 @@ class I生成树接口配置模式(I接口配置模式):
 	def fs开销(self, p树, a开销):
 		raise NotImplementedError()
 #==============================================================================
-# ssh
+# 远程连接
 #==============================================================================
+class I远端登入(I模式):
+	def __init__(self, a):
+		I模式.__init__(self, a)
+	def fs端口号(self, a):
+		raise NotImplementedError()
+	def f开关(self, a):
+		raise NotImplementedError()
 class I安全外壳(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)

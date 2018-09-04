@@ -3,6 +3,8 @@
 		if v值 == a值:
 			return v键
 	return None
+def f原值(a):	#不做任何处理的函数
+	return a
 #2个参数的比较
 class C二元比较:
 	"2元比较,例如:f大于=F大于();f大于(1,2);"

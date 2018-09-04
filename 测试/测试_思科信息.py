@@ -263,6 +263,7 @@ Neighbor ID     Pri   State           Dead Time   Address         Interface
 	for v行 in v表:
 		print(v行)
 def main():
+  #f物理地址表()
 	fospf邻居()
 if __name__ == "__main__":
 	main()

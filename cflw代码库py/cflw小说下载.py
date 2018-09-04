@@ -1,13 +1,12 @@
-from bs4 import BeautifulSoup	#beautifulsoup4
-import requests	#requests
 import pathlib
 import sys
 import time
+import cflw爬虫 as 爬虫
 class I文档:	#用来继承
 	def __init__(self):
 		self.m文档 = None
 	def f重新载入(self):
-		self.m文档 = f获取文档(self.fg地址())
+		self.m文档 = 爬虫.fc解析器bs(爬虫.f获取文档(self.fg地址()))
 	def f载入(self):
 		if not self.m文档:
 			self.f重新载入()
@@ -29,16 +28,6 @@ class C写文件:
 		self.m文件 = open(a文件名, "w", encoding = "utf-8")
 	def f写章节(self, a章节名, a正文):
 		self.m文件.write(a章节名 + "\n" + a正文 + "\n")
-def f获取文档(a地址):
-	for i in range(5):
-		try:
-			v请求 = requests.get(url = a地址)
-			v请求.encoding = v请求.apparent_encoding
-			v页面 = v请求.text
-			return BeautifulSoup(v页面, "html.parser")
-		except Exception as e:
-			continue	#重试
-	raise e
 def f一键下载(a小说, a保存路径):
 	#信息
 	for i in range(5):

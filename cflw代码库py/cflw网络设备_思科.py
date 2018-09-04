@@ -198,10 +198,8 @@ class C物理地址表:
 				continue
 			if not "." in v行:	#物理地址用.分隔
 				continue
-			v地址s = v行[C物理地址表.c物理地址开始 : C物理地址表.c物理地址结束]
-			v类型s = v行[C物理地址表.c类型开始 : C物理地址表.c端口开始]
-			v接口s = v行[C物理地址表.c端口开始 :]
-			v虚拟局域网 = int(v行[C物理地址表.c虚拟局域网开始 : C物理地址表.c物理地址开始])
+			v虚拟局域网s, v地址s, v类型s, v接口s = 字符串.fe按位置分割(v行, C物理地址表.c虚拟局域网开始, C物理地址表.c物理地址开始, C物理地址表.c类型开始, C物理地址表.c端口开始)
+			v虚拟局域网 = int(v虚拟局域网s)
 			v接口 = 设备.S接口.fc字符串(v接口s, ga接口缩写, False)
 			v地址 = 地址.S物理地址.fc字符串(v地址s)
 			v类型 = ga物理地址类型[str.strip(v类型s)]
@@ -787,12 +785,7 @@ class Cospf邻居表:
 		for v行 in 字符串.fe分割(self.m字符串, "\n"):
 			if v行.count(".") != 6:	#2个地址共6个点
 				continue
-			v邻居s = v行[Cospf邻居表.c邻居开始 : Cospf邻居表.c优先级开始].strip()
-			v优先级s = v行[Cospf邻居表.c优先级开始 : Cospf邻居表.c状态开始].strip()
-			v状态s = v行[Cospf邻居表.c状态开始 : Cospf邻居表.c死亡时间开始].strip()
-			v死亡s = v行[Cospf邻居表.c死亡时间开始 : Cospf邻居表.c地址开始].strip()
-			v地址s = v行[Cospf邻居表.c地址开始 : Cospf邻居表.c接口开始].strip()
-			v接口s = v行[Cospf邻居表.c接口开始 :].strip()
+			v邻居s, v优先级s, v状态s, v死亡s, v地址s, v接口s = 字符串.fe按位置分割(v行, Cospf邻居表.c邻居开始, Cospf邻居表.c优先级开始, Cospf邻居表.c状态开始, Cospf邻居表.c死亡时间开始, Cospf邻居表.c地址开始, Cospf邻居表.c接口开始)
 			v邻居 = 地址.S网络地址4.fc地址字符串(v邻居s)
 			v优先级 = int(v优先级s)
 			v状态分割 = v状态s.split("/")

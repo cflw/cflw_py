@@ -1,4 +1,5 @@
 import math
+import cflw数学 as 数学
 import cflw数学_矩阵 as 矩阵
 #===============================================================================
 # 任意向量
@@ -36,9 +37,11 @@ class S向量2:
 	def __add__(self, a):
 		"向量2 + 向量2"
 		v类型 = type(a)
-		if a == S向量2:
+		if v类型 == S向量2:
 			x = self.x + a.x
 			y = self.y + a.y
+		elif v类型 == S极向量2:
+			raise NotImplementedError()
 		else:
 			raise TypeError()
 		return S向量2(x, y)
@@ -47,6 +50,12 @@ class S向量2:
 		v = float(a)
 		x = self.x * v
 		y = self.y * v
+		return S向量2(x, y)
+	def __truediv__(self, a):
+		"向量2 / 实数"
+		v = float(a)
+		x = self.x / v
+		y = self.y / v
 		return S向量2(x, y)
 	def fg大小(self):
 		return math.hypot(self.x, self.y)
@@ -74,6 +83,16 @@ class S向量2:
 		self.y = math.sin(a方向) * a大小
 	def fs方向d(self, a方向):
 		self.fs方向r(math.radians(a方向))
+	def f点乘(self, a向量):
+		return self.x * a向量.x + self.y * a向量.y
+	def ft向量3(self, az = 0):
+		return S向量3(self.x, self.y, az)
+	def ft向量4(self, az = 0, aw = 0):
+		return S向量4(self.x, self.y, az, aw)
+	def ft元组(self):
+		return (self.x, self.y)
+	def ft极向量2(self):
+		return S极向量2.fc直角(self.x, self.y)
 	m大小 = property(fg大小, fs大小, None, "向量大小")
 	m方向r = property(fg方向r, fs方向r, None, "向量方向(弧度)")
 	m方向d = property(fg方向d, fs方向d, None, "向量方向(度)")
@@ -97,21 +116,26 @@ class S向量3:
 		v = float(a)
 		return S向量3(self.x * v, self.y * v, self.z * v)
 	def fg大小(self):
-		return math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
+		return 数学.f平方和的平方根(self.x, self.y, self.z)
 	def fs大小(self, a大小):
 		v倍数 = a大小 / self.fg大小()
 		self.x *= v倍数
 		self.y *= v倍数
 		self.z *= v倍数
-	def f点乘(self, a):
-		return self.x * a.x + self.y * a.y + self.z * a.z
-	def f叉乘(self, a):
+	def f点乘(self, a向量):
+		return self.x * a向量.x + self.y * a向量.y + self.z * a向量.z
+	def f叉乘(self, a向量):
 		return S向量3(
-			self.y * a.z - self.z * a.y,
-			self.z * a.x - self.x * a.z,
-			self.x * a.y - self.y * a.z
+			self.y * a向量.z - self.z * a向量.y,
+			self.z * a向量.x - self.x * a向量.z,
+			self.x * a向量.y - self.y * a向量.z
 		)
-
+	def ft向量2(self):
+		return S向量2(self.x, self.y)
+	def ft向量4(self, aw = 0):
+		return S向量4(self.x, self.y, self.z, aw)
+	def ft元组(self):
+		return (self.x, self.y, self.z)
 	m大小 = property(fg大小, fs大小, None, "向量大小")
 #===============================================================================
 # 向量4
@@ -123,6 +147,7 @@ class S向量4:
 		self.z = az
 		self.w = aw
 	def __mul__(self, a):
+		v类型 = type(a)
 		if isinstance(a, 矩阵.S矩阵):
 			if a.fg行数() != 4 or a.fg列数 != 4:
 				raise ValueError("矩阵行列数不匹配")
@@ -131,6 +156,14 @@ class S向量4:
 				for j in range(4):
 					v[k] = self[i] * a.fg值(j, i)
 			return v
+		elif v类型 in (float, int):
+			x = self.x * a
+			y = self.y * a
+			z = self.z * a
+			w = self.w * a
+			return S向量4(x, y, z, w)
+		else:
+			raise TypeError()
 	def __getitem__(self, k):
 		if k == 0:
 			return self.x
@@ -153,12 +186,54 @@ class S向量4:
 			self.w = v
 		else:
 			raise IndexError()
+	def __iter__(self):
+		yield self.x
+		yield self.y
+		yield self.z
+		yield self.w
 	def fg大小(self):
-		return math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2 + self.w ** 2)
+		return 数学.f平方和的平方根(self.x, self.y, self.z, self.w)
 	def fs大小(self, a大小):
 		v倍数 = a大小 / self.fg大小()
 		self.x *= v倍数
 		self.y *= v倍数
 		self.z *= v倍数
 		self.w *= v倍数
+	def f点乘(self, a向量):
+		return self.x * a向量.x + self.y * a向量.y + self.z * a向量.z + self.w * a向量.w
+	def ft向量2(self):
+		return S向量2(self.x, self.y)
+	def ft向量3(self):
+		return S向量3(self.x, self.y, self.z)
+	def ft元组(self):
+		return (self.x, self.y, self.z, self.w)
 	m大小 = property(fg大小, fs大小, None, "向量大小")
+#===============================================================================
+# 极向量2
+#===============================================================================
+class S极向量2:
+	"用极坐标表示的向量"
+	def __init__(self, ar, at):
+		self.r = ar
+		self.t = at
+	@staticmethod
+	def fc直角(self, ax, ay):
+		t = math.atan2(ay, ax)
+		r = 数学.f平方和的平方根(ax, ay)
+		return S极向量2(r, t)
+	def __add__(self, a):
+		"极向量加极向量"
+		v类型 = type(a)
+		if v类型 == S极向量2:
+			raise NotImplementedError()
+		elif v类型 == S向量2:
+			raise NotImplementedError()
+		else:
+			raise TypeError()
+	def __mul__(self, a):
+		"极向量乘实数"
+		v = float(a)
+		r = self.r * v
+		return S极向量2(r, self.t)
+	def ft向量2(self):
+		return S向量2.fc方向r(self.r, self.t)
