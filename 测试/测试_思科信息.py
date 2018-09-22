@@ -176,7 +176,7 @@ GigabitEthernet0/2     unassigned      YES unset  down                  down
 		print(v行)
 def f物理地址表():
 	v字符串0 = """
-          Mac Address Table
+					Mac Address Table
 -------------------------------------------
 
 Vlan    Mac Address       Type        Ports
@@ -201,54 +201,54 @@ Vlan    Mac Address       Type        Ports
  All    0180.c200.000f    STATIC      CPU
  All    0180.c200.0010    STATIC      CPU
  All    ffff.ffff.ffff    STATIC      CPU
-  10    0000.b413.3023    DYNAMIC     Gi0/2
-  10    001a.8057.6685    DYNAMIC     Gi0/2
-  10    1078.d2a0.8422    DYNAMIC     Gi0/2
-  10    24f5.aacd.677c    DYNAMIC     Fa0/9
-  10    402c.f4ec.9270    DYNAMIC     Gi0/2
-  10    40a8.f062.6b10    DYNAMIC     Gi0/2
-  10    4437.e605.dcea    DYNAMIC     Gi0/2
-  10    4437.e659.230a    DYNAMIC     Gi0/2
-  10    4437.e665.3a3a    DYNAMIC     Gi0/2
-  10    4437.e665.9f2a    DYNAMIC     Gi0/2
-  10    4439.c452.374e    DYNAMIC     Gi0/2
-  10    4439.c452.6bb6    DYNAMIC     Gi0/2
-  10    4439.c490.0cfa    DYNAMIC     Gi0/2
-  10    4439.c491.ff9c    DYNAMIC     Gi0/2
-  10    5866.ba82.dce2    DYNAMIC     Gi0/2
-  10    6400.6a5b.cd15    DYNAMIC     Gi0/2
-  10    6c0b.843e.aacf    DYNAMIC     Fa0/1
-  10    6c0b.84ac.ab51    DYNAMIC     Gi0/2
-  10    dc4a.3e72.31a9    DYNAMIC     Gi0/2
-  10    dc4a.3e77.2519    DYNAMIC     Gi0/2
-  10    fc4d.d42e.e174    DYNAMIC     Gi0/2
-  10    fc4d.d44a.0cac    DYNAMIC     Gi0/2
-  10    fc4d.d4f7.3818    DYNAMIC     Gi0/2
-  10    fc4d.d4f7.3d12    DYNAMIC     Gi0/2
-  10    fc4d.d4f7.5e89    DYNAMIC     Gi0/2
-  10    fc4d.d4f7.6d66    DYNAMIC     Gi0/2
+	10    0000.b413.3023    DYNAMIC     Gi0/2
+	10    001a.8057.6685    DYNAMIC     Gi0/2
+	10    1078.d2a0.8422    DYNAMIC     Gi0/2
+	10    24f5.aacd.677c    DYNAMIC     Fa0/9
+	10    402c.f4ec.9270    DYNAMIC     Gi0/2
+	10    40a8.f062.6b10    DYNAMIC     Gi0/2
+	10    4437.e605.dcea    DYNAMIC     Gi0/2
+	10    4437.e659.230a    DYNAMIC     Gi0/2
+	10    4437.e665.3a3a    DYNAMIC     Gi0/2
+	10    4437.e665.9f2a    DYNAMIC     Gi0/2
+	10    4439.c452.374e    DYNAMIC     Gi0/2
+	10    4439.c452.6bb6    DYNAMIC     Gi0/2
+	10    4439.c490.0cfa    DYNAMIC     Gi0/2
+	10    4439.c491.ff9c    DYNAMIC     Gi0/2
+	10    5866.ba82.dce2    DYNAMIC     Gi0/2
+	10    6400.6a5b.cd15    DYNAMIC     Gi0/2
+	10    6c0b.843e.aacf    DYNAMIC     Fa0/1
+	10    6c0b.84ac.ab51    DYNAMIC     Gi0/2
+	10    dc4a.3e72.31a9    DYNAMIC     Gi0/2
+	10    dc4a.3e77.2519    DYNAMIC     Gi0/2
+	10    fc4d.d42e.e174    DYNAMIC     Gi0/2
+	10    fc4d.d44a.0cac    DYNAMIC     Gi0/2
+	10    fc4d.d4f7.3818    DYNAMIC     Gi0/2
+	10    fc4d.d4f7.3d12    DYNAMIC     Gi0/2
+	10    fc4d.d4f7.5e89    DYNAMIC     Gi0/2
+	10    fc4d.d4f7.6d66    DYNAMIC     Gi0/2
  100    5866.ba82.dce2    DYNAMIC     Gi0/2
  100    5866.ba86.e0ed    DYNAMIC     Gi0/2
-   1    000f.e207.f2e0    DYNAMIC     Gi0/2
-   1    a456.3059.9f01    DYNAMIC     Gi0/2
-   1    a456.3059.a902    DYNAMIC     Gi0/2
-   1    a456.3059.b002    DYNAMIC     Gi0/2
-   1    a456.3059.bd82    DYNAMIC     Gi0/2
-   1    a456.3059.be02    DYNAMIC     Gi0/2
-   1    a456.306c.ac01    DYNAMIC     Gi0/2
-   1    a456.306c.ac81    DYNAMIC     Gi0/2
-   1    a456.306c.ce01    DYNAMIC     Gi0/2
-   1    a456.306c.db02    DYNAMIC     Gi0/2
-   1    a456.306c.f482    DYNAMIC     Gi0/2
-   1    a456.306c.fd82    DYNAMIC     Gi0/2
-   1    a456.306c.ff81    DYNAMIC     Gi0/2
-   1    a456.306d.0d02    DYNAMIC     Gi0/2
-   1    a456.306d.b681    DYNAMIC     Gi0/2
-   1    a456.306d.b802    DYNAMIC     Gi0/2
-   1    a456.306d.bf82    DYNAMIC     Gi0/2
-   1    a456.306d.d402    DYNAMIC     Gi0/2
-   1    a456.306d.d782    DYNAMIC     Gi0/2
-   1    a456.3082.5182    DYNAMIC     Gi0/2
+	 1    000f.e207.f2e0    DYNAMIC     Gi0/2
+	 1    a456.3059.9f01    DYNAMIC     Gi0/2
+	 1    a456.3059.a902    DYNAMIC     Gi0/2
+	 1    a456.3059.b002    DYNAMIC     Gi0/2
+	 1    a456.3059.bd82    DYNAMIC     Gi0/2
+	 1    a456.3059.be02    DYNAMIC     Gi0/2
+	 1    a456.306c.ac01    DYNAMIC     Gi0/2
+	 1    a456.306c.ac81    DYNAMIC     Gi0/2
+	 1    a456.306c.ce01    DYNAMIC     Gi0/2
+	 1    a456.306c.db02    DYNAMIC     Gi0/2
+	 1    a456.306c.f482    DYNAMIC     Gi0/2
+	 1    a456.306c.fd82    DYNAMIC     Gi0/2
+	 1    a456.306c.ff81    DYNAMIC     Gi0/2
+	 1    a456.306d.0d02    DYNAMIC     Gi0/2
+	 1    a456.306d.b681    DYNAMIC     Gi0/2
+	 1    a456.306d.b802    DYNAMIC     Gi0/2
+	 1    a456.306d.bf82    DYNAMIC     Gi0/2
+	 1    a456.306d.d402    DYNAMIC     Gi0/2
+	 1    a456.306d.d782    DYNAMIC     Gi0/2
+	 1    a456.3082.5182    DYNAMIC     Gi0/2
 Total Mac Addresses for this criterion: 68
 """
 	v表 = 思科.C物理地址表(v字符串0)
@@ -262,8 +262,18 @@ Neighbor ID     Pri   State           Dead Time   Address         Interface
 	v表 = 思科.Cospf邻居表(v字符串0)
 	for v行 in v表:
 		print(v行)
+def f解析访问控制列表规则():
+	va标准 = [
+		"    22 deny   123.2.2.2 0.0.0.255",
+		"12 permit 123.1.1.1 0.0.127.255",
+		"32 deny   any"
+	]
+	for v in va标准:
+		v标准 = 思科.C标准访问控制列表.f解析规则(v)
+		print(v标准)
 def main():
-  #f物理地址表()
-	fospf邻居()
+	#f物理地址表()
+	#fospf邻居()
+	f解析访问控制列表规则()
 if __name__ == "__main__":
 	main()

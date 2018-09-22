@@ -7,6 +7,7 @@ import fractions
 import math
 import copy
 import ipaddress
+import operator
 import cflw时间 as 时间
 import cflw字符串 as 字符串
 import cflw工具_运算 as 运算
@@ -16,6 +17,8 @@ class I设备:
 		self.m自动换页文本 = ''
 		self.ma模式 = []
 		self.fs回显(False, False)
+		self.m异常开关 = True
+		self.f检测命令异常 = 运算.f空
 	def fs回显(self, a回显 = True, a等待回显 = True):
 		self.m回显 = a回显
 		self.m等待回显 = a等待回显
@@ -35,12 +38,14 @@ class I设备:
 		self.f设备_停顿()
 	def f设备_停顿(self, a倍数 = 1):
 		time.sleep(self.m间隔 * a倍数)
-	def f退出(self, a关闭 = False):	#退出当前模式,如果在用户模式,则退出登陆
-		raise NotImplementedError()
+	def f退出(self, a关闭 = False):
+		"退出当前模式,如果在用户模式,则退出登陆"
+		raise NotImplementedError()	#实现示例: self.f执行命令("exit")
 	def f输入(self, a文本):
 		self.f设备_停顿()
 		self.m连接.f写(a文本)
-	def f输出(self):#读取输出缓存中的内容，清除输出缓存
+	def f输出(self):
+		"读取输出缓存中的内容，清除输出缓存"
 		return self.m连接.f读_最新()
 	def f输入_回车(self, a数量 = 1, a等待 = 1):
 		if a数量 > 0:
@@ -181,8 +186,6 @@ class C命令:	#快速添加命令参数
 	def __str__(self):
 		return self.m字符串
 	def f添加(self, *a):
-		if not a:
-			raise TypeError
 		for v in a:
 			if self.m字符串 and self.m字符串[-1] != ' ':	#添加空格
 				self.m字符串 += " "
@@ -199,6 +202,21 @@ class C命令:	#快速添加命令参数
 	def f前置否定(self, a判断: bool, a命令):
 		if not a判断:
 			self.f前面添加(a命令)
+def F检测命令异常(a列表):
+	def f检测命令异常(self, a输出):
+		def f返回异常(ax):
+			if type(ax) == type:
+				v异常 = ax(a输出)
+			else:
+				v异常 = ax
+			if self.m异常开关:
+				raise v异常
+			return v异常
+		for v文本, vt异常 in a列表:
+			if v文本 in a输出:
+				return f返回异常(vt异常)
+		return None
+	return f检测命令异常
 #==============================================================================
 # 模式基类
 #==============================================================================
@@ -386,7 +404,7 @@ class I全局配置模式(I模式):
 		raise NotImplementedError()
 	def f模式_路由信息协议(self, a进程号 = 0, a版本 = E版本.e网络协议4):	#rip
 		raise NotImplementedError()
-	def f模式_开放最短路径优先(self, p进程号, a版本 = E版本.e开放最短路径优先2):	#ospf
+	def f模式_开放最短路径优先(self, a进程号, a版本 = E版本.e开放最短路径优先2):	#ospf
 		raise NotImplementedError()
 	def f模式_增强内部网关路由协议(self, a名称, a版本 = E版本.e网络协议4):	#eigrp
 		raise NotImplementedError()
@@ -667,7 +685,7 @@ class S接口:
 		return self.m类型 % 0x10000 // 0x10
 	def fi属于分类(self, *a分类):
 		v值 = self.fg分类()
-		for v in p分类:
+		for v in a分类:
 			v分类 = int(v)
 			if v值 == v分类:
 				return True
@@ -948,6 +966,10 @@ class I开放最短路径优先接口(I接口配置模式):
 	c模式名 = "开放最短路径优先接口配置模式"
 	def __init__(self, a, a接口):
 		I接口配置模式.__init__(self, a, a接口)
+	def f通告接口(self, a进程号, a区域):
+		raise NotImplementedError()
+	def f删除接口(self, a进程号, a区域):
+		raise NotImplementedError()	
 	def fs问候时间(self, a时间 = 10):
 		raise NotImplementedError()
 	def fs死亡时间(self, a时间 = 40):
@@ -1041,7 +1063,7 @@ class I边界网关协议对等体(I模式):
 		raise NotImplementedError()
 	def fs更新源地址(self, a):
 		raise NotImplementedError()
-#isis =========================================================================
+#isis ==========================================================================
 class I中间系统到中间系统(I模式):
 	c模式名 = "中间系统到中间系统配置模式"
 	def __init__(self, a, a进程号):
@@ -1054,35 +1076,113 @@ class I中间系统到中间系统(I模式):
 		raise NotImplementedError()
 	def f删除接口(self, a接口):
 		raise NotImplementedError()
-#==============================================================================
+#===============================================================================
 # acl
-#==============================================================================
+#===============================================================================
 class E访问控制列表类型(enum.IntEnum):
+	"模式用"
 	e标准 = 40
 	e扩展 = 41
 	ipv4标准 = 40
 	ipv4扩展 = 41
 	ipv6 = 60
-class C访问控制列表:
+class I访问控制列表端口号到字符串:
+	def f等于(self, a序列):
+		raise NotImplementedError()
+	def f不等于(self, a序列):
+		raise NotImplementedError()
+	def f大于(self, a值):
+		raise NotImplementedError()
+	def f大于等于(self, a值):
+		return self.f大于(a值 - 1)
+	def f小于(self, a值):
+		raise NotImplementedError()
+	def f小于等于(self, a值):
+		return self.f小于(a值 + 1)
+	def f范围(self, a值):
+		raise NotImplementedError()
+class C访问控制列表端口号到字符串(I访问控制列表端口号到字符串):
+	def f大于(self, a值):
+		return ">" + str(a值)
+	def f大于等于(self, a值):
+		return "≥" + str(a值)
+	def f小于(self, a值):
+		return "<" + str(a值)
+	def f小于等于(self, a值):
+		return "≤" + str(a值)
+	def f等于(self, a序列):
+		return "=" + " ".join(字符串.ft字符串序列(a序列))
+	def f不等于(self, a序列):
+		return "≠" + " ".join(字符串.ft字符串序列(a序列))
+	def f范围(self, a值: range):
+		return "%d~%d" % (a值.start, a值.stop - 1)
+c访问控制列表端口号到字符串 = C访问控制列表端口号到字符串()
+class S访问控制列表端口号:
+	def __init__(self, a值, a运算):
+		self.m运算 = a运算
+		self.m值 = a值
+	def __str__(self):
+		return self.ft字符串()
+	@staticmethod
+	def fc大于(a值):
+		return S访问控制列表端口号(a值, 运算.f大于)
+	@staticmethod
+	def fc大于等于(a值):
+		return S访问控制列表端口号(a值, 运算.f大于等于)
+	@staticmethod
+	def fc小于(a值):
+		return S访问控制列表端口号(a值, 运算.f小于)
+	@staticmethod
+	def fc小于等于(a值):
+		return S访问控制列表端口号(a值, 运算.f小于等于)
+	@staticmethod
+	def fc范围(a值):
+		return S访问控制列表端口号(a值, 运算.f包含)
+	@staticmethod
+	def fc等于(*a值):	#慎用多值,只有思科支持多值
+		return S访问控制列表端口号(a值, 运算.f包含)
+	@staticmethod
+	def fc不等于(*a值):	#慎用,只有思科支持不等于
+		return S访问控制列表端口号(a值, 运算.f不包含)
+	def fi范围内(self, a):
+		return self.m运算(self.m值, a)
+	def ft字符串(self, a接口 = c访问控制列表端口号到字符串):
+		if self.m运算 == 运算.f大于:
+			return a接口.f大于(self.m值)
+		elif self.m运算 == 运算.f大于等于:
+			return a接口.f大于等于(self.m值)
+		elif self.m运算 == 运算.f小于:
+			return a接口.f小于(self.m值)
+		elif self.m运算 == 运算.f小于等于:
+			return a接口.f小于等于(self.m值)
+		elif self.m运算 == 运算.f包含:
+			if type(self.m值) == range:
+				return a接口.f范围(self.m值)
+			else:
+				return a接口.f等于(self.m值)
+		elif self.m运算 == 运算.f不包含:
+			return a接口.f不等于(self.m值)
+		else:
+			return ""
+class C访问控制列表规则:
+	"""成员&参数:\n
+	允许: bool, 决定动作是permit还是deny\n
+	协议: int, 值来自E协议\n
+	源地址: S网络地址4\n
+	目标地址: S网络地址4\n
+	源端口: S端口\n
+	目标端口: S端口"""
+	#类型	--------------------------------------------------------------------
 	class E端(enum.IntEnum):
 		e地址 = 0
 		e通配符 = 1
 		e掩码 = 2
 		e端口符号 = 3
 		e端口 = 4
-	class E符号(enum.IntEnum):
-		e无 = 0
-		e等于 = 1
-		e不等于 = 2
-		e大于 = 10
-		e小于 = 20
-		e大于等于 = 11
-		e小于等于 = 21
-		e范围 = 100
 	class E协议(enum.IntEnum):
 		ip = 30,
-		ipv4 = 30,
-		ipv6 = 31,
+		ipv4 = 31,
+		ipv6 = 32,
 		tcp = 40,
 		udp = 41
 	class E写模式(enum.IntEnum):	#添加规则的策略
@@ -1092,54 +1192,69 @@ class C访问控制列表:
 		e修改 = 3	#华为华三默认
 	class S端口:
 		def __init__(self):
-			self.m符号 = C访问控制列表.E符号.e无
+			self.m符号 = C访问控制列表规则.E符号.e无
 			self.m端口 = []
-	class S规则:
-		
-		"""成员&参数:\n
-		允许: bool, 决定动作是permit还是deny\n
-		协议: int, 值来自E协议\n
-		源地址: S网络地址4\n
-		目标地址: S网络地址4\n
-		源端口: S端口\n
-		目标端口: S端口"""
-		def __init__(self, **a):
-			self.m规则类型 = None
-			self.m地址类型 = None
-			self.m解析 = True	#是否解析参数类型
-			self.m允许 = False
-			self.m协议 = C访问控制列表.E协议.ipv4
-			self.m源地址 = None
-			self.m目的地址 = None
-			self.m源端口 = None
-			self.m目的端口 = None
-			self.f更新(**a)
-		def f更新(self, **a):
-			if "a允许" in a:
-				self.fs允许(a["a允许"])
-			if "a协议" in a:
-				self.fs协议(a["a协议"])
-			if "a源地址" in a:
-				self.fs源地址(a["a源地址"])
-			if "a目的地址" in a:
-				self.fs目的地址(a["a目的地址"])
-			if "a源端口" in a:
-				self.fs源端口(a["a源端口"])
-			if "a目的端口" in a:
-				self.fs目的端口(a["a目的端口"])
-		#属性
-		def fs允许(self, a):
-			self.m允许 = bool(a)
-		def fs协议(self, a协议):
-			self.m协议 = a协议
-		def fs源地址(self, a地址):
-			self.m源地址 = a地址
-		def fs目的地址(self, a地址):
-			self.m目的地址 = a地址
-		def fs源端口(self, a端口):
-			self.m源端口 = a端口
-		def fs目的端口(self, a端口):
-			self.m目的端口 = a端口
+	#方法	--------------------------------------------------------------------
+	def __init__(self, **a):
+		self.m规则类型 = None
+		self.m序号 = -1	#添加规则时不使用该序号,解析规则时赋值
+		self.m地址类型 = None
+		self.m解析 = True	#是否解析参数类型
+		self.m允许 = None
+		self.m协议 = C访问控制列表规则.E协议.ip
+		self.m源地址 = None
+		self.m目的地址 = None
+		self.m源端口 = None
+		self.m目的端口 = None
+		self.f更新(**a)
+	def f更新(self, **a):
+		for k, v in C访问控制列表规则.ca更新.items():
+			if k in a:
+				v(self, a[k])
+	def __str__(self):
+		v = ""
+		#序号
+		if self.m序号 >= 0:
+			v += "序号%d, " % (self.m序号,)
+		#允许
+		if self.m允许:
+			v += "允许, "
+		else:
+			v += "拒绝, "
+		#协议
+		v += C访问控制列表规则.ca协议到字符串[self.m协议] + ", "
+		#地址
+		if self.m源地址:
+			v += "源地址%s, " % (self.m源地址,)
+		if self.m源端口:
+			v += "源端口%s, " % (self.m源端口,)
+		if self.m目的地址:
+			v += "目的地址%s, " % (self.m目的地址,)
+		if self.m目的端口:
+			v += "目的端口%s, " % (self.m目的端口,)
+		return v
+	#属性
+	def fs允许(self, a):
+		self.m允许 = bool(a)
+	def fs协议(self, a协议):
+		self.m协议 = a协议
+	def fs源地址(self, a地址):
+		self.m源地址 = a地址
+	def fs目的地址(self, a地址):
+		self.m目的地址 = a地址
+	def fs源端口(self, a端口):
+		self.m源端口 = a端口
+	def fs目的端口(self, a端口):
+		self.m目的端口 = a端口
+	def f匹配源地址(self, a地址):
+		self.m源地址.fi范围内(a地址)
+	def f匹配目的地址(self, a地址):
+		self.m目的地址.fi范围内(a地址)
+	def f匹配源端口(self, a端口):
+		self.m源端口.fi范围内(a端口)
+	def f匹配目的端口(self, a端口):
+		self.m目的端口.fi范围内(a端口)
+	#静态函数	-----------------------------------------------------------------
 	@staticmethod
 	def fi地址(a地址):
 		if isinstance(a地址, 地址.S网络地址4):
@@ -1151,7 +1266,7 @@ class C访问控制列表:
 		return False
 	@staticmethod
 	def fi端口(a端口):
-		if isinstance(p端口, C访问控制列表.S传输层):
+		if isinstance(a端口, C访问控制列表规则.S端口):
 			return True
 		return False
 	#解析
@@ -1160,70 +1275,24 @@ class C访问控制列表:
 		s = re.sub(r"\b+", r"/", s)
 		return s
 	@staticmethod
-	def f解析地址4(a地址):
-		"""支持的类型&值：ipaddress模块中的地址类、str、None\n
-		支持的字符串格式：地址/掩码、host 地址、地址 掩码、地址 反掩码\n
-		返回：ipaddress.IPv4Address(参数是主机地址时)、ipaddress.IPv4Network(参数是网络地址时)\n
-		注意：掩码、反掩码全为1或全为0可能产生误判"""
-		v类型 = type(a地址)
-		if v类型 in (ipaddress.IPv4Address, ipaddress.IPv4Network):
-			return a地址
-		elif v类型 == ipaddress.IPv4Interface:
-			return a地址.ia
-		elif a地址 == None:
-			return a地址
-		elif v类型 == str:
-			v地址 = str(a地址)
-			if "/" in v地址:
-				return ipaddress.IPv4Network(v地址, False)
-			if v地址[0:5] == "host ":
-				return ipaddress.IPv4Address(v地址[5:])
-			if v地址[-2:] == " 0":
-				return ipaddress.IPv4Address(v地址[:-2])
-			if " " in v地址:
-				v地址 = C访问控制列表.C规则.f空白转斜扛(v地址)
-				if v地址.count("/") != 1:
-					raise ValueError("无法解析字符串 %s" % (v地址,))
-				return ipaddress.IPv4Network(v地址, False)
-			raise ValueError("无法解析字符串 %s" % (v地址,))
-		else:
-			raise TypeError("无法解析类型 %s" % (type(a地址).__name__,))
-	@staticmethod
-	def f解析地址6(a地址):
-		"""支持的类型&值：ipaddress模块中的地址、str、None\n
-		支持的字符串格式：地址/掩码、host 地址\n
-		返回：ipaddress.IPv6Address(参数是主机地址时)、ipaddress.IPv6Network(参数是网络地址时)"""
-		v类型 = type(a地址)
-		if v类型 in (ipaddress.IPv6Address, ipaddress.IPv6Network):
-			return a地址
-		elif v类型 in (ipaddress.IPv6Interface):
-			return a地址.ia
-		elif v类型 in (int, bytes):
-			return ipaddress.IPv6Address(a地址)
-		elif a地址 == None:
-			return a地址
-		elif v类型 == str:
-			v地址 = str(a地址)
-			if "/" in v地址:
-				return ipaddress.IPv6Network(v地址, False)
-			if v地址[0:5] == "host ":
-				return ipaddress.IPv6Address(v地址[5:])
-			raise ValueError("无法解析字符串 %s" % (v地址,))
-		raise TypeError("无法解析类型 %s" % (type(a地址).__name__,))
-	@staticmethod
 	def f解析端口(a端口):
 		v类型 = type(a端口)
 		if v类型 == str:
 			v位置 = 0
-			v符号表 = [
-				("==", C访问控制列表.E符号.e等于),
-				("!=", C访问控制列表.E符号.e不等于),
-				(">=", C访问控制列表.E符号.e大于等于),
-				("<=", C访问控制列表.E符号.e小于等于),
-				(">", C访问控制列表.E符号.e等于),
-				("<", C访问控制列表.E符号.e等于)
-
-			]
+C访问控制列表规则.ca更新 = {
+	"a允许": C访问控制列表规则.fs允许,
+	"a协议": C访问控制列表规则.fs协议,
+	"a源地址": C访问控制列表规则.fs源地址,
+	"a目的地址": C访问控制列表规则.fs目的地址,
+	"a源端口": C访问控制列表规则.fs源端口,
+	"a目的端口": C访问控制列表规则.fs目的端口,
+}
+C访问控制列表规则.ca协议到字符串 = {
+	C访问控制列表规则.E协议.ip: "互联网协议第4版",
+	C访问控制列表规则.E协议.ipv6: "互联网协议第6版",
+	C访问控制列表规则.E协议.tcp: "传输控制协议",
+	C访问控制列表规则.E协议.udp: "用户数据报协议",
+}
 class I访问控制列表(I模式):
 	c模式名 = "访问控制列表配置模式"
 	def __init__(self, a):
@@ -1232,9 +1301,9 @@ class I访问控制列表(I模式):
 		raise NotImplementedError()
 	def f删除规则(self, a序号):
 		raise NotImplementedError()
-	def f移动规则(self, a旧, a新, a覆盖 = True):
+	def f移动规则(self, a旧序号, a新序号, a覆盖 = True):
 		raise NotImplementedError()
-	def fg条目(self):
+	def fe规则(self):
 		raise NotImplementedError()
 	def f应用到(self, a):
 		raise NotImplementedError()
@@ -1283,7 +1352,7 @@ class I生成树接口配置模式(I接口配置模式):
 		raise NotImplementedError()
 	def fs环路保护(self, a):
 		raise NotImplementedError()
-	def fs开销(self, p树, a开销):
+	def fs开销(self, a树, a开销):
 		raise NotImplementedError()
 #==============================================================================
 # 远程连接

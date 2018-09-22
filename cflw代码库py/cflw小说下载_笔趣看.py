@@ -77,7 +77,7 @@ class C小说(小说下载.I小说):
 			self.m信息["作者"] = va信息[0].string[3:]
 			self.m信息["分类"] = va信息[1].string[3:]
 			self.m信息["状态"] = va信息[2].string[3:]
-			self.m信息["字数"] = int([3].string[3:])
+			self.m信息["字数"] = int(va信息[3].string[3:])
 			self.m信息["最后更新时间"] = time.strptime(va信息[4].string[5:], "%Y-%m-%d %H:%M:%S")
 		return self.m信息
 class C章节(小说下载.I章节):

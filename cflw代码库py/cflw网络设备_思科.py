@@ -10,6 +10,7 @@ import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 import cflw时间 as 时间
 import cflw英语 as 英语
+import 网络设备.思科_访问控制列表 as 访问控制列表
 c不 = "no "
 c做 = "do "
 c结束符 = '\x03'	#ctrl+c
@@ -23,9 +24,9 @@ class E型号(enum.IntEnum):
 	c7200 = 7200
 def f创建设备(a连接: 连接.I连接, a型号: int = 0, a版本 = 0):
 	return C设备(a连接)
-#==============================================================================
+#===============================================================================
 # 设备
-#==============================================================================
+#===============================================================================
 class C设备(设备.I设备):
 	def __init__(self, a连接):
 		设备.I设备.__init__(self)
@@ -34,6 +35,7 @@ class C设备(设备.I设备):
 			self.m连接.fs编码("ascii")
 		else:
 			raise TypeError("a连接 必须是 I连接 类型")
+		self.m异常 = True	#是否抛出异常
 	def f退出(self):
 		self.f执行命令("exit")
 	def f输入_结束符(self):	#ctrl+c
@@ -47,7 +49,7 @@ class C设备(设备.I设备):
 		return self.ma模式[0]
 	def f执行命令(self, a命令):
 		v输出 = 设备.I设备.f执行命令(self, a命令)
-		C设备.f检测命令异常(v输出)
+		self.f检测命令异常(v输出)
 		return v输出
 	def f执行用户命令(self, a命令):
 		v命令 = str(a命令)
@@ -67,25 +69,27 @@ class C设备(设备.I设备):
 		v输出 = v输出.replace("\r\n", "\n")
 		v输出 = 设备.C实用工具.f去头尾行(v输出)
 		if v输出.count("\n") < 10:	#输出行数太少,检测是否有异常
-			C设备.f检测命令异常(v输出)
+			self.f检测命令异常(v输出)
 		return v输出
-	@staticmethod
-	def f检测命令异常(a输出, a抛出 = True):
+	def f检测命令异常(self, a输出):
 		def f返回异常(ax):
 			if type(ax) == type:
 				v异常 = ax(a输出)
 			else:
 				v异常 = ax
-			if a抛出:
+			if self.m异常:
 				raise v异常
 			return v异常
-		if "% Invalid input detected at '^' marker." in a输出:	#语法错误
-			return f返回异常(设备.X命令)
-		elif "% Ambiguous command:" in a输出:	#不明确
-			return f返回异常(设备.X命令)
-		elif "% Duplicate sequence number" in a输出:	#acl规则序号冲突
-			return f返回异常(设备.X执行)
+		for v文本, vt异常 in ca错误文本与异常类:
+			if v文本 in a输出:
+				return f返回异常(vt异常)
 		return None
+ca错误文本与异常类 = [
+	("% Invalid input detected at '^' marker.", 设备.X命令),	#语法错误
+	("% Ambiguous command:", 设备.X命令),	#无法识别的命令
+	("% Duplicate sequence number", 设备.X执行),	#重复的acl规则序号
+	("% Multiple ports are allowed on named ACLs only", 设备.X执行),	#多端口号只允许在命名acl使用
+]
 #==============================================================================
 # 用户模式
 #==============================================================================
@@ -263,24 +267,21 @@ class C全局配置(设备.I全局配置模式):
 	def f模式_时间范围(self, a):
 		return C时间范围(self, a)
 	def f模式_访问控制列表(self, a名称, a类型 = 设备.E访问控制列表类型.e标准):
-		v名称类型 = type(a名称)
+		def f整数范围检查(aa范围: list, a错误文本: str):
+			if type(a名称) == int:
+				for v in aa范围:
+					if a名称 in v:
+						return
+				raise ValueError(a错误文本)
 		#创建访问控制列表对象
 		if a类型 == 设备.E访问控制列表类型.ipv4标准:
-			if v名称类型 == int:	#验证
-				if a名称 in range(1, 100) or a名称 in range(1300, 2000):
-					pass
-				else:
-					raise ValueError("标准访问控制列表号码范围应为1~99,1300~1999")
-			return C标准访问控制列表(self, a名称)
+			f整数范围检查([range(1, 100), range(1300, 2000)], "标准访问控制列表号码范围应为1~99,1300~1999")
+			return 访问控制列表.C标准4(self, a名称)
 		elif a类型 == 设备.E访问控制列表类型.ipv4扩展:
-			if v名称类型 == int:	#验证
-				if a名称 in range(100, 200) or a名称 in range(2000, 2700):
-					pass
-				else:
-					raise ValueError("扩展访问控制列表号码范围应为100~199,2000~2699")
-			return C扩展访问控制列表(self, a名称)
+			f整数范围检查([range(100, 200), range(2000, 2700)], "扩展访问控制列表号码范围应为100~199,2000~2699")
+			return 访问控制列表.C扩展4(self, a名称)
 		elif a类型 == 设备.E访问控制列表类型.ipv6:
-			return Cipv6访问控制列表(self, a名称)
+			return 访问控制列表.C六(self, a名称)
 		else:
 			raise ValueError("未知的访问控制列表类型")
 	#路由
@@ -314,7 +315,7 @@ class C全局配置(设备.I全局配置模式):
 		return Cdhcp(self)
 	#助手
 	def f助手_访问控制列表(self):
-		return C助手_访问控制列表()
+		return 访问控制列表.C助手()
 #==============================================================================
 # 时间
 #==============================================================================
@@ -906,9 +907,9 @@ class Cdhca地址池(设备.I动态主机配置协议地址池):
 		v命令 = 设备.C命令("dns-server address")
 		v命令.f添加(a地址)
 		self.f执行当前模式命令(v命令)
-#==============================================================================
+#===============================================================================
 # dhcp
-#==============================================================================
+#===============================================================================
 class Cdhcp(设备.I动态主机配置协议, 设备.C同级模式):
 	def __init__(self, a):
 		设备.I动态主机配置协议.__init__(self, a)
@@ -920,190 +921,6 @@ class Cdhcp(设备.I动态主机配置协议, 设备.C同级模式):
 			v命令 = c不 + v命令
 		self.f切换到当前模式()
 		self.m设备.f执行命令(v命令)
-#==============================================================================
-# acl
-#==============================================================================
-class I访问控制列表(设备.I访问控制列表):
-	c允许 = "permit"
-	c拒绝 = "deny"
-	def __init__(self, a, a名字, a类型 = "", a协议 = "ip"):
-		设备.I访问控制列表.__init__(self, a)
-		self.m名字 = a名字
-		self.m类型 = a类型
-		self.m协议 = a协议
-	def fg模式参数(self):
-		return (self.m类型, self.m名字)
-	def fg进入命令(self):
-		return "%s access-list %s %s" % (self.m协议, self.m类型, self.m名字)
-	def f删除规则(self, a序号: int):
-		self.f执行当前模式命令(c不 + str(a序号))
-	@staticmethod
-	def f解析允许(a允许):
-		if type(a允许) == str:
-			if a允许 in (I访问控制列表.c允许, I访问控制列表.c拒绝):
-				return a允许
-		if a允许:
-			return I访问控制列表.c允许
-		else:
-			return I访问控制列表.c拒绝
-	@staticmethod
-	def f解析地址4(a地址):
-		"转成字符串"
-		v地址 = 设备.C访问控制列表.f解析地址4(a地址)
-		v类型 = type(v地址)
-		if v类型 == ipaddress.IPv4Address:
-			return "host %s" % (v地址,)
-		elif v类型 == ipaddress.IPv4Network:
-			return "%s %s" % (v地址.network_address, v地址.hostmask)
-		elif v类型 == str:
-			return v地址
-		elif a地址 == None:
-			return "any"
-		else:
-			raise TypeError("无法解析的类型")
-	@staticmethod
-	def f解析地址6(a地址):
-		v地址 = 设备.C访问控制列表.f解析地址6(a地址)
-		v类型 = type(v地址)
-		if v类型 == ipaddress.IPv6Address:
-			return "host %s" % (v地址,)
-		elif v类型 == ipaddress.IPv6Network:
-			return "%s %s" % (v地址.network_address, v地址.hostmask)
-		elif v类型 == str:
-			return v地址
-		elif a地址 == None:
-			return "any"
-		else:
-			raise TypeError("无法解析的类型")
-	@staticmethod
-	def f解析端口(a端口):
-		def f多值(a符号):
-			v类型 = type(a端口.m端口)
-			if v类型 == list:
-				s = a符号
-				for v in a端口.m端口:
-					s += " " + str(v)
-				return s
-			elif v类型 == int:
-				return a符号 + " " + str(a端口.m端口)
-			else:
-				raise TypeError("无法解析的类型")
-		def f单值(a符号, p偏移 = 0):
-			return a符号 + " " + str(int(a端口.m端口) + p偏移)
-		def f范围(p范围):
-			return "range %d %d" % (p范围.start, p范围.stop - 1)
-		if not a端口:
-			return ""
-		v类型 = type(a端口)
-		if v类型 == 设备.C访问控制列表.S端口:
-			if a端口.m符号 == 设备.C访问控制列表.E符号.e等于:
-				return f多值("eq")
-			elif a端口.m符号 == 设备.C访问控制列表.E符号.e不等于:
-				return f多值("neq")
-			elif a端口.m符号 == 设备.C访问控制列表.E符号.e大于:
-				return f单值("gt")
-			elif a端口.m符号 == 设备.C访问控制列表.E符号.e大于等于:
-				return f单值("gt", -1)
-			elif a端口.m符号 == 设备.C访问控制列表.E符号.e小于:
-				return f单值("lt")
-			elif a端口.m符号 == 设备.C访问控制列表.E符号.e小于等于:
-				return f单值("lt", +1)
-			elif a端口.m符号 == 设备.C访问控制列表.E符号.e无:
-				return ""
-			elif a端口.m符号 == 设备.C访问控制列表.E符号.e范围:
-				return f范围(a端口.m端口)
-			else:
-				raise TypeError("无法解析的类型")
-		elif v类型 == int:
-			return "eq " + str(a端口)
-		elif v类型 == range:
-			return f范围(a端口)
-		else:
-			raise TypeError("无法解析的类型")
-class C标准访问控制列表(I访问控制列表):
-	def __init__(self, a, a名字):
-		I访问控制列表.__init__(self, a, a名字, a类型 = "standard")
-	def f添加规则(self, a序号 = -1, a规则 = 设备.C访问控制列表.S规则(a允许 = False)):
-		if a序号 == None or a序号 < 0:
-			v序号 = ""
-		else:
-			v序号 = a序号
-		v允许 = I访问控制列表.f解析允许(a规则.m允许)
-		v源地址 = I访问控制列表.f解析地址4(a规则.m源地址)
-		v命令 = "%s %s %s" % (v序号, v允许, v源地址)
-		self.f执行当前模式命令(v命令)
-	def f删除规则(self, a序号):
-		self.f执行当前模式命令(c不 + str(v序号))
-class C扩展访问控制列表(I访问控制列表):
-	def __init__(self, a, a名字):
-		I访问控制列表.__init__(self, a, a名字, a类型 = "extended")
-	def f添加规则(self, a序号 = -1, a规则 = 设备.C访问控制列表.S规则(a允许 = False)):
-		v命令 = 设备.C命令()
-		if a序号 == None or a序号 < 0:
-			pass
-		else:
-			v命令 += a序号
-		v命令 += I访问控制列表.f解析允许(a规则.m允许)
-		#确定
-		if a规则.m协议 == 设备.C访问控制列表.E协议.ipv4:
-			v命令 += "ip"
-			v层 = 3
-		elif a规则.m协议 == 设备.C访问控制列表.E协议.tcp:
-			v命令 += "tcp"
-			v层 = 4
-		elif a规则.m协议 == 设备.C访问控制列表.E协议.udp:
-			v命令 += "udp"
-			v层 = 4
-		else:
-			raise ValueError("无法识别的协议")
-		#按层
-		if v层 == 3:
-			v命令 += I访问控制列表.f解析地址4(a规则.m源地址)
-			v命令 += I访问控制列表.f解析地址4(a规则.m目的地址)
-		elif v层 == 4:
-			v命令 += I访问控制列表.f解析地址4(a规则.m源地址)
-			v命令 += I访问控制列表.f解析端口(a规则.m源端口)
-			v命令 += I访问控制列表.f解析地址4(a规则.m目的地址)
-			v命令 += I访问控制列表.f解析端口(a规则.m目的端口)
-		else:
-			raise NotImplementedError("迷之逻辑")
-		#执行命令
-		self.f执行当前模式命令(v命令)
-	def f删除规则(self, a序号):
-		self.f执行当前模式命令(c不 + str(v序号))
-class Cipv6访问控制列表(I访问控制列表):
-	def __init__(self, a, a名字):
-		I访问控制列表.__init__(self, a, a名字, a协议 = "ipv6")
-	def f添加规则(self, a序号 = -1, a规则 = 设备.C访问控制列表.S规则(a允许 = False)):
-		if a序号 == None or a序号 < 0:
-			v序号 = ""
-		else:
-			v序号 = "sequence" + str(a序号)
-		v允许 = I访问控制列表.f解析允许(a规则.m允许)
-		v源地址 = I访问控制列表.f解析地址6(a规则.m源地址)
-		v命令 = "%s %s %s" % (v序号, v允许, v源地址)
-		self.f执行当前模式命令(v命令)
-	def f删除规则(self, a序号):
-		self.f执行当前模式命令(c不 + str(v序号))
-class C助手_访问控制列表(设备.I访问控制列表助手):
-	def F计算(p0, p1):
-		@staticmethod
-		def f(n):
-			v类型 = type(n)
-			if v类型 == int:
-				if n in range(p0[0], p0[1]):
-					return n + p0[2]
-				elif n in range(p1[0], p1[1]):
-					return n + p1[2]
-				else:
-					raise ValueError("n超出范围")
-			else:
-				return n
-		return f
-	f计算序号_标准4 = F计算((0, 99, 1), (100, 799, 1200))
-	f计算序号_扩展4 = F计算((0, 99, 100), (100, 799, 1900))
-	f反算序号_标准4 = F计算((1, 100, -1), (1301, 2000, -1200))
-	f反算序号_扩展4 = F计算((100, 200, -100), (2000, 2700, -1900))
 #==============================================================================
 # 工具
 #==============================================================================
@@ -1119,11 +936,11 @@ class C实用工具:
 		return s
 	@staticmethod
 	def f接口字符串_复杂(a接口: 设备.S接口)->str:	#支持连续地址
-		def f连续(p字符串: str, p范围: range):
+		def f连续(p字符串: str, a范围: range):
 			#返回'f0/0.1-f0/0.100'这样子的字符串
 			#字符串:'f0/0.',范围:range(1,101)
-			v前 = p字符串 + str(p范围.start)
-			v后 = p字符串 + str(p范围.stop - 1)
+			v前 = p字符串 + str(a范围.start)
+			v后 = p字符串 + str(a范围.stop - 1)
 			return v前 + '-' + v后
 		#S接口
 		s = g接口名称[a接口.m名称]

@@ -155,7 +155,7 @@ class S网络地址4:
 			v这.m地址 = int(v0)
 			v这.m前缀长度 = v1
 		else:
-			raise TypeError("无法解析参数")
+			raise TypeError("无法解析参数类型")
 		return v这
 	@staticmethod
 	def fc地址字符串(a地址):
@@ -187,7 +187,7 @@ class S网络地址4:
 	def f地址字符串转整数(a):
 		assert(type(a) == str)
 		if a.count(".") != 3:
-			raise ValueError
+			raise ValueError()
 		v = a.split(".")
 		return int(v[0]) * 2 ** 24 + int(v[1]) * 2 ** 16 + int(v[2]) * 2 ** 8 + int(v[3])
 	@staticmethod
@@ -203,7 +203,7 @@ class S网络地址4:
 				pass
 			else:	#未知格式
 				v整数 = 0
-			return 32 - math.log2(v整数 + 1)
+			return 32 - int(math.log2(v整数 + 1))
 		else:
 			return int(a)
 	@staticmethod
@@ -284,6 +284,12 @@ class S网络地址4:
 		v范围 = range(self.fg网络号i() + 1, self.fg广播地址i())
 		for i in v范围:
 			yield S网络地址4(i, self.m前缀长度)
+	def fi范围内(self, a地址, a真子集 = False):
+		if self.m前缀长度 < a地址.m前缀长度:
+			return False
+		if self.m前缀长度 == a地址.m前缀长度 and a真子集:
+			return False
+		return self.fg网络号i() == a地址.m地址 & self.fg掩码i()
 #===============================================================================
 # 网络地址6
 #===============================================================================
@@ -379,11 +385,13 @@ class S网络地址6:
 	def fg广播地址i(self):
 		'返回整数'
 		return self.m地址 | (2 ** (128 - self.m前缀长度) - 1)
-	def fg字符串(self):
+	def ft字符串(self):
 		v字符串 = hex(self.m地址)[2:]	#去掉0x
 		return 字符串.f隔段插入字符串(v字符串, a分隔符, 4)
 	def fg主机地址数(self):
 		return 2 ** (S网络地址6.c最大前缀长度 - self.m前缀长度) - 2
+	def fg前缀长度(self):
+		return self.m前缀长度
 #===============================================================================
 # 物理地址
 #===============================================================================

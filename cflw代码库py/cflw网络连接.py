@@ -55,3 +55,15 @@ class C网络终端(I连接):
 		self.m终端.write(a文本.encode(self.m编码))
 	def f关闭(self):
 		self.m终端.close()
+class C空连接(I连接):
+	"什么也不做"
+	def f读_最新(self):
+		return ""
+	def f读_最近(self, a数量):
+		return ""
+	def f写(self, a文本):#向设备传输文本
+		pass
+	def fs编码(self, a编码):#传输文本时使用的编码
+		pass
+	def f关闭(self):
+		pass
