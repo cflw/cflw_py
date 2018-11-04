@@ -10,7 +10,15 @@ import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 import cflw时间 as 时间
 import cflw英语 as 英语
+import 网络设备.思科_接口 as 接口
 import 网络设备.思科_访问控制列表 as 访问控制列表
+import 网络设备.思科_路由信息协议 as 路由信息协议
+import 网络设备.思科_增强内部网关路由协议 as 增强内部网关路由协议
+import 网络设备.思科_开放最短路径优先 as 开放最短路径优先
+import 网络设备.思科_边界网关协议 as 边界网关协议
+import 网络设备.思科_密码 as 密码
+import 网络设备.思科_动态主机配置协议 as 动态主机配置协议
+import 网络设备.思科_前缀列表 as 前缀列表
 c不 = "no "
 c做 = "do "
 c结束符 = '\x03'	#ctrl+c
@@ -27,6 +35,12 @@ def f创建设备(a连接: 连接.I连接, a型号: int = 0, a版本 = 0):
 #===============================================================================
 # 设备
 #===============================================================================
+ca错误文本与异常类 = [
+	("% Invalid input detected at '^' marker.", 设备.X命令),	#语法错误
+	("% Ambiguous command:", 设备.X命令),	#无法识别的命令
+	("% Duplicate sequence number", 设备.X执行),	#重复的acl规则序号
+	("% Multiple ports are allowed on named ACLs only", 设备.X执行),	#多端口号只允许在命名acl使用
+]
 class C设备(设备.I设备):
 	def __init__(self, a连接):
 		设备.I设备.__init__(self)
@@ -84,15 +98,17 @@ class C设备(设备.I设备):
 			if v文本 in a输出:
 				return f返回异常(vt异常)
 		return None
-ca错误文本与异常类 = [
-	("% Invalid input detected at '^' marker.", 设备.X命令),	#语法错误
-	("% Ambiguous command:", 设备.X命令),	#无法识别的命令
-	("% Duplicate sequence number", 设备.X执行),	#重复的acl规则序号
-	("% Multiple ports are allowed on named ACLs only", 设备.X执行),	#多端口号只允许在命名acl使用
-]
-#==============================================================================
+	#助手
+	def f助手_访问控制列表(self):
+		return 访问控制列表.C助手()
+	def f助手_密码(self, a强密码 = True):
+		if a强密码:
+			return 密码.C强密码助手()
+		else:
+			return 密码.C弱密码助手()
+#===============================================================================
 # 用户模式
-#==============================================================================
+#===============================================================================
 class C用户模式(设备.I用户模式):
 	def __init__(self, a设备):
 		设备.I用户模式.__init__(self, a设备)
@@ -139,9 +155,9 @@ class C用户模式(设备.I用户模式):
 			v输出 = self.m设备.f执行显示命令("show version")
 			self.m版本信息 = C版本信息(v输出)
 		return self.m版本信息
-#==============================================================================
+#===============================================================================
 # 信息
-#==============================================================================
+#===============================================================================
 class C版本信息(设备.I版本信息):
 	def __init__(self, a):
 		self.m字符串 = str(a)
@@ -238,9 +254,9 @@ class C三层接口表:
 				v状态 = False
 			#退回
 			yield 设备.S三层接口项(a接口 = v接口, a地址 = v地址, a状态 = v状态)
-#==============================================================================
+#===============================================================================
 # 全局配置
-#==============================================================================
+#===============================================================================
 class C全局配置(设备.I全局配置模式):
 	c进入命令 = "configure terminal"
 	def __init__(self, a父模式):
@@ -260,8 +276,8 @@ class C全局配置(设备.I全局配置模式):
 		return C全局配置.c进入命令
 	#基本模式
 	def f模式_接口配置(self, a接口):
-		v接口 = f创建接口(a接口)
-		return C接口配置(self, v接口)
+		v接口 = 接口.f创建接口(a接口)
+		return 接口.C接口配置(self, v接口)
 	def f模式_用户配置(self, a):
 		return C用户配置(self, a)
 	def f模式_时间范围(self, a):
@@ -284,41 +300,47 @@ class C全局配置(设备.I全局配置模式):
 			return 访问控制列表.C六(self, a名称)
 		else:
 			raise ValueError("未知的访问控制列表类型")
+	def f模式_前缀列表(self, a名称, a类型 = 设备.E前缀列表类型.e版本4):
+		if a类型 == 设备.E前缀列表类型.e版本4:
+			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本4, 地址.S网络地址4)
+		elif a类型 == 设备.E前缀列表类型.e版本6:
+			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本6, 地址.S网络地址6)
+		else:
+			raise ValueError("错误的 a类型")
 	#路由
 	def f模式_路由信息协议(self, a进程号 = 0, a版本 = 设备.E版本.e路由信息协议):	#rip
 		v版本 = 设备.C路由协议.f解析_版本(a版本)
-		if v版本 == 设备.E版本.e路由信息协议:	#ripng
-			return Crip(self)
+		if v版本 == 设备.E版本.e路由信息协议:	#rip
+			return 路由信息协议.C当代(self)
 		elif v版本 == 设备.E版本.e下一代路由信息协议:	#ripng
 			v进程号 = str(a进程号)
 			if not v进程号:
 				raise ValueError("当版本为ripng时,必须指定进程号")
-			return Cripng(self, a进程号)
+			return 路由信息协议.C下代(self, a进程号)
 		else:
 			raise ValueError("未知的版本")
 	def f模式_开放最短路径优先(self, a进程号, a版本 = 设备.E版本.e开放最短路径优先2):
 		v版本 = 设备.C路由协议.f解析_版本(a版本)
 		if a版本 == 设备.E版本.e开放最短路径优先2:
-			return Cospf(self, a进程号)
+			return 开放最短路径优先.C路由配置(self, a进程号)
 		elif a版本 == 设备.E版本.e开放最短路径优先3:
-			return Cospf(self, a进程号)
+			return 开放最短路径优先.C路由配置(self, a进程号)
 		else:
 			raise ValueError("未知的版本")
 	def f模式_增强内部网关路由协议(self, a, a版本 = 设备.E版本.e网络协议4):	#eigrp
 		v类型 = type(a)
 		if v类型 == int:
-			return C经典eigrp(self, a)
+			return 增强内部网关路由协议.C经典(self, a)
+	def f模式_边界网关协议(self, a自治系统号):
+		return 边界网关协议.C路由(self, a自治系统号)
 	#服务
 	def f模式_动态主机配置协议地址池(self, a名称):
-		return Cdhca地址池(self, a名称)
+		return 动态主机配置协议.C地址池4(self, a名称)
 	def f模式_动态主机配置协议(self):
-		return Cdhcp(self)
-	#助手
-	def f助手_访问控制列表(self):
-		return 访问控制列表.C助手()
-#==============================================================================
+		return 动态主机配置协议.C服务4(self)
+#===============================================================================
 # 时间
-#==============================================================================
+#===============================================================================
 class C时间(设备.C同级模式, 设备.I时间):
 	def __init__(self, a):
 		设备.I时间.__init__(self, a)
@@ -346,20 +368,20 @@ class C时间(设备.C同级模式, 设备.I时间):
 #===============================================================================
 class C用户配置(设备.C同级模式, 设备.I用户配置模式):
 	def __init__(self, a父模式, a用户名):
-		#初始化
 		设备.I用户配置模式.__init__(self, a父模式)
 		self.m用户名 = str(a用户名)
-		self.m命令前缀 = 'username ' + self.m用户名 + ' '
+		self.m命令前缀 = 设备.C命令("username %s " % (self.m用户名,))
 	def f执行用户命令(self, a命令):
-		if not self.fi当前模式():
-			raise self.m设备.f抛出模式异常()
-		self.m设备.f执行命令(self.m命令前缀 + a命令)
-	def fs密码(self, a密码, a加密级别 = 0):
-		self.f切换到当前模式()
-		self.f执行用户命令('password %d %s' % (a加密级别, a密码))
+		v命令 = self.m命令前缀 + a命令
+		self.f执行当前模式命令(v命令)
+	def fs密码(self, a密码):
+		v类型 = type(a密码)
+		if v类型 == 密码.C包装:
+			self.f执行用户命令(a密码)
+		else:
+			self.f执行用户命令("secret %s" % (a密码,))
 	def fs权限等级(self, a权限等级):
-		self.f切换到当前模式()
-		self.f执行用户命令('privildge ' + a权限等级)
+		self.f执行用户命令("privildge %d" % (a权限等级,))
 	def fs服务类型(self, a服务类型 = None):
 		pass
 #===============================================================================
@@ -419,55 +441,8 @@ class C时间范围(设备.I时间范围配置模式):
 	def f删除(self, a时间范围):
 		self.f执行时间范围命令(False, a时间范围)
 #===============================================================================
-# 接口配置
-#===============================================================================
-ga接口名称 = 设备.fc接口名称字典({})
-f创建接口 = 设备.F创建接口(ga接口名称)
-ga接口缩写 = {
-	"Fa": 设备.E接口.e快速以太网,
-	"Gi": 设备.E接口.e吉比特以太网
-}
-class C接口配置(设备.I接口配置模式):
-	def __init__(self, a父模式, a接口):
-		设备.I接口配置模式.__init__(self, a父模式, a接口)
-	def fg模式参数(self):
-		return str(self.m接口)
-	@staticmethod
-	def f网络地址参数(a地址, a次地址):
-		v地址 = 地址.S网络地址4.fc自动(a地址)
-		if a次地址:
-			v次地址 = 'secondary'
-		else:
-			v次地址 = ''
-		return '%s %s %s' % (v地址.fg地址s(), v地址.fg掩码s(), v次地址)
-	#显示
-	def f显示_当前模式配置(self):
-		self.m设备.f执行用户命令('show running-config interface ' + self.fg模式参数())
-	#操作
-	def f开关(self, a开关):
-		self.f切换到当前模式()
-		if a开关:
-			self.m设备.f执行命令('no shutdown')
-		else:
-			self.m设备.f执行命令('shutdown')
-	def fs网络地址(self, a地址, a次地址 = False):
-		'设置地址'
-		v命令 = 'ip address ' + C接口配置.f网络地址参数(a地址, a次地址)
-		self.f切换到当前模式()
-		self.m设备.f执行命令(v命令)
-	def fd网络地址(self, a地址 = None, a次地址 = False):
-		'删除地址'
-		if (bool(a地址) == False) and (bool(a次地址) == False):
-			v命令 = 'no ip address'
-		else:
-			v命令 = 'no ip address ' + C接口配置.f网络地址参数(a地址, a次地址)
-		self.f切换到当前模式()
-		self.m设备.f执行命令(v命令)
-	def fg网络地址(self):
-		raise NotImplementedError()
-#==============================================================================
 # 路由
-#==============================================================================
+#===============================================================================
 class C静态路由(设备.C同级模式, 设备.I静态路由配置模式):
 	def __init__(self, a):
 		设备.I静态路由配置模式.__init__(self, a)
@@ -484,446 +459,10 @@ class C静态路由(设备.C同级模式, 设备.I静态路由配置模式):
 		self.m设备.f执行命令('no ip route ' + C静态路由.f解析参数(a网络号, a出接口))
 	def fs默认路由(self, a出接口):
 		self.m设备.f执行命令('ip route ' + C静态路由.f解析参数('0.0.0.0/0', a出接口))
-#==============================================================================
-# rip
-#==============================================================================
-class Crip(设备.I路由信息协议):
-	def __init__(self, a):
-		设备.I路由信息协议.__init__(self, a)
-	def fg进入命令(self):
-		return "router rip"
-	def f执行通告网络命令(self, a命令, a网络号):
-		if not 地址.S网络地址4.fi地址格式(a网络号):
-			raise ValueError
-		v命令 = 设备.C命令(a命令)
-		v命令.f添加(a网络号)
-		self.f切换到当前模式()
-		self.m设备.f执行命令(v命令)
-	def f通告网络(self, a网络号):
-		self.f执行通告网络命令("network", a网络号)
-	def f删除网络(self, a网络号):
-		self.f执行通告网络命令("no network", a网络号)
-	def f通告接口(self, a接口):
-		raise NotImplementedError()
-	def f删除接口(self, a接口):
-		raise NotImplementedError()
-class Cripng(设备.I路由信息协议):
-	def __init__(self, a, a名称):
-		设备.I路由信息协议.__init__(self, a)
-		self.m名称 = str(a名称)
-	def fg进入命令(self):
-		return "ipv6 router " + self.fg模式参数()
-	def fg模式参数(self):
-		return self.m名称
-	def fg通告接口命令(self):
-		return "ipv6 rip %s enable" % (self.fg模式参数(),)
-	def f执行通告接口命令(self, a接口):
-		if not 地址.S网络地址6.fi地址格式(a网络号):
-			raise ValueError
-		v上级模式 = self.fg上级模式()
-		v接口配置模式 = v上级模式.f模式_接口配置(a接口)
-		v接口配置模式.f执行当前模式命令(self.fg通告接口命令())
-	def f通告接口(self, a接口):
-		raise NotImplementedError()
-	def f删除接口(self, a接口):
-		raise NotImplementedError()
-#==============================================================================
-# eigrp
-#==============================================================================
-class C经典eigrp(设备.I模式):
-	def __init__(self, a, a自治系统号):
-		设备.I模式.__init__(self, a)
-		self.m自治系统号 = a自治系统号
-	def fg进入命令(self):
-		return "router eigrp " + str(self.m自治系统号)
-	def fs路由器号(self, a):
-		self.f切换到当前模式()
-		self.m设备.f执行命令("eigrp router-id " + str(a))
-	def f执行通告网络命令(self, a设置, a网络号):
-		v命令 = 设备.C命令("network")
-		v命令.f前置否定(a设置, c不)
-		v地址 = 地址.S网络地址4(a网络号)
-		v命令 += v地址.fg网络号s()
-		v命令 += v地址.fg反掩码s()
-		self.f执行当前模式命令(v命令)
-	def f执行通告接口命令(self, a设置, a接口):
-		v命令模板 = 设备.C命令("network")
-		v命令模板.f前置否定(a设置, c不)
-		v类型 = type(a接口)
-		if v类型 == C接口配置:
-			va地址 = a接口.fg地址()
-		elif v类型 == str:
-			v全局配置 = self.fg上级模式()
-			v接口配置 = v全局配置.f模式_接口(a接口)
-			va地址 = a接口.fg地址()
-		else:
-			raise ValueError
-		self.f切换到当前模式()
-		for v in va地址:
-			v命令 = v命令模板.f复制()
-			v命令.f添加(v.fg网络号s(), v.fg反掩码s())
-			self.m设备.f执行命令(v命令)
-	def f执行被动接口命令(self, a设置, a接口):
-		v命令 = 设备.C命令("passive-interface")
-		v命令.f前置否定(a设置, c不)
-		v类型 = type(a接口)
-		if v类型 == bool:
-			if a接口:
-				v命令 += "default"
-			else:
-				raise ValueError("a接口 不能为False")
-		elif v类型 == str:
-			if re.match(a接口, "default", re.IGNORECASE):
-				v命令 += "default"
-			else:
-				v接口 = f创建接口(a接口)
-				v命令 += v接口
-		elif v类型 == 设备.S接口:
-			v命令 += a接口
-		self.f执行当前模式命令(v命令)
-	def f开关(self, a):
-		if a:
-			v命令 = "no shutdown"
-		else:
-			v命令 = "shutdown"
-		self.f执行当前模式命令(v命令)
-	def f日志_邻居变化(self, a):
-		if a:
-			v命令 = "eigrp log-neighbor-changes"
-		else:
-			v命令 = "no eigrp log-neighbor-changes"
-		self.f执行当前模式命令(v命令)
-	def f日志_邻居警告(self, a):
-		if a:
-			v命令 = "eigrp log-neighbor-changes "
-			if type(a) == int:
-				v命令 += str(a)
-		else:
-			v命令 = "no eigrp log-neighbor-changes"
-		self.f执行当前模式命令(v命令)
-	def f通告网络(self, a网络号):
-		self.f执行通告网络命令(True, a网络号)
-	def f删除网络(self, a网络号):
-		self.f执行通告网络命令(False, a网络号)
-	def f通告接口(self, a接口):
-		self.f执行通告接口命令(True, a接口)
-	def f删除接口(self, a接口):
-		self.f执行通告接口命令(False, a接口)
-	def fs被动接口(self, a接口):
-		self.f执行被动接口命令(True, a接口)
-	def fd被动接口(self, a接口):
-		self.f执行被动接口命令(False, a接口)
-class C经典eigrp6(设备.I模式):
-	def __init__(self, a, a自治系统号):
-		设备.I模式.__init__(self, a)
-		self.m自治系统号 = int(a自治系统号)
-	def fg进入命令(self):
-		return "ipv6 router eigrp " + str(self.m自治系统号)
-	def fs路由器号(self, a):
-		v命令 = 设备.C命令("eigrp router-id")
-		v命令 += a
-		self.f切换到当前模式()
-		self.m设备.f执行命令(v命令)
-	def f开关(self, a):
-		self.f切换到当前模式()
-		if a:
-			self.m设备.f执行命令("no shutdown")
-		else:
-			self.m设备.f执行命令("shutdown")
-	def fg通告接口命令(self):
-		return "ipv6 eigrp " + str(self.m自治系统号)
-	def f通告接口(self, a接口):
-		raise NotImplementedError()
-	def f删除接口(self, a接口):
-		raise NotImplementedError()
-class C命名eigrp(设备.I模式):
-	def __init__(self, a):
-		设备.I模式.__init__(self, a)
-	def f模式_地址族(self, a名称, a自治系统号):
-		raise NotImplementedError()
-	def f模式_服务族(self, a名称, a自治系统号):
-		raise NotImplementedError()
-class Ceigra地址族(设备.I模式):
-	def __init__(self, a, a自治系统号):
-		设备.I模式.__init__(self, a)
-		self.m自治系统号 = a自治系统号
-	def fg退出命令(self):
-		return "exit-address-family"
-class Ceigra地址族接口(设备.I模式):
-	def __init__(self, a):
-		设备.I模式.__init__(self, a)
-	def fg退出命令(self):
-		return "exit-af-interface"
-#==============================================================================
-# ospf
-#==============================================================================
-class Cospf(设备.I开放最短路径优先):
-	def __init__(self, a, a进程号):
-		设备.I开放最短路径优先.__init__(self, a, a进程号)
-	#命令
-	def fg进入命令(self):
-		return 设备.C命令("router ospf") + self.fg模式参数()
-	def f执行通告网络命令(self, a设置, a网络号, a区域):
-		v命令 = Cospf.f通告网络命令(a设置, a网络号, a区域)
-		self.f执行当前模式命令(v命令)
-	def f执行通告接口命令(self, a设置, a接口, a区域):
-		v命令 = Cospf.f通告接口命令(a设置, self.m进程号, a区域)
-		v接口 = self.f模式_接口(a接口)
-		v接口.f执行当前模式命令(v命令)
-	@staticmethod
-	def f通告网络命令(a设置, a网络号, a区域):
-		v命令 = 设备.C命令("network")
-		v命令.f前置否定(a设置, c不)
-		v地址 = 地址.S网络地址4(a网络号)
-		v区域 = 设备.I开放最短路径优先.f解析区域(a区域)
-		v命令.f添加(v地址.fg网络号s(), v地址.fg反掩码s(), "area", v区域)
-		return v命令
-	@staticmethod
-	def f通告接口命令(a设置, a进程号, a区域):
-		v命令 = 设备.C命令("ip ospf")
-		v命令.f前置否定(a设置, c不)
-		v区域 = 设备.I开放最短路径优先.f解析区域(a区域)
-		v命令.f添加(a进程号, "area", v区域)
-		return v命令
-	#模式
-	def f模式_接口(self, a接口):
-		v接口 = f创建接口(a接口)
-		v模式 = Cospf接口(self.fg上级模式(), v接口)
-		return v模式
-	def f模式_区域(self, a区域):
-		v区域 = 设备.I开放最短路径优先.f解析区域(a区域)
-		return Cospf区域(self, v区域)
-	#显示
-	def f显示_路由表(self):
-		return self.m设备.f执行显示命令("show ip route ospf")
-	#操作
-	def f重启进程(self):
-		v命令 = 设备.C命令("clear ip ospf process")
-		v命令.f添加(self.m进程号)
-		self.m设备.f执行用户命令(v命令)
-	def fs路由器号(self, a):
-		if a == "default" or a == None:
-			v命令 = 设备.C命令("default router-id")
-		else:
-			v地址 = 地址.S网络地址4(a)
-			v命令 = 设备.C命令("router-id")
-			v命令.f添加(v地址.fg地址s())
-		self.f执行当前模式命令(v命令)
-	def f通告网络(self, a网络号, a区域):
-		self.f执行通告网络命令(True, a网络号, a区域)
-	def f删除网络(self, a网络号, a区域):
-		self.f执行通告网络命令(False, a网络号, a区域)
-	def f通告接口(self, a接口, a区域):
-		self.f执行通告接口命令(True, a接口, a区域)
-	def f删除接口(self, a接口, a区域):
-		self.f执行通告接口命令(False, a接口, a区域)
-class Cospf区域(设备.I开放最短路径优先区域, 设备.C同级模式):
-	def __init__(self, a, a区域):
-		设备.I开放最短路径优先区域.__init__(self, a, a区域)
-	def f通告网络(self, a网络号):
-		self.fg上级模式().f执行通告网络命令(True, a网络号, self.m区域)
-	def f删除网络(self, a网络号):
-		self.fg上级模式().f执行通告网络命令(False, a网络号, self.m区域)
-	def f通告接口(self, a接口):
-		self.fg上级模式().f执行通告接口命令(True, a接口, self.m区域)
-	def f删除接口(self, a接口):
-		self.fg上级模式().f执行通告接口命令(False, a接口, self.m区域)
-class Cospf接口(设备.I开放最短路径优先接口):
-	def __init__(self, a, a接口: 设备.S接口):
-		设备.I开放最短路径优先接口.__init__(self, a, a接口)
-	def f执行设置时间命令(self, a命令, a时间):
-		v命令 = 设备.C命令(a命令)
-		if a时间:
-			v命令.f添加(int(a时间))
-		else:
-			v命令.f前面添加(c不)
-		self.f执行当前模式命令(v命令)
-	def fs问候时间(self, a时间 = 10):
-		self.f执行设置时间命令("ip ospf hello-interval", a时间)
-	def fs死亡时间(self, a时间 = 40):
-		self.f执行设置时间命令("ip ospf dead-interval", a时间)
-	def fs重传时间(self, a时间 = 5):
-		raise NotImplementedError()
-	def fs传输时间(self, a时间 = 1):
-		raise NotImplementedError()
-	def fs开销(self, a开销):
-		raise NotImplementedError()
-	def fs网络类型(self, a类型):
-		raise NotImplementedError()
-class Cospf虚链路(设备.I开放最短路径优先虚链路):
-	def __init__(self, a, a区域, p对端):
-		设备.I开放最短路径优先虚链路.__init__(self, a, a区域, p对端)
-	#命令
-	def fg进入命令(self):
-		return 设备.C命令("router ospf") + self.fg模式参数()
-gaospf邻居状态 = {
-	"DOWN": 设备.E开放最短路径优先邻居状态.e关闭,
-	"ATTEMP": 设备.E开放最短路径优先邻居状态.e尝试,
-	"INIT": 设备.E开放最短路径优先邻居状态.e初始,
-	"TWO-WAY": 设备.E开放最短路径优先邻居状态.e双向,
-	"EXSTART": 设备.E开放最短路径优先邻居状态.e预启动,
-	"EXCHANGE": 设备.E开放最短路径优先邻居状态.e交换,
-	"FULL": 设备.E开放最短路径优先邻居状态.e完成
-}
-gaospf选举状态 = {
-	"-": 设备.E开放最短路径优先选举状态.e无,
-	"DR": 设备.E开放最短路径优先选举状态.e指定,
-	"BDR": 设备.E开放最短路径优先选举状态.e备用,
-	"DR other": 设备.E开放最短路径优先选举状态.e非指定
-}
-class Cospf邻居表:
-	c邻居开始 = 0
-	c优先级开始 = 16
-	c状态开始 = 22
-	c死亡时间开始 = 38
-	c地址开始 = 50
-	c接口开始 = 66
-	def __init__(self, a字符串):
-		self.m字符串 = a字符串
-	def __iter__(self):
-		return self.fe行()
-	def fe行(self):
-		for v行 in 字符串.fe分割(self.m字符串, "\n"):
-			if v行.count(".") != 6:	#2个地址共6个点
-				continue
-			v邻居s, v优先级s, v状态s, v死亡s, v地址s, v接口s = 字符串.fe按位置分割(v行, Cospf邻居表.c邻居开始, Cospf邻居表.c优先级开始, Cospf邻居表.c状态开始, Cospf邻居表.c死亡时间开始, Cospf邻居表.c地址开始, Cospf邻居表.c接口开始)
-			v邻居 = 地址.S网络地址4.fc地址字符串(v邻居s)
-			v优先级 = int(v优先级s)
-			v状态分割 = v状态s.split("/")
-			v邻居状态 = gaospf邻居状态[v状态分割[0]]
-			v选举状态 = gaospf选举状态[v状态分割[1]]
-			v死亡时间分割 = v死亡s.split(":")
-			v死亡时间 = datetime.timedelta(hours = int(v死亡时间分割[0]), minutes = int(v死亡时间分割[1]), seconds = int(v死亡时间分割[2]))
-			v对端地址 = 地址.S网络地址4.fc地址字符串(v地址s)
-			v接口 = 设备.S接口.fc字符串(v接口s, ga接口名称)
-			yield 设备.S开放最短路径优先邻居项(a邻居标识 = v邻居, a优先级 = v优先级, a邻居状态 = v邻居状态, a选举状态 = v选举状态, a死亡时间 = v死亡时间, a对端地址 = v对端地址, a接口 = v接口)
-#==============================================================================
-# bgp
-#==============================================================================
-class Cbgp(设备.I边界网关协议):
-	def __init__(self, a, a自治系统号):
-		设备.I边界网关协议.__init__(self, a, a自治系统号)
-	#命令
-	def fg进入命令(self):
-		return 设备.C命令("router eigrp") + self.fg模式参数()
-	#模式
-	#显示
-	def f显示_路由表(self):
-		v命令 = "show ip route bgp"
-		self.f执行当前模式命令(v命令)
-	def f显示_邻居(self):
-		v命令 = "show ip bgp summary"
-		self.f执行当前模式命令(v命令)
-class Cbgp对等体(设备.I边界网关协议对等体):
-	def __init__(self, a, p对等体):
-		设备.I边界网关协议对等体.__init__(self, a, p对等体)
 
-#==============================================================================
-# mstp
-#==============================================================================
-class C接口生成树(设备.I生成树接口配置模式):
-	def __init__(self, a, a接口):
-		设备.I生成树接口配置模式.__init__(self, a, a接口)
-	def fs根保护(self, a):
-		v命令 = 设备.C命令("spanning-tree guard root")
-		v命令.f前置否定(a, c不)
-		self.f执行当前模式命令(v命令)
-	def fs环路保护(self, a):
-		v命令 = 设备.C命令("spanning-tree guard loop")
-		v命令.f前置否定(a, c不)
-		self.f执行当前模式命令(v命令)
-	def fs开销(self, a树, a开销):
-		v命令 = 设备.C命令("spanning-tree vlan %d cost" % (int(a树),))
-		if a:
-			v命令 += int(a)
-		else:
-			v命令.f前面添加(c不)
-		self.f执行当前模式命令(v命令)
-class C接口多生成树(C接口生成树, 设备.C同级模式):
-	def __init__(self, a, a接口):
-		C接口多生成树.__init__(self, a, a接口)
-	def fs开销(self, a树, a开销):
-		v命令 = 设备.C命令("spanning-tree mst %d cost" % (int(a树),))
-		if a:
-			v命令 += int(a)
-		else:
-			v命令.f前面添加(c不)
-		self.f执行当前模式命令(v命令)
-class C多生成树协议(设备.I多生成树):
-	def __init__(self, a):
-		设备.I多生成树.__init__(self, a)
-	def f模式_多生成树配置(self):
-		if not hasattr(self, "m配置模式"):
-			self.m配置模式 = C多生成树配置(self)
-		return self.m配置模式
-	def fs实例映射(self, a实例, a虚拟局域网):
-		self.m配置模式.fs实例映射(a实例, a虚拟局域网)
-	def fs实例优先级(self, a实例, a优先级):
-		v命令 = 设备.C命令("spanning-tree mst", a实例, "priority", a虚拟局域网)
-	def fs实例开销(self, a接口, a实例, a开销):
-		if isinstance(a接口, 设备.I接口配置模式):
-			v命令 = 设备.C命令("spanning-tree mst", a实例, "cost", a开销)
-			a接口.f执行当前模式命令(v命令)
-		else:
-			raise TypeError()
-	def fs域名(self, a名称):
-		self.m配置模式.fs域名(a名称)
-	def fs版本(self, a版本):
-		self.m配置模式.fs版本(a版本)
-class C多生成树配置(设备.I模式):
-	def __init__(self, a):
-		设备.I模式.__init__(self, a)
-	def fg进入命令(self):
-		return "spanning-tree mst configuration"
-	def fs实例映射(self, a实例, a虚拟局域网):
-		v命令 = 设备.C命令("instance", a实例, "vlan", a虚拟局域网)
-		self.f执行当前模式命令(v命令)
-	def fs域名(self, a名称):
-		v命令 = 设备.C命令("name", a名称)
-		self.f执行当前模式命令(v命令)
-	def fs版本(self, a版本):
-		v命令 = 设备.C命令("version", a版本)
-		self.f执行当前模式命令(v命令)
-#==============================================================================
-# 地址池
-#==============================================================================
-class Cdhca地址池(设备.I动态主机配置协议地址池):
-	def __init__(self, a, a名称):
-		设备.I动态主机配置协议地址池.__init__(self, a, a名称)
-	def fg进入命令(self):
-		return 设备.C命令("ip dhcp pool") + self.fg模式参数()
-	def fg模式参数(self):
-		return self.m名称
-	def fs网络范围(self, a网络号, p掩码):
-		v命令 = 设备.C命令("network")
-		self.f执行当前模式命令(v命令)
-	def fs默认网关(self, p网关):
-		v命令 = 设备.C命令("default-router")
-		v命令.f添加(p网关)
-		self.f执行当前模式命令(v命令)
-	def fs租期(self, a时间):
-		raise NotImplementedError()
-	def fs域名服务器(self, a地址):
-		v命令 = 设备.C命令("dns-server address")
-		v命令.f添加(a地址)
-		self.f执行当前模式命令(v命令)
 #===============================================================================
-# dhcp
-#===============================================================================
-class Cdhcp(设备.I动态主机配置协议, 设备.C同级模式):
-	def __init__(self, a):
-		设备.I动态主机配置协议.__init__(self, a)
-	def f显示_已分配地址(self):
-		return self.m设备.f执行显示命令("show ip dhcp binding")
-	def f开关(self, a):
-		v命令 = "service dhcp"
-		if not a:
-			v命令 = c不 + v命令
-		self.f切换到当前模式()
-		self.m设备.f执行命令(v命令)
-#==============================================================================
 # 工具
-#==============================================================================
+#===============================================================================
 class C实用工具:
 	@staticmethod
 	def f接口字符串(a接口: 设备.S接口)->str:

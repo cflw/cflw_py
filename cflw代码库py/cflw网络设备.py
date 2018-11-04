@@ -18,7 +18,6 @@ class I设备:
 		self.ma模式 = []
 		self.fs回显(False, False)
 		self.m异常开关 = True
-		self.f检测命令异常 = 运算.f空
 	def fs回显(self, a回显 = True, a等待回显 = True):
 		self.m回显 = a回显
 		self.m等待回显 = a等待回显
@@ -167,6 +166,11 @@ class I设备:
 		raise NotImplementedError()
 	#显示.当存在可以在任何模式使用的命令,直接重写这里的函数
 	def f显示_当前模式配置(self):
+		raise NotImplementedError()
+	#助手
+	def f助手_访问控制列表(self):
+		raise NotImplementedError()
+	def f助手_密码(self):
 		raise NotImplementedError()
 class C命令:	#快速添加命令参数
 	def __init__(self, *t):
@@ -414,6 +418,8 @@ class I全局配置模式(I模式):
 		raise NotImplementedError()
 	#模式_其它
 	def f模式_访问控制列表(self, a名称, a类型):
+		raise NotImplementedError()
+	def f模式_前缀列表(self, a名称, a类型):
 		raise NotImplementedError()
 	def f模式_端口安全(self):
 		raise NotImplementedError()
@@ -737,12 +743,20 @@ class I接口配置模式_以太网(I接口配置模式):
 	def fs双工模式(self, a全双工 = True):
 		raise NotImplementedError()
 	#三层
-	def fs网络地址(self, a地址):
+	def fs网络地址4(self, a地址):
 		raise NotImplementedError()
-	def fd网络地址(self, a地址 = None):
+	def f添加网络地址4(self, a地址):
 		raise NotImplementedError()
-	def fg网络地址(self):
+	def f删除网络地址4(self, a地址 = None):
+		raise NotImplementedError()
+	def fe网络地址4(self):
 		"返回这个接口拥有的所有地址"
+		raise NotImplementedError()
+	def f添加网络地址6(self, a地址):
+		raise NotImplementedError()
+	def f删除网络地址6(self, a地址):
+		raise NotImplementedError()
+	def fe网络地址6(self):
 		raise NotImplementedError()
 	#二层
 	def f二层_s链路模式(self, a模式):
@@ -794,7 +808,7 @@ class I接口配置模式_串行(I接口配置模式):
 		raise NotImplementedError()
 
 #==============================================================================
-# 用户配置模式
+# 用户&密码&权限
 #==============================================================================
 class E服务类型(enum.IntEnum):
 	e无 = 0x00
@@ -807,11 +821,18 @@ class I用户配置模式(I模式):
 	def __init__(self, a设备, a用户名):
 		I模式.__init__(self, a设备)
 		self.m用户名 = str(a用户名)
-	def fs密码(self, a密码, a加密等级):
+	def fs密码(self, a密码):
 		raise NotImplementedError()
 	def fs权限(self, a权限):
 		raise NotImplementedError()
 	def fs服务类型(self, a服务类型):
+		raise NotImplementedError()
+class I密码助手:
+	@staticmethod
+	def f生成密码(a密码, a加密级别):
+		raise NotImplementedError()
+	@staticmethod
+	def f提取密码(a字符串):
 		raise NotImplementedError()
 #==============================================================================
 # 路由
@@ -860,7 +881,7 @@ class I静态路由配置模式(I模式):
 		raise NotImplementedError()
 	def f删除默认路由(self, a出接口):
 		raise NotImplementedError()
-#路由信息协议	===============================================================
+#路由信息协议rip	=============================================================
 class I路由信息协议(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
@@ -874,7 +895,7 @@ class I路由信息协议(I模式):
 		raise NotImplementedError()
 	def f删除接口(self, a接口):
 		raise NotImplementedError()
-#ospf	=======================================================================
+#开放最短路径优先ospf	=========================================================
 class E开放最短路径优先链路状态通告类型(enum.IntEnum):
 	"OSPF LSA类型"
 	e全部 = 0
@@ -1011,7 +1032,16 @@ class S开放最短路径优先邻居项:
 		self.m接口 = a接口
 	def __str__(self):
 		return 字符串.ft字符串(self.m邻居标识, self.m优先级, self.m邻居状态, self.m选举状态, self.m死亡时间, self.m对端地址, self.m接口)
-#bgp ==========================================================================
+#增强内部网关路由协议eigrp	======================================================
+
+#边界网关协议bgp ================================================================
+class E边界网关协议地址地址簇(enum.IntEnum):
+	e单播4 = 0
+	e虚拟路由4 = 1	#vrf
+	e虚专网4 = 2	#vpn
+	e单播6 = 10
+	e虚拟路由6 = 11
+	e虚专网6 = 12
 class I边界网关协议(I模式):
 	c模式名 = "边界网关协议配置模式"
 	def __init__(self, a, a自治系统号):
@@ -1022,9 +1052,9 @@ class I边界网关协议(I模式):
 		"返回自治系统号"
 		return (self.m自治系统号,)
 	#模式
-	def f模式_对等体(self, a参数):
+	def f模式_对等体(self, a对等体):
 		raise NotImplementedError()
-	def f模式_地址族(self, a参数):
+	def f模式_地址簇(self, *a地址簇):
 		raise NotImplementedError()
 	#显示
 	def f显示_路由表(self):
@@ -1034,7 +1064,9 @@ class I边界网关协议(I模式):
 	#操作
 	def fs路由器号(self, a):
 		raise NotImplementedError()
-class I边界网关协议地址族(I模式):
+	def f删除地址簇(self, *a地址簇):
+		raise NotImplementedError()
+class I边界网关协议地址簇(I模式):
 	c模式名 = "边界网关协议地址族配置模式"
 	def __init__(self, a, a参数):
 		I模式.__init__(self, a)
@@ -1056,14 +1088,18 @@ class I边界网关协议对等体(I模式):
 	def __init__(self, a, a对等体):
 		I模式.__init__(self, a)
 		self.m对等体 = a对等体
+	def __str__(self):
+		return str(self.m对等体)
 	#操作
+	def f激活(self):
+		raise NotImplementedError()
 	def fs远端自治系统号(self, a):
 		raise NotImplementedError()
 	def fs本端自治系统号(self, a):
 		raise NotImplementedError()
 	def fs更新源地址(self, a):
 		raise NotImplementedError()
-#isis ==========================================================================
+#中间系统到中间系统isis =========================================================
 class I中间系统到中间系统(I模式):
 	c模式名 = "中间系统到中间系统配置模式"
 	def __init__(self, a, a进程号):
@@ -1325,9 +1361,57 @@ class I访问控制列表助手:
 		return n
 	def f反算序号_扩展6(self, n):
 		return n
-#==============================================================================
+#===============================================================================
+# 前缀列表
+#===============================================================================
+class E前缀列表类型(enum.IntEnum):
+	e版本4 = 0
+	ipv4 = 0
+	e版本6 = 1
+	ipv6 = 1
+class C前缀列表规则:
+	def __init__(self, **a):
+		self.m序号 = None
+		self.m允许 = True
+		self.m网络号 = None
+		self.m最小长度 = None
+		self.m最大长度 = None
+		self.f更新(**a)
+	def f更新(self, **a):
+		for k, v in C前缀列表规则.ca更新.items():
+			if k in a:
+				v(self, a[k])
+	def fs序号(self, a):
+		self.m序号 = a
+	def fs允许(self, a):
+		self.m允许 = a
+	def fs网络号(self, a):
+		self.m网络号 = a
+	def fs最小长度(self, a):
+		self.m最小长度 = a
+	def fs最大长度(self, a):
+		self.m最大长度 = a
+C前缀列表规则.ca更新 = {
+	"a允许": C前缀列表规则.fs允许,
+	"a网络号": C前缀列表规则.fs网络号,
+	"a最小长度": C前缀列表规则.fs最小长度,
+	"a最大长度": C前缀列表规则.fs最大长度,
+}
+class I前缀列表(I模式):
+	c模式名 = "前缀列表配置模式"
+	def __init__(self, a):
+		I模式.__init__(self, a)
+	def f添加规则(self, a序号 = None, a规则 = None):
+		raise NotImplementedError()
+	def f删除规则(self, a序号):
+		raise NotImplementedError()
+	def fe规则(self):
+		raise NotImplementedError()
+	def f应用到(self, a):
+		raise NotImplementedError()
+#===============================================================================
 # 生成树
-#==============================================================================
+#===============================================================================
 class I多生成树(I模式):
 	c模式名 = "多生成树配置模式"
 	def __init__(self, a):
@@ -1354,9 +1438,9 @@ class I生成树接口配置模式(I接口配置模式):
 		raise NotImplementedError()
 	def fs开销(self, a树, a开销):
 		raise NotImplementedError()
-#==============================================================================
+#===============================================================================
 # 远程连接
-#==============================================================================
+#===============================================================================
 class I远端登入(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
@@ -1375,9 +1459,9 @@ class I安全外壳(I模式):
 		raise NotImplementedError()
 	def fs连接数(self, a数量):
 		raise NotImplementedError()
-#==============================================================================
+#===============================================================================
 # 端口安全
-#==============================================================================
+#===============================================================================
 class E端口安全动作(enum.IntEnum):
 	e丢弃包 = 12
 	e丢弃并警告 = 11
@@ -1396,9 +1480,9 @@ class I端口安全(I模式):
 		raise NotImplementedError()
 	def fs地址老化时间(self, a时间):
 		raise NotImplementedError()
-#==============================================================================
+#===============================================================================
 # 地址池
-#==============================================================================
+#===============================================================================
 class I网络协议地址池(I模式):
 	def __init__(self, a, a名称):
 		I模式.__init__(self, a)

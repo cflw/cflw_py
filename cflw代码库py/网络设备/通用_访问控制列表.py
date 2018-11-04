@@ -28,6 +28,9 @@ def f生成协议(a字典: dict, a协议)->str:
 		raise TypeError()
 f生成协议4 = functools.partial(f生成协议, ca访问控制列表协议到字符串4)
 f生成协议6 = functools.partial(f生成协议, ca访问控制列表协议到字符串6)
+c允许 = "permit"
+c阻止 = "deny"
+c允许元组 = (c允许, c阻止)
 def f生成允许(a元组: tuple, a允许)->str:
 	if type(a允许) == str:
 		if a允许 in a元组:

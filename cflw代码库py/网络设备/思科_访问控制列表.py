@@ -84,9 +84,9 @@ def f解析地址(a地址: str, a通配符: str):
 # 类
 #===============================================================================
 class I访问控制列表(设备.I访问控制列表):
-	def __init__(self, a, m名称, a类型 = "", a协议 = "ip"):
+	def __init__(self, a, a名称, a类型 = "", a协议 = "ip"):
 		设备.I访问控制列表.__init__(self, a)
-		self.m名称 = m名称
+		self.m名称 = a名称
 		self.m类型 = a类型
 		self.m协议 = a协议
 	def fg模式参数(self):
@@ -102,8 +102,8 @@ class I访问控制列表(设备.I访问控制列表):
 		for v in v输出[1:]:
 			yield af解析(v)
 class C标准4(I访问控制列表):
-	def __init__(self, a, a名字):
-		I访问控制列表.__init__(self, a, a名字, a类型 = "standard")
+	def __init__(self, a, a名称):
+		I访问控制列表.__init__(self, a, a名称, a类型 = "standard")
 	def f添加规则(self, a序号 = -1, a规则 = 设备.C访问控制列表规则(a允许 = False)):
 		v序号 = f生成规则序号4(a序号)
 		v允许 = f生成允许(a规则.m允许)
@@ -129,8 +129,8 @@ class C标准4(I访问控制列表):
 		v规则.m源地址 = f解析地址(v地址, v通配符)
 		return v规则
 class C扩展4(I访问控制列表):
-	def __init__(self, a, a名字):
-		I访问控制列表.__init__(self, a, a名字, a类型 = "extended")
+	def __init__(self, a, a名称):
+		I访问控制列表.__init__(self, a, a名称, a类型 = "extended")
 	def f添加规则(self, a序号 = -1, a规则 = 设备.C访问控制列表规则(a允许 = False)):
 		v命令 = 设备.C命令()
 		v命令 += f生成规则序号4(a序号)
