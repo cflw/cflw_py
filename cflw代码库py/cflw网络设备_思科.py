@@ -9,7 +9,6 @@ import cflw网络连接 as 连接
 import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 import cflw时间 as 时间
-import cflw英语 as 英语
 import 网络设备.思科_接口 as 接口
 import 网络设备.思科_访问控制列表 as 访问控制列表
 import 网络设备.思科_路由信息协议 as 路由信息协议
@@ -19,6 +18,7 @@ import 网络设备.思科_边界网关协议 as 边界网关协议
 import 网络设备.思科_密码 as 密码
 import 网络设备.思科_动态主机配置协议 as 动态主机配置协议
 import 网络设备.思科_前缀列表 as 前缀列表
+import 网络设备.思科_钥匙链 as 钥匙链
 c不 = "no "
 c做 = "do "
 c结束符 = '\x03'	#ctrl+c
@@ -148,7 +148,7 @@ class C用户模式(设备.I用户模式):
 		while "Password" in v输出:
 			v输出 = self.m设备.f执行命令(a密码)
 		if "Error" in v输出:
-			raise X执行(v输出)
+			raise 设备.X执行(v输出)
 	#内部
 	def fg版本信息(self):
 		if time.time() - self.m版本信息时间 >= 60:	#超过1分种则刷新
@@ -307,6 +307,8 @@ class C全局配置(设备.I全局配置模式):
 			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本6, 地址.S网络地址6)
 		else:
 			raise ValueError("错误的 a类型")
+	def f模式_钥匙链(self, a名称):
+		return 钥匙链.C钥匙链(self, a名称)
 	#路由
 	def f模式_路由信息协议(self, a进程号 = 0, a版本 = 设备.E版本.e路由信息协议):	#rip
 		v版本 = 设备.C路由协议.f解析_版本(a版本)
@@ -390,56 +392,6 @@ class C用户配置(设备.C同级模式, 设备.I用户配置模式):
 class C登陆配置(设备.I登陆配置模式):
 	def __init__(self, a):
 		设备.I登陆配置模式.__init__(self, a)
-#===============================================================================
-# 结构
-#===============================================================================
-ga日子 = {
-	设备.E日子.e一: "monday",
-	设备.E日子.e二: "tuesday",
-	设备.E日子.e三: "wednesday",
-	设备.E日子.e四: "thursday",
-	设备.E日子.e五: "friday",
-	设备.E日子.e六: "saturday",
-	设备.E日子.e日: "sunday",
-	设备.E日子.e工作日: "weekdays",
-	设备.E日子.e周末: "weekend",
-	设备.E日子.e每天: "daily",
-}
-class C时间范围(设备.I时间范围配置模式):
-	def __init__(self, a, a名称):
-		设备.I时间范围配置模式.__init__(self, a)
-		self.m名称 = a名称
-	@staticmethod
-	def f解析命令(a时间范围):
-		if a时间范围.m绝对:
-			v命令 = 设备.C命令("absolute")
-			def f绝对时间(a元组: tuple, a字符串: str):
-				nonlocal v命令
-				if a元组:
-					v命令 += a字符串
-					v命令 += "%s:%s %s %s %s" % (a元组[3], a元组[4], a元组[2], 英语.f月份(a元组[1])[:3], a元组[0])
-			f绝对时间(a时间范围.m开始时间, "start")
-			f绝对时间(a时间范围.m结束时间, "end")
-		else:	#定期
-			v命令 = 设备.C命令("periodic")
-			v命令 += ga日子[a时间范围.m日子]
-			def f定期时间(a元组: tuple):
-				nonlocal v命令
-				v命令 += "%s:%s" % (a元组[0], a元组[1])
-			f定期时间(a时间范围.m开始时间)
-			v命令 += "to"
-			f定期时间(a时间范围.m结束时间)
-		return v命令
-	def fg进入命令(self):
-		return "time-range " + self.m名称
-	def f执行时间范围命令(self, ai: bool, a时间范围):
-		v命令 = C时间范围.f解析命令(a时间范围)
-		v命令.f前置否定(ai, c不)
-		self.f执行当前模式命令(v命令)
-	def f添加(self, a时间范围):
-		self.f执行时间范围命令(True, a时间范围)
-	def f删除(self, a时间范围):
-		self.f执行时间范围命令(False, a时间范围)
 #===============================================================================
 # 路由
 #===============================================================================
