@@ -4,6 +4,12 @@ import struct
 import math
 import cflw字符串 as 字符串
 #===============================================================================
+# 常量
+#===============================================================================
+cipv4正则 = re.compile(r"(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}")
+cipv6正则 = re.compile(r"([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){0,7}::[a-f0-9]{0,4}(:[a-f0-9]{1,4}){0,7})")
+c前缀正则 = re.compile(r"\/\d{1,3}\s")
+#===============================================================================
 # 创建地址对象
 #===============================================================================
 def f解析地址字符串(a地址: str, a严格: bool = True):	#返回地址或网络号对象
@@ -13,7 +19,7 @@ def f解析地址字符串(a地址: str, a严格: bool = True):	#返回地址或
 		return C连续地址4(a地址)
 	else:
 		return ipaddress.IPv4Address(a地址)
-class C因特网协议4:
+class C互联网协议4:
 	"静态类,对ipaddress模块的完善"
 	@staticmethod
 	def fc网络(a地址, a严格: bool = True):
@@ -78,7 +84,7 @@ class C因特网协议4:
 	def f分割地址反掩码(a地址):
 		v类型 = type(a地址)
 		if v类型 in (ipaddress.IPv4Network, ipaddress.IPv4Interface):
-			v反掩码 = C因特网协议4.fc反掩码_长度(a地址.prefixlen)
+			v反掩码 = C互联网协议4.fc反掩码_长度(a地址.prefixlen)
 			return (a地址.network_address, v反掩码)
 		else:
 			raise TypeError()

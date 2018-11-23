@@ -2,9 +2,9 @@ import sys
 import pathlib
 import os.path
 import cflw小说下载 as 小说下载
-import cflw小说下载_求书网 as 求书网
-import cflw小说下载_笔趣看 as 笔趣看
-import cflw小说下载_顶点小说 as 顶点小说
+import 小说下载.求书网 as 求书网
+import 小说下载.笔趣看 as 笔趣看
+import 小说下载.顶点小说 as 顶点小说
 c版权 = "下载小说 (c)2018 cflw"
 g保存路径 = pathlib.Path(sys.argv[0]).parent
 class C命令解析器:

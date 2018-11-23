@@ -6,6 +6,8 @@ import cflw网络连接 as 连接
 import cflw网络设备 as 设备
 import cflw字符串 as 字符串
 import 网络设备.华三_用户 as 用户
+import 网络设备.华三_登陆 as 登陆
+import 网络设备.华三_接口 as 接口
 import 网络设备.华为_网络时间协议 as 网络时间协议
 #常量
 c不 = "undo"
@@ -159,7 +161,7 @@ class C用户视图(设备.I用户模式):
 		return (ipaddress.IPv4Network("0.0.0.0/0"), v输出[20:25], int(v输出[27:30]), int(v输出[32:42]), ipaddress.IPv4Address(v输出[45:61]), v输出[61:70])
 	def f显示_链路层发现协议(self):
 		v输出 = self.f执行命令("display lldp neighbor-information", a自动换页 = True)
-	#
+	#动作
 	def f登陆(self, a用户名, a密码):
 		self.f执行命令(a用户名)
 		v输出 = self.f执行命令(a密码)
@@ -201,7 +203,8 @@ class C系统视图(设备.I全局配置模式):
 	def f模式_时间(self):
 		raise NotImplementedError()
 	def f模式_接口配置(self, a接口):
-		raise NotImplementedError()
+		v接口 = 接口.f创建接口(a接口)
+		return 接口.C接口(self, v接口)
 	def f模式_用户配置(self, a用户名):
 		if self.m设备.m型号 == E型号.s2126:
 			return 用户.C用户s2126(self, a用户名)
@@ -211,29 +214,17 @@ class C系统视图(设备.I全局配置模式):
 			return 用户.C用户v7(self, a用户名)
 		elif self.m设备.m版本:
 			return 用户.C用户v7_1(self, a用户名)
-	def f模式_登陆配置(self, a方式, a范围):	#console,vty之类的
-		raise NotImplementedError()
+	def f模式_登陆配置(self, a方式, a范围 = None):	#console,vty之类的
+		return 登陆.C登陆(self, a方式, a范围)
 	def f模式_时间范围(self, a名称):
 		raise NotImplementedError()
 	def f模式_虚拟局域网(self, a序号):	#vlan
 		raise NotImplementedError()
-#===============================================================================
-# 接口
-#===============================================================================
-class C接口视图(设备.I接口配置模式):
-	def __init__(self, a, a接口):
-		设备.I接口配置模式.__init__(self, a, a接口)
-	#三层
-	def fs网络地址(self, a地址):
-		v命令 = 设备.C命令("ip address")
-		v命令 += a地址
-		self.f切换到当前模式()
-		self.m设备.f执行命令(v命令)
-	def fd网络地址(self, a地址 = None):
-		raise NotImplementedError()
-	def fg网络地址(self):
-		raise NotImplementedError()
-
+	#设备配置
+	def fs设备名(self, a名称):
+		v命令 = 设备.C命令("sysname")
+		v命令 += a名称
+		self.f执行当前模式命令(a名称)
 #===============================================================================
 # 地址池
 #===============================================================================

@@ -253,7 +253,7 @@ class I模式:
 		self.f切换到当前模式()
 		self.m设备.f执行命令(a命令)
 	def f显示_当前模式配置(self):	#当前模式的配置,在用户模式显示所有配置
-		self.m设备.f显示_当前模式配置()
+		return self.m设备.f显示_当前模式配置()
 	def fg模式参数(self):
 		"表示要进入该模式所使用的参数"
 		raise NotImplementedError()
@@ -498,10 +498,22 @@ class I时间(I模式):
 class E登陆方式(enum.IntEnum):
 	e控制台 = 0	#console
 	e虚拟终端 = 3	#vty
+class E登陆认证方式(enum.IntEnum):
+	e无 = 0,
+	e密码 = 1,
+	e账号 = 2
+	e认证授权记账 = 3
+	aaa = 3
 class I登陆配置模式(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
+	def fs认证方式(self, a):
+		raise NotImplementedError()
+	def fs登陆协议(self, a):
+		raise NotImplementedError()
 	def fs访问控制列表(self, a):
+		raise NotImplementedError()
+	def fs超时时间(self, a秒):
 		raise NotImplementedError()
 #===============================================================================
 # 结构
@@ -578,9 +590,10 @@ g接口名称字典 = {
 	E接口.e虚拟局域网: "Vlan",
 	E接口.e隧道: "Tunnel"
 }
-def fc接口名称字典(a字典):
+def fc接口名称字典(a字典 = None):
 	v字典 = copy.copy(g接口名称字典)
-	v字典.update(a字典)
+	if a字典:
+		v字典.update(a字典)
 	return v字典
 class S接口:
 	"表示一个接口"
@@ -740,9 +753,9 @@ class I接口配置模式_以太网(I接口配置模式):
 		raise NotImplementedError()
 	def f开关(self, a开关):
 		raise NotImplementedError()
-	def fs速率(self, a速率):
+	def f物理_s速率(self, a速率):
 		raise NotImplementedError()
-	def fs双工模式(self, a全双工 = True):
+	def f物理_s双工模式(self, a全双工 = True):
 		raise NotImplementedError()
 	#三层
 	def fs网络地址4(self, a地址):
@@ -801,11 +814,6 @@ class I接口配置模式_串行(I接口配置模式):
 	def __init__(self, a, a接口):
 		I接口配置模式.__init__(self, a, a接口)
 	#接口
-	def fg地址(self):
-		"返回列表"
-		raise NotImplementedError()
-	def f开关(self, a开关):
-		raise NotImplementedError()
 	def fs时钟频率(self, a频率):
 		raise NotImplementedError()
 

@@ -1,7 +1,9 @@
 import pathlib
 import sys
 import time
+import re
 import cflw爬虫 as 爬虫
+c开头缩进正则 = re.compile(r"^\s")
 class I文档:	#用来继承
 	def __init__(self):
 		self.m文档 = None
@@ -16,11 +18,13 @@ class I小说(I文档):
 	def __init__(self):
 		I文档.__init__(self)
 	def fe目录(self):
+		"返回(章节名, I章节 对象)"
 		raise NotImplementedError()
 class I章节(I文档):
 	def __init__(self):
 		I文档.__init__(self)
 	def fg正文(self):
+		"返回字符串"
 		raise NotImplementedError()
 class C写文件:
 	def __init__(self, a文件名):
@@ -75,7 +79,7 @@ def f一键下载(a小说, a保存路径):
 	print("\n下载完成")
 def f处理正文(a文本):
 	v正文文本 = a文本
-	v正文文本 = v正文文本.replace(" ", "")	#清除缩进
+	c开头缩进正则.sub(v正文文本, "")	#清除缩进
 	v正文文本 = v正文文本.replace("\xa0", "")	#清除缩进
 	v正文文本 = v正文文本.replace("\u3000", "")	#清除缩进
 	v正文文本 = v正文文本.replace("\r", "\n")	#
