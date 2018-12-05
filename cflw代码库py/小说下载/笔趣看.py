@@ -1,5 +1,8 @@
 import time
+import cflw爬虫 as 爬虫
 import cflw小说下载 as 小说下载
+import cflw字符串 as 字符串
+c域名 = "www.biqukan.com"
 c地址 = "http://www.biqukan.com"
 def f计算地址(a小说编号 = "", a章节编号 = ""):
 	v地址 = c地址 + "/"
@@ -15,8 +18,7 @@ def f提取链接(a链接: str):
 	v小说编号 = ""
 	v章节编号 = ""
 	#删域名
-	if c地址 in v链接:
-		v链接 = v链接[len(c地址):]
+	v链接 = 字符串.f去前面(v链接, c域名)
 	#删后缀
 	v链接 = 小说下载.f删除链接后缀(v链接)
 	#计算索引
@@ -35,10 +37,11 @@ def f获取小说(a: str):
 	else:
 		v小说编号 = a
 	return C小说(v小说编号)
-class C小说(小说下载.I小说):
+class C小说(爬虫.I文档, 小说下载.I小说):
 	c章节列表类名 = "listmain"
 	c信息类名 = "small"
 	def __init__(self, a小说编号: str):
+		爬虫.I文档.__init__(self)
 		小说下载.I小说.__init__(self)
 		self.m小说编号 = a小说编号
 		self.m信息 = {}
@@ -80,10 +83,12 @@ class C小说(小说下载.I小说):
 			self.m信息["字数"] = int(va信息[3].string[3:])
 			self.m信息["最后更新时间"] = time.strptime(va信息[4].string[5:], "%Y-%m-%d %H:%M:%S")
 		return self.m信息
-class C章节(小说下载.I章节):
+class C章节(爬虫.I文档, 小说下载.I章节):
 	c正文标识名 = "content"
 	c正文类名 = "showtxt"
 	def __init__(self, a小说编号: str, a章节编号: str):
+		assert(str.isdigit(a章节编号))
+		爬虫.I文档.__init__(self)
 		小说下载.I章节.__init__(self)
 		self.m小说编号 = a小说编号
 		self.m章节编号 = a章节编号
@@ -97,9 +102,7 @@ class C章节(小说下载.I章节):
 		v正文元素 = self.m文档.find("div", id = C章节.c正文标识名, class_ = C章节.c正文类名)
 		v正文文本 = ""
 		for v行 in v正文元素.strings:
-			vi添加 = True
 			if "biqukan" in v行:
-				vi添加 = False
-			if vi添加:
-				v正文文本 += v行 + "\n"
+				continue
+			v正文文本 += v行 + "\n"
 		return 小说下载.f处理正文(v正文文本)

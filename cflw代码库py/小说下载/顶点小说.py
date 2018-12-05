@@ -1,3 +1,4 @@
+import cflw爬虫 as 爬虫
 import cflw小说下载 as 小说下载
 c地址 = "https://www.23us.so"
 c小说地址 = c地址 + "/xiaoshuo/"
@@ -28,9 +29,10 @@ def f获取小说(a: str):
 	else:
 		v小说编号 = a
 	return C小说(v小说编号)
-class C小说(小说下载.I小说):
+class C小说(爬虫.I文档, 小说下载.I小说):
 	c章节列表类名 = "L"
 	def __init__(self, a小说编号: str):
+		爬虫.I文档.__init__(self)
 		小说下载.I小说.__init__(self)
 		self.m小说编号 = a小说编号
 	def fg地址(self):
@@ -43,9 +45,10 @@ class C小说(小说下载.I小说):
 			v链接 = v元素.get("href")
 			v文本 = v元素.string
 			yield v文本, C章节(*f提取链接(v链接))
-class C章节(小说下载.I章节):
+class C章节(爬虫.I文档, 小说下载.I章节):
 	c正文标识名 = "contents"
 	def __init__(self, a小说编号: str, a章节编号: str):
+		爬虫.I文档.__init__(self)
 		小说下载.I章节.__init__(self)
 		self.m小说编号 = a小说编号
 		self.m章节编号 = a章节编号

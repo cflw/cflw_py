@@ -5,14 +5,12 @@ import time
 import cflw网络连接 as 连接
 import cflw网络设备 as 设备
 import cflw字符串 as 字符串
+from 网络设备.华三_常量 import *
 import 网络设备.华三_用户 as 用户
 import 网络设备.华三_登陆 as 登陆
 import 网络设备.华三_接口 as 接口
+import 网络设备.华三_时间范围 as 时间范围
 import 网络设备.华为_网络时间协议 as 网络时间协议
-#常量
-c不 = "undo"
-c结束符 = '\x1a'	#ctrl+z
-c换行符 = '\r'
 #===============================================================================
 # 工厂
 #===============================================================================
@@ -217,7 +215,7 @@ class C系统视图(设备.I全局配置模式):
 	def f模式_登陆配置(self, a方式, a范围 = None):	#console,vty之类的
 		return 登陆.C登陆(self, a方式, a范围)
 	def f模式_时间范围(self, a名称):
-		raise NotImplementedError()
+		return 时间范围.C时间范围(self, a名称)
 	def f模式_虚拟局域网(self, a序号):	#vlan
 		raise NotImplementedError()
 	#设备配置

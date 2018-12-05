@@ -17,9 +17,19 @@ def f获取文档(a地址, a请求头 = None, a失败重试次数 = 5):
 			continue	#重试
 	raise e
 def f检测超文本传输协议错误(a文档)->int:
-	if len(a文档) > 1000:
+	if len(a文档) > 1000:	#大文档应该没问题
 		return 0
 	v匹配结果 = c超文本传输协议错误正则表达式.search(a文档)
 	if v匹配结果:
 		return int(v匹配结果.group(0))
 	return 0	#没错误返回0
+class I文档:
+	def __init__(self):
+		self.m文档 = None
+	def f重新载入(self):
+		self.m文档 = fc解析器bs(f获取文档(self.fg地址()))
+	def f载入(self):
+		if not self.m文档:
+			self.f重新载入()
+	def fg地址(self):
+		raise NotImplementedError()

@@ -54,6 +54,18 @@ def f计算字符宽度(a字符: str):
 #===============================================================================
 def f去头尾空白(a字符串: str):
 	return a字符串.strip()
+def f去前面(a字符串: str, a前面: str):
+	"前面及更前的字符串全部去除"
+	v位置 = a字符串.find(a前面)
+	if v位置 > 0:
+		return a字符串[v位置 + len(a前面):]
+	return a字符串
+def f去后面(a字符串: str, a后面: str):
+	"后面及更后的字符串全部去除"
+	v位置 = a字符串.rfind(a后面)
+	if v位置 > 0:
+		return a字符串[:v位置]
+	return a字符串
 def f全部搜索(a字符串: str, a搜索: str):
 	v列表 = []
 	v位置 = 0

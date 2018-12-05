@@ -2,33 +2,22 @@ import pathlib
 import sys
 import time
 import re
-import cflw爬虫 as 爬虫
-c开头缩进正则 = re.compile(r"^\s")
-class I文档:	#用来继承
+c开头缩进正则 = re.compile(r"^\s+", re.M)
+class I小说:
 	def __init__(self):
-		self.m文档 = None
-	def f重新载入(self):
-		self.m文档 = 爬虫.fc解析器bs(爬虫.f获取文档(self.fg地址()))
-	def f载入(self):
-		if not self.m文档:
-			self.f重新载入()
-	def fg地址(self):
-		raise NotImplementedError()
-class I小说(I文档):
-	def __init__(self):
-		I文档.__init__(self)
+		pass
 	def fe目录(self):
 		"返回(章节名, I章节 对象)"
 		raise NotImplementedError()
-class I章节(I文档):
+class I章节:
 	def __init__(self):
-		I文档.__init__(self)
+		pass
 	def fg正文(self):
 		"返回字符串"
 		raise NotImplementedError()
 class C写文件:
 	def __init__(self, a文件名):
-		self.m文本名 = a文件名
+		self.m文件名 = a文件名
 		self.m文件 = open(a文件名, "w", encoding = "utf-8")
 	def f写章节(self, a章节名, a正文):
 		self.m文件.write(a章节名 + "\n" + a正文 + "\n")
@@ -57,9 +46,7 @@ def f一键下载(a小说, a保存路径):
 	#循环
 	v数量 = len(va目录)
 	i = 0
-	for v in va目录:
-		v章节名 = v[0]
-		v章节 = v[1]
+	for v章节名, v章节 in va目录:
 		for i1 in range(5):
 			try:
 				v正文 = v章节.fg正文()
@@ -79,10 +66,10 @@ def f一键下载(a小说, a保存路径):
 	print("\n下载完成")
 def f处理正文(a文本):
 	v正文文本 = a文本
-	c开头缩进正则.sub(v正文文本, "")	#清除缩进
+	v正文文本 = v正文文本.replace("\r", "\n")	#
+	v正文文本 = c开头缩进正则.sub("\n", v正文文本)	#清除缩进
 	v正文文本 = v正文文本.replace("\xa0", "")	#清除缩进
 	v正文文本 = v正文文本.replace("\u3000", "")	#清除缩进
-	v正文文本 = v正文文本.replace("\r", "\n")	#
 	v正文文本 = v正文文本.replace("\n \n", "\n")	#清除多余换行
 	while "\n\n" in v正文文本:
 		v正文文本 = v正文文本.replace("\n\n", "\n")	#清除多余换行
