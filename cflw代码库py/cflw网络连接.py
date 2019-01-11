@@ -1,6 +1,7 @@
 import telnetlib
 import cflw时间 as 时间
 class I连接:
+	"连接接口"
 	def f读_最新(self):#应该把没有读的内容都读出来
 		"马上读内容，可能什么都没有"
 		raise NotImplementedError()
@@ -15,6 +16,7 @@ class I连接:
 		"断开连接"
 		raise NotImplementedError()
 class C缓存:
+	"把读到的内容临时存起来"
 	def __init__(self, a大小 = 10):
 		self.m大小 = a大小
 		self.m缓存 = []

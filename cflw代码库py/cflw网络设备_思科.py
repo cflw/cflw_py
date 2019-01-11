@@ -10,7 +10,10 @@ import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 import cflw时间 as 时间
 from 网络设备.思科_常量 import *
+import 网络设备.通用_实用 as 通用实用
+import 网络设备.思科_实用 as 思科实用
 import 网络设备.思科_接口 as 接口
+import 网络设备.思科_用户 as 用户
 import 网络设备.思科_访问控制列表 as 访问控制列表
 import 网络设备.思科_路由信息协议 as 路由信息协议
 import 网络设备.思科_增强内部网关路由协议 as 增强内部网关路由协议
@@ -55,7 +58,7 @@ class C设备(设备.I设备):
 	def f模式_用户(self):
 		self.f刷新(False)
 		self.f输入_结束符()
-		self.f输入_回车(-1, 2)
+		self.f输入_回车(-1, 5)
 		if not self.ma模式:
 			self.ma模式.append(C用户模式(self))
 		return self.ma模式[0]
@@ -79,7 +82,7 @@ class C设备(设备.I设备):
 		else:	#在配置模式，命令前要加个do
 			v输出 = 设备.I设备.f执行显示命令(self, c做 + v命令)
 		v输出 = v输出.replace("\r\n", "\n")
-		v输出 = 设备.C实用工具.f去头尾行(v输出)
+		v输出 = 通用实用.f去头尾行(v输出)
 		if v输出.count("\n") < 10:	#输出行数太少,检测是否有异常
 			self.f检测命令异常(v输出)
 		return v输出
@@ -260,27 +263,33 @@ class C全局配置(设备.I全局配置模式):
 	def __init__(self, a父模式):
 		设备.I全局配置模式.__init__(self, a父模式)
 	#模式
-	def f切换到当前模式(self):
-		if self.fi当前模式():
-			return
-		if isinstanse(self.m设备.ma模式[-1], 设备.I用户模式):
-			self.m设备.f执行命令(C全局配置.c进入命令)
-		while len(self.m设备.ma模式) > 2:	#退出到第2层
-			self.m设备.f退出()
-		if not self.fi当前模式():
-			self.m设备.f退出()
-			self.m设备.f执行命令(C全局配置.c进入命令)
 	def fg进入命令(self):
 		return C全局配置.c进入命令
 	#基本模式
-	def f模式_接口配置(self, a接口):
-		v接口 = 接口.f创建接口(a接口)
-		return 接口.C接口配置(self, v接口)
-	def f模式_用户配置(self, a):
-		return C用户配置(self, a)
-	def f模式_时间范围(self, a):
+	def f模式_接口配置(self, a接口, a操作 = 设备.E操作.e设置):
+		if isinstance(a接口, 设备.I接口配置模式):
+			if not a接口.m设备 is self.m设备:
+				raise ValueError("设备不匹配")
+			v模式 = a接口
+		else:
+			v接口 = 接口.f创建接口(a接口)
+			v模式 = 接口.C接口配置(self, v接口)
+		思科实用.f执行模式操作命令(self, v模式, a操作)
+		return v模式
+	def f模式_用户配置(self, a, a操作 = 设备.E操作.e设置):
+		if isinstance(a, 设备.I用户配置模式):
+			if not a.m设备 is self.m设备:
+				raise ValueError("设备不匹配")
+			v模式 = a
+		else:
+			v模式 = 用户.C用户配置(self, a)
+		if a操作 == 设备.E操作.e删除:
+			v命令 = v模式.fg删除命令()
+			self.f执行当前模式命令(v命令)
+		return v模式
+	def f模式_时间范围(self, a, a操作 = 设备.E操作.e设置):
 		return C时间范围(self, a)
-	def f模式_访问控制列表(self, a名称, a类型 = 设备.E访问控制列表类型.e标准):
+	def f模式_访问控制列表(self, a名称, a类型 = 设备.E访问控制列表类型.e标准, a操作 = 设备.E操作.e设置):
 		def f整数范围检查(aa范围: list, a错误文本: str):
 			if type(a名称) == int:
 				for v in aa范围:
@@ -290,15 +299,22 @@ class C全局配置(设备.I全局配置模式):
 		#创建访问控制列表对象
 		if a类型 == 设备.E访问控制列表类型.ipv4标准:
 			f整数范围检查([range(1, 100), range(1300, 2000)], "标准访问控制列表号码范围应为1~99,1300~1999")
-			return 访问控制列表.C标准4(self, a名称)
+			v模式 = 访问控制列表.C标准4(self, a名称)
 		elif a类型 == 设备.E访问控制列表类型.ipv4扩展:
 			f整数范围检查([range(100, 200), range(2000, 2700)], "扩展访问控制列表号码范围应为100~199,2000~2699")
-			return 访问控制列表.C扩展4(self, a名称)
+			v模式 = 访问控制列表.C扩展4(self, a名称)
 		elif a类型 == 设备.E访问控制列表类型.ipv6:
-			return 访问控制列表.C六(self, a名称)
+			v模式 = 访问控制列表.C六(self, a名称)
 		else:
 			raise ValueError("未知的访问控制列表类型")
-	def f模式_前缀列表(self, a名称, a类型 = 设备.E前缀列表类型.e版本4):
+		if a操作 == 设备.E操作.e删除:
+			v命令 = c不 + v模式.fg进入命令()
+			self.f执行当前模式命令(v命令)
+		elif a操作 == 设备.E操作.e重置:
+			v命令 = c默认 + v模式.fg进入命令()
+			self.f执行当前模式命令(v命令)
+		return v模式
+	def f模式_前缀列表(self, a名称, a类型 = 设备.E前缀列表类型.e版本4, a操作 = 设备.E操作.e设置):
 		if a类型 == 设备.E前缀列表类型.e版本4:
 			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本4, 地址.S网络地址4)
 		elif a类型 == 设备.E前缀列表类型.e版本6:
@@ -364,27 +380,6 @@ class C时间(设备.C同级模式, 设备.I时间):
 		self.f切换到当前模式()
 		self.m设备.f执行命令(v命令)
 #===============================================================================
-# 用户配置
-#===============================================================================
-class C用户配置(设备.C同级模式, 设备.I用户配置模式):
-	def __init__(self, a父模式, a用户名):
-		设备.I用户配置模式.__init__(self, a父模式)
-		self.m用户名 = str(a用户名)
-		self.m命令前缀 = 设备.C命令("username %s " % (self.m用户名,))
-	def f执行用户命令(self, a命令):
-		v命令 = self.m命令前缀 + a命令
-		self.f执行当前模式命令(v命令)
-	def fs密码(self, a密码):
-		v类型 = type(a密码)
-		if v类型 == 密码.C包装:
-			self.f执行用户命令(a密码)
-		else:
-			self.f执行用户命令("secret %s" % (a密码,))
-	def fs权限等级(self, a权限等级):
-		self.f执行用户命令("privildge %d" % (a权限等级,))
-	def fs服务类型(self, a服务类型 = None):
-		pass
-#===============================================================================
 # 登陆
 #===============================================================================
 class C登陆配置(设备.I登陆配置模式):
@@ -393,68 +388,3 @@ class C登陆配置(设备.I登陆配置模式):
 #===============================================================================
 # 路由
 #===============================================================================
-class C静态路由(设备.C同级模式, 设备.I静态路由配置模式):
-	def __init__(self, a):
-		设备.I静态路由配置模式.__init__(self, a)
-	@staticmethod
-	def f解析参数(a网络号, a出接口):
-		v网络号 = 地址.C因特网协议4.fc网络(a网络号, False)
-		v分割 = v网络号.with_netmask.split('/')
-		v接口 = C实用工具.f接口字符串(a出接口)
-		s = '%s %s %s' % (*v分割, v接口)
-		return s
-	def f添加路由(self, a网络号, a出接口):
-		self.m设备.f执行命令('ip route ' + C静态路由.f解析参数(a网络号, a出接口))
-	def f删除路由(self, a网络号, a出接口):
-		self.m设备.f执行命令('no ip route ' + C静态路由.f解析参数(a网络号, a出接口))
-	def fs默认路由(self, a出接口):
-		self.m设备.f执行命令('ip route ' + C静态路由.f解析参数('0.0.0.0/0', a出接口))
-
-#===============================================================================
-# 工具
-#===============================================================================
-class C实用工具:
-	@staticmethod
-	def f接口字符串(a接口: 设备.S接口)->str:
-		s = g接口名称[a接口.m名称]
-		for i in range(len(a接口.m序号) - 1):
-			s += str(a接口.m序号[i]) + '/'
-		s += a接口.m序号[-1]
-		if a接口.m子序号:
-			s += '.' + str(a接口.m子序号)
-		return s
-	@staticmethod
-	def f接口字符串_复杂(a接口: 设备.S接口)->str:	#支持连续地址
-		def f连续(p字符串: str, a范围: range):
-			#返回'f0/0.1-f0/0.100'这样子的字符串
-			#字符串:'f0/0.',范围:range(1,101)
-			v前 = p字符串 + str(a范围.start)
-			v后 = p字符串 + str(a范围.stop - 1)
-			return v前 + '-' + v后
-		#S接口
-		s = g接口名称[a接口.m名称]
-		for i in range(len(a接口.m序号) - 1):
-			s += str(a接口.m序号[i]) + '/'
-		if type(a接口.m序号[-1]) == range:	#最后一段是连续的
-			return f连续(s, a接口.m序号[-1])
-		else:
-			s += a接口.m序号[-1]
-			if a接口.m子序号:
-				if type(a接口.m子序号) == range:	#子序号是连续的
-					return f连续(s + '.', a接口.m子序号)
-				else:
-					s += '.' + str(a接口.m子序号)
-			return s
-	@staticmethod
-	def f路由协议_执行接口命令(a路由, a接口, a命令):	#在路由模式中调用,在接口执行命令
-		v命令 = str(a命令)
-		v接口类型 = type(a接口)
-		if v接口类型 == 设备.I接口配置模式:	#接口是一个模式对象,直接切换模式
-			a接口.f切换到当前模式()
-			a接口.m设备.f执行命令(v命令)
-		elif v接口类型 == 设备.S接口:	#构造模式对像并切换
-			v接口 = a路由.m模式栈[1].f模式_接口配置(a接口)
-			a接口.f切换到当前模式()
-			a接口.m设备.f执行命令(v命令)
-		else:
-			raise TypeError("无法识别 a接口 的类型")

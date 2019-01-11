@@ -38,13 +38,14 @@ class I设备:
 	def f设备_停顿(self, a倍数 = 1):
 		time.sleep(self.m间隔 * a倍数)
 	def f退出(self, a关闭 = False):
-		"退出当前模式,如果在用户模式,则退出登陆"
+		"""设备默认退出当前模式行为, 如果模式重写了 fg退出命令 则不调用该函数\n
+		如果当前模式是用户模式, 则退出登陆"""
 		raise NotImplementedError()	#实现示例: self.f执行命令("exit")
 	def f输入(self, a文本):
 		self.f设备_停顿()
 		self.m连接.f写(a文本)
 	def f输出(self):
-		"读取输出缓存中的内容，清除输出缓存"
+		"读取输出缓存中的内容, 清除输出缓存"
 		return self.m连接.f读_最新()
 	def f输入_回车(self, a数量 = 1, a等待 = 1):
 		if a数量 > 0:
@@ -68,7 +69,7 @@ class I设备:
 		v字符 = random.choice("qwertyuiopasdfghjklzxcvbnm")
 		self.m连接.f写(v字符)
 	def f刷新(self, a回显 = True):
-		"清除正在输入的命令，清除输出缓存"
+		"清除正在输入的命令, 清除输出缓存"
 		self.f设备_停顿()
 		v输出 = self.f输出()
 		if a回显:
@@ -82,7 +83,7 @@ class I设备:
 		"判断命令能不能执行"
 		raise NotImplementedError()
 	def f执行命令(self, a命令):
-		"输入一段字符按回车，并返回输出结果"
+		"输入一段字符按回车, 并返回输出结果"
 		self.f刷新()
 		self.f输入(str(a命令))
 		self.f输入_回车()
@@ -164,6 +165,9 @@ class I设备:
 	def f模式_用户(self):	#要求：ma模式[0]总是用户模式，没有则创建。不能创建多个用户模式对象。
 		"用户模式只能查看信息,做一些基本操作,不能配置"
 		raise NotImplementedError()
+	def f模式_启动(self):
+		"在交换机开机阶段执行操作的模式,需要串口连接"
+		raise NotImplementedError()
 	#显示.当存在可以在任何模式使用的命令,直接重写这里的函数
 	def f显示_当前模式配置(self):
 		raise NotImplementedError()
@@ -187,6 +191,14 @@ class C命令:	#快速添加命令参数
 		else:
 			self.f添加(a)
 		return self
+	def __radd__(self, a):
+		v命令 = copy.copy(self)
+		v类型 = type(a)
+		if v类型 in (tuple, list):
+			v命令.f前面添加(*a)
+		else:
+			v命令.f前面添加(a)
+		return v命令
 	def __str__(self):
 		return self.m字符串
 	def f添加(self, *a):
@@ -194,6 +206,7 @@ class C命令:	#快速添加命令参数
 			if self.m字符串 and self.m字符串[-1] != ' ':	#添加空格
 				self.m字符串 += " "
 			self.m字符串 += str(v)
+		return self
 	def f前面添加(self, *a):
 		if not a:
 			raise TypeError
@@ -203,9 +216,11 @@ class C命令:	#快速添加命令参数
 				self.m字符串 = v命令 + self.m字符串
 			else:
 				self.m字符串 = v命令 + " " + self.m字符串
+		return self
 	def f前置否定(self, a判断: bool, a命令):
 		if not a判断:
-			self.f前面添加(a命令)
+			self.fs前面添加(a命令)
+		return self
 def F检测命令异常(a列表):
 	def f检测命令异常(self, a输出):
 		def f返回异常(ax):
@@ -224,11 +239,6 @@ def F检测命令异常(a列表):
 #===============================================================================
 # 模式基类
 #===============================================================================
-class E模式(enum.IntEnum):
-	e用户模式 = 0
-	e特权模式 = 1
-	e全局配置模式 = 10
-	e接口配置模式 = 11
 class E版本(enum.IntEnum):
 	e网络协议4 = 4
 	e网络协议6 = 6
@@ -236,6 +246,11 @@ class E版本(enum.IntEnum):
 	e下一代路由信息协议 = 6
 	e开放最短路径优先2 = 4
 	e开放最短路径优先3 = 6
+class E操作(enum.IntEnum):
+	e设置 = 0	#覆盖原有配置,不存在则创建
+	e重置 = 1	#恢复默认配置
+	e添加 = 2	#添加值
+	e删除 = 3	#删除/恢复
 class I模式:
 	def __init__(self, a):
 		if isinstance(a, I设备):	#a是设备
@@ -244,8 +259,20 @@ class I模式:
 		elif isinstance(a, I模式):	#a是父模式
 			self.m设备 = a.m设备
 			self.m模式栈 = a.m模式栈 + (self, )
+		else:
+			raise TypeError()
+	def __eq__(self, a):	#通用的模式相等比较
+		if isinstance(a, I模式):
+			if self is a:
+				return True
+			elif self.fg进入命令 != a.fg进入命令:
+				return False
+			else:
+				return self.fg进入命令() == a.fg进入命令()
+		else:
+			return False
 	def fi当前模式(self):
-		return isinstance(self.m设备.fg当前模式(), type(self))
+		return self == self.m设备.fg当前模式()
 	def f切换到当前模式(self):
 		if not self.fi当前模式():
 			self.m设备.f切换模式(self.m模式栈)
@@ -268,6 +295,9 @@ class I模式:
 			return self.m模式栈[-2]
 		else:
 			return None
+	def fg删除命令(self):
+		"删除当前模式所使用的完整命令,需要在上级模式执行"
+		raise NotImplementedError()
 class C同级模式(I模式):	#和上一层模式是同一级别的，不需要进入命令也不需要退出命令
 	def fg模式参数(self):
 		return ""
@@ -388,38 +418,42 @@ class I全局配置模式(I模式):
 	c模式名 = "全局配置模式"
 	def __init__(self, a设备):
 		I模式.__init__(self, a设备)
-	def fi当前模式(self):
-		return isinstance(self.m设备.fg当前模式(), I全局配置模式)
 	#模式
 	def f模式_时间(self):
 		raise NotImplementedError()
-	def f模式_接口配置(self, a接口):
+	def f模式_接口配置(self, a接口, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_用户配置(self, a用户名):
+	def f模式_用户配置(self, a用户名, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_登陆配置(self, a方式, a范围):	#console,vty之类的
+	def f模式_登陆配置(self, a方式, a范围, a操作 = E操作.e设置):	#console,vty之类的
 		raise NotImplementedError()
-	def f模式_时间范围(self, a名称):
+	def f模式_时间范围(self, a名称, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_虚拟局域网(self, a序号):	#vlan
+	def f模式_虚拟局域网(self, a序号, a操作 = E操作.e设置):	#vlan
 		raise NotImplementedError()
 	#模式_路由
 	def f模式_静态路由(self, a版本 = E版本.e网络协议4):
 		raise NotImplementedError()
-	def f模式_路由信息协议(self, a进程号 = 0, a版本 = E版本.e网络协议4):	#rip
+	def f模式_路由信息协议(self, a进程号 = 0, a版本 = E版本.e网络协议4, a操作 = E操作.e设置):	#rip
 		raise NotImplementedError()
-	def f模式_开放最短路径优先(self, a进程号, a版本 = E版本.e开放最短路径优先2):	#ospf
+	def f模式_开放最短路径优先(self, a进程号, a版本 = E版本.e开放最短路径优先2, a操作 = E操作.e设置):	#ospf
 		raise NotImplementedError()
-	def f模式_增强内部网关路由协议(self, a名称, a版本 = E版本.e网络协议4):	#eigrp
+	def f模式_增强内部网关路由协议(self, a名称, a版本 = E版本.e网络协议4, a操作 = E操作.e设置):	#eigrp
 		raise NotImplementedError()
-	def f模式_边界网关协议(self, a自治系统号):	#bgp
+	def f模式_边界网关协议(self, a自治系统号, a操作 = E操作.e设置):	#bgp
 		raise NotImplementedError()
-	def f模式_中间系统到中间系统(self, a进程号):	#isis
+	def f模式_中间系统到中间系统(self, a进程号, a操作 = E操作.e设置):	#isis
+		raise NotImplementedError()
+	def f模式_热备份路由协议(self, a组号, a操作 = E操作.e设置):	#hsrp
+		raise NotImplementedError()
+	def f模式_虚拟路由器冗余协议(self, a组号, a操作 = E操作.e设置):	#vrrp
+		raise NotImplementedError()	
+	def f模式_网关负载均衡协议(self, a组号, a操作 = E操作.e设置):	#glbp
 		raise NotImplementedError()
 	#模式_其它
-	def f模式_访问控制列表(self, a名称, a类型):
+	def f模式_访问控制列表(self, a名称, a类型, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_前缀列表(self, a名称, a类型):
+	def f模式_前缀列表(self, a名称, a类型, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def f模式_端口安全(self):
 		raise NotImplementedError()
@@ -429,9 +463,9 @@ class I全局配置模式(I模式):
 		raise NotImplementedError()
 	def f模式_安全外壳(self):	#ssh
 		raise NotImplementedError()
-	def f模式_网络协议地址池(self, a名称):	#ip pool
+	def f模式_网络协议地址池(self, a名称, a操作 = E操作.e设置):	#ip pool
 		raise NotImplementedError()
-	def f模式_动态主机配置协议地址池(self, a名称):	#dhcp pool
+	def f模式_动态主机配置协议地址池(self, a名称, a操作 = E操作.e设置):	#dhcp pool
 		raise NotImplementedError()
 	def f模式_动态主机配置协议(self):	#dhcp
 		raise NotImplementedError()
@@ -691,8 +725,8 @@ class S接口:
 		else:
 			raise TypeError("无法识别的参数")
 	def fg名称(self, a字典 = None):
-		if p字典:
-			return p字典[self.m类型]
+		if a字典:
+			return a字典[self.m类型]
 		elif self.m名称:
 			return self.m名称
 		else:
@@ -737,8 +771,6 @@ class I接口配置模式(I模式):
 		else:
 			return False
 	#通用方法
-	def fi当前模式(self):
-		return isinstance(self.m设备.fg当前模式(), I接口配置模式)
 	def fg模式参数(self):	#在这里确定不同厂商的接口名称
 		return (self.m接口,)
 	def fg进入命令(self):
@@ -753,32 +785,24 @@ class I接口配置模式_以太网(I接口配置模式):
 		raise NotImplementedError()
 	def f开关(self, a开关):
 		raise NotImplementedError()
-	def f物理_s速率(self, a速率):
+	def f物理_s速率(self, a速率 = 1000, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f物理_s双工模式(self, a全双工 = True):
+	def f物理_s双工模式(self, a全双工 = True, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	#三层
-	def fs网络地址4(self, a地址):
-		raise NotImplementedError()
-	def f添加网络地址4(self, a地址):
-		raise NotImplementedError()
-	def f删除网络地址4(self, a地址 = None):
+	def fs网络地址4(self, a地址, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fe网络地址4(self):
 		"返回这个接口拥有的所有地址"
 		raise NotImplementedError()
-	def f添加网络地址6(self, a地址):
-		raise NotImplementedError()
-	def f删除网络地址6(self, a地址):
+	def fs网络地址6(self, a地址, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fe网络地址6(self):
 		raise NotImplementedError()
 	#二层
 	def f二层_s链路模式(self, a模式):
 		raise NotImplementedError()
-	def f二层中继_允许通过(self, a虚拟局域网):
-		raise NotImplementedError()
-	def f二层中继_拒绝通过(self, a虚拟局域网):
+	def f二层中继_s通过(self, a虚拟局域网, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def f二层中继_s封装协议(self, a协议):
 		raise NotImplementedError()
@@ -874,22 +898,19 @@ class C路由协议:
 			return C路由协议.c版本字符串转数字[a]
 		else:
 			raise TypeError("无法解析的类型")
-#静态路由	===================================================================
+#静态路由	=====================================================================
 class I静态路由配置模式(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
 	def f显示_路由表(self):
 		raise NotImplementedError()
-	def f添加路由(self, a网络号, a出接口):
+	def fs路由4(self, a网络号, a下一跳, a操作 = E操作.e添加):
 		raise NotImplementedError()
-	def f删除路由(self, a网络号, a出接口):
+	def fs默认路由4(self, a下一跳, a操作 = E操作.e添加):
 		raise NotImplementedError()
-	def fs默认路由(self, a出接口):
-		'没有则创建,有一个则覆盖,如果的多个则删掉'
+	def fs路由6(self, a网络号, a下一跳, a操作 = E操作.e添加):
 		raise NotImplementedError()
-	def f添加默认路由(self, a出接口):
-		raise NotImplementedError()
-	def f删除默认路由(self, a出接口):
+	def fs默认路由6(self, a下一跳, a操作 = E操作.e添加):
 		raise NotImplementedError()
 #路由信息协议rip	=============================================================
 class I路由信息协议(I模式):
@@ -1121,6 +1142,56 @@ class I中间系统到中间系统(I模式):
 	def f通告接口(self, a接口):
 		raise NotImplementedError()
 	def f删除接口(self, a接口):
+		raise NotImplementedError()
+#===============================================================================
+# 冗余路由
+#===============================================================================
+#虚拟路由器冗余协议vrrp =========================================================
+class I虚拟路由器冗余协议(I模式):
+	def __init__(self, a, a组号):
+		I模式.__init__(self, a)
+		self.m组号 = a组号
+	def fs网络地址4(self, a地址):
+		raise NotImplementedError()
+	def fs网络地址6(self, a地址):
+		raise NotImplementedError()
+	def fs优先级(self, a优先级):
+		raise NotImplementedError()
+#===============================================================================
+# 路由策略
+#===============================================================================
+class I路由策略组(I模式):
+	def __init__(self, a, a名称):
+		I模式.__init__(self, a)
+		self.m名称 = a名称
+	def f模式_策略(self, a动作, a策略号):
+		raise NotImplementedError()
+class I路由策略节点(I模式):
+	def __init__(self, a, a节点号):
+		I模式.__init__(self, a)
+		self.m节点号 = a节点号
+	#匹配
+	def f匹配_访问列表(self, a访问列表, a操作 = E操作.e添加):
+		raise NotImplementedError()
+	def f匹配_前缀列表(self, a前缀列表, a操作 = E操作.e添加):
+		raise NotImplementedError()
+	#应用
+	def f应用_下一跳4(self, a地址, a操作 = E操作.e添加):
+		raise NotImplementedError()
+	def f应用_默认下一跳4(self, a地址, a操作 = E操作.e添加):
+		raise NotImplementedError()
+	def f应用_出接口(self, a接口, a操作 = E操作.e添加):
+		raise NotImplementedError()
+	def f应用_默认出接口(self, a接口, a操作 = E操作.e添加):
+		raise NotImplementedError()
+	#应用 路由
+	def f应用_度量值(self, a值, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def f应用_区域类型(self, a区域类型, a操作 = E操作.e设置):
+		"用于: ospf, isis"
+		raise NotImplementedError()
+	def f应用_路由类型(self, a路由类型, a操作 = E操作.e设置):
+		"用于: ospf, eigrp, isis"
 		raise NotImplementedError()
 #===============================================================================
 # acl
@@ -1656,82 +1727,13 @@ class X输出(X设备):
 	"无法解析设备输出信息"
 	def __init__(self, a):
 		X设备.__init__(self, a)
+class X操作(X设备):
+	"操作无效"
+	def __init__(self, a操作):
+		X设备.__init__(self, "操作 %s 无效" % (a操作))
 #===============================================================================
 # 其它
 #===============================================================================
-class C实用工具:
-	c匹配数字 = re.compile(r'(?<!\w)\d+\.?\d*(?!\w)')
-	@staticmethod
-	def f设备名_括号包围式(a文本):
-		return a文本[1:-1]
-	@staticmethod
-	def f设备名_前缀式(a文本):
-		return re.split(r'>#(', a文本)[0]
-	@staticmethod
-	def f时间(p周, p日, p时, a分):
-		return (((int(a周) * 7 + int(a日)) * 24 + int(a时)) * 60 + int(a分)) * 60
-	@staticmethod
-	def f取数字(a文本):
-		v结果 = C实用工具.c匹配数字.findall(a文本)
-		i = 0
-		while i < len(v结果):
-			if '.' in v结果[i]:
-				v结果[i] = float(v结果[i])
-			else:
-				v结果[i] = int(v结果[i])
-			i += 1
-		return v结果
-	@staticmethod
-	def f去头尾行(a文本, a头行 = 1, a尾行 = 1, a行分割符 = '\n', a转列表 = False):
-		if a转列表:
-			v文本 = a文本.split(a行分割符)
-			if a头行:
-				v文本 = v文本[a头行:]
-			if a尾行:
-				v文本 = v文本[:-a尾行]
-			return v文本
-		else:
-			v头行位置 = 0
-			for i in range(a头行):
-				v头行位置 = a文本.find(a行分割符, v头行位置)
-				if v头行位置 == -1:
-					raise ValueError('头行位置超出范围')
-				v头行位置 += 1
-			v尾行位置 = len(a文本)
-			for i in range(a尾行):
-				v尾行位置 = a文本.rfind(a行分割符, v头行位置, v尾行位置)
-				if v尾行位置 == -1:
-					raise ValueError('尾行位置超出范围')
-			return a文本[v头行位置 : v尾行位置]
-	@staticmethod
-	def f参数等级(a, a最高):
-		"不同厂商对于权限等级的定义不同。为了统一，参数限制为只能用[0,1]之间的值"
-		v类型 = type(a)
-		if v类型 == int:
-			return v类型 * a最高
-		elif v类型 == str:
-			if '/' in a:	#分数
-				v数字 = fractions.Fraction(a)
-			else:
-				v数字 = a
-		else:
-			v数字 = a
-		return math.floor(float(v数字) * a最高 + 0.5)
-	@staticmethod
-	def f命令补全(a, *a元组):
-		v匹配程度 = 0
-		v匹配字符串 = ''
-		for v字符串 in a元组:
-			v当前匹配程度 = 0
-			for i in range(min(len(a), len(v字符串))):
-				if a[i] == v字符串[i]:
-					v当前匹配程度 += 1
-				else:
-					break
-			if v当前匹配程度 > v匹配程度:
-				v匹配程度 = v当前匹配程度
-				v匹配字符串 = v字符串
-		return v匹配字符串
 class E邻居信息(enum.IntEnum):
 	"用于：链路层发现协议"
 	e邻居名称 = 1
