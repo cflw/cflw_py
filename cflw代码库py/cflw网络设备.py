@@ -11,24 +11,30 @@ import operator
 import cflw时间 as 时间
 import cflw字符串 as 字符串
 import cflw工具_运算 as 运算
+c等待 = 2
+c间隔 = c等待 / 10
+c网络终端退格 = "["	#telnetlib的退格标记
 class I设备:
 	def __init__(self):
-		self.m间隔 = 0.1
+		self.m等待 = c等待
+		self.m间隔 = c间隔
 		self.m自动换页文本 = ''
 		self.ma模式 = []
 		self.fs回显(False, False)
 		self.m异常开关 = True
+		self.m注释 = "#"
 	def fs回显(self, a回显 = True, a等待回显 = True):
 		self.m回显 = a回显
 		self.m等待回显 = a等待回显
-	def fs输入间隔(self, a间隔 = 0.1):
+	def fs延迟(self, a间隔 = c间隔):
 		self.m间隔 = a间隔
+		self.m等待 = a间隔 * 10
 	def fs自动换页(self, a文本):
 		'设置自动换页标记'
 		self.m自动换页文本 = a文本
 		v长度 = len(a文本)
 		v删除标记 = '[' + str(v长度) + 'D'
-		self.m自动换页替换 = a文本 + v删除标记 + ' ' * v长度 + v删除标记
+		self.m自动换页替换 = None
 	def f关闭(self):
 		self.m连接.f关闭()
 	def f设备_回显(self, a内容):
@@ -44,9 +50,26 @@ class I设备:
 	def f输入(self, a文本):
 		self.f设备_停顿()
 		self.m连接.f写(a文本)
-	def f输出(self):
+	def f输出(self, a等待 = False):
 		"读取输出缓存中的内容, 清除输出缓存"
-		return self.m连接.f读_最新()
+		if not a等待:
+			return self.m连接.f读_最新()
+		v计数 = 0
+		v内容 = ""
+		while True:
+			v读 = self.m连接.f读_最新()
+			if v读:
+				v内容 += v读
+				time.sleep(self.m间隔)
+				continue
+			else:
+				v计数 += 1
+				if v计数 >= 10:
+					break
+				else:
+					time.sleep(self.m间隔)
+					continue
+		return v内容
 	def f输入_回车(self, a数量 = 1, a等待 = 1):
 		if a数量 > 0:
 			for i in range(a数量):
@@ -68,6 +91,8 @@ class I设备:
 	def f输入_任意键(self, a数量 = 1):
 		v字符 = random.choice("qwertyuiopasdfghjklzxcvbnm")
 		self.m连接.f写(v字符)
+	def f输入_注释(self):
+		self.m连接.f写(self.m注释)
 	def f刷新(self, a回显 = True):
 		"清除正在输入的命令, 清除输出缓存"
 		self.f设备_停顿()
@@ -90,31 +115,41 @@ class I设备:
 		v输出 = self.f输出()
 		self.f设备_回显(v输出)
 		return v输出
-	def f执行显示命令(self, a命令, a自动换页 = False, a等待 = 2):
+	def f执行显示命令(self, a命令, a自动换页 = False):
 		"有自动换页功能"
-		v等待 = a等待 / 10.0
 		self.f刷新()
 		self.f输入(str(a命令))
 		self.f输入_回车()
 		v输出 = ''
-		if a自动换页:
+		if a自动换页 and self.m自动换页文本:
 			while True:
-				v读 = self.m连接.f读_直到(self.m自动换页文本, a等待)
+				v读 = self.f输出(a等待 = True)
 				v输出 += v读
-				if self.m自动换页文本 in v读:
+				if self.m自动换页文本 in v读:	#还有更多
 					self.f输入_空格()
 					if self.m等待回显:
 						print('.', end = '', flush = True)
-						time.sleep(v等待)
 					continue
 				else:
 					break
-			v输出 = v输出.replace(self.m自动换页替换, '')
+			v输出 = self.f自动换页替换(v输出)
 		else:
-			time.sleep(v等待)
-			v输出 = self.f输出()
+			v输出 = self.f输出(a等待 = True)
+		v输出 = v输出.replace("\r\n", "\n")
 		self.f设备_回显(v输出)
 		return v输出
+	def f自动换页替换(self, a字符串: str):
+		v替换位置 = a字符串.find(self.m自动换页文本)
+		if v替换位置 < 0:
+			return a字符串	#找不到,不处理
+		if not self.m自动换页替换:	#没有则生成
+			v退格结束位置 = 字符串.f连续找最后(a字符串, c网络终端退格, c网络终端退格, "D", a开始 = v替换位置)
+			if v退格结束位置 >= 0:	#telnetlib
+				self.m自动换页替换 = a字符串[v替换位置 : v退格结束位置+1]
+			else:	#打字机
+				v回车位置 = a字符串.find(" \r", v替换位置)
+				self.m自动换页替换 = a字符串[v替换位置, v回车位置 + 1]
+		return a字符串.replace(self.m自动换页替换, '')
 	def fg当前模式(self):
 		return self.ma模式[-1]
 	def f进入模式(self, a模式):
@@ -160,7 +195,7 @@ class I设备:
 			self.m连接.f写(a测试字符)
 			self.m连接.f读_直到(a测试字符, 2)
 			v和 = v秒表.f滴答()
-		self.fs输入间隔(v和 / 5)	#间隔设置为平均响应时间的2倍
+		self.fs延迟(v和 / 5)	#间隔设置为平均响应时间的2倍
 	#模式
 	def f模式_用户(self):	#要求：ma模式[0]总是用户模式，没有则创建。不能创建多个用户模式对象。
 		"用户模式只能查看信息,做一些基本操作,不能配置"
@@ -280,6 +315,7 @@ class I模式:
 		self.f切换到当前模式()
 		self.m设备.f执行命令(a命令)
 	def f显示_当前模式配置(self):	#当前模式的配置,在用户模式显示所有配置
+		self.f切换到当前模式()
 		return self.m设备.f显示_当前模式配置()
 	def fg模式参数(self):
 		"表示要进入该模式所使用的参数"
@@ -349,19 +385,27 @@ class I用户模式(I模式):
 	def f显示_出厂日期(self)->time.struct_time:
 		raise NotImplementedError()
 	#显示具体
-	def f显示_路由表(self):
+	def f显示_路由表4(self):
 		raise NotImplementedError()
-	def f显示_默认路由(self):
+	def f显示_默认路由4(self):
 		raise NotImplementedError()
 	def f显示_链路层发现协议(self):
 		"返回列表，列表包含邻居字典"
 		raise NotImplementedError()
-	def f显示_接口地址表(self, a版本 = E版本.e网络协议4):
-		"返回[(S接口, [S网络地址4], 物理状态, 协议状态)]"
+	def f显示_接口表(self):
+		"返回接口表,应能迭代出 S接口表项"
 		raise NotImplementedError()
-	def f显示_物理地址表(self):
+	def f显示_网络接口表4(self):
+		"返回网络接口表,应能迭代出 S网络接口表项"
 		raise NotImplementedError()
-	def f显示_地址转换表(self):
+	def f显示_网络接口表6(self):
+		"返回网络接口表,应能迭代出 S网络接口表项"	
+		raise NotImplementedError()
+	def f显示_物理地址表(self):	#mac表
+		raise NotImplementedError()
+	def f显示_地址解析表(self):	#arp表
+		raise NotImplementedError()
+	def f显示_网络地址转换表(self):	#nat表
 		raise NotImplementedError()
 	#动作
 	def f登录(self, a用户名 = "", a密码 = ""):
@@ -396,7 +440,7 @@ class S物理地址项:
 		self.m类型 = a类型
 	def __str__(self):
 		return 字符串.ft字符串(self.m地址, self.m接口, self.m虚拟局域网, self.m类型)
-class S三层接口项:
+class S网络接口表项:
 	def __init__(self, a接口 = None, a地址 = None, a状态 = None, a描述 = ""):
 		self.m接口 = a接口
 		self.m地址 = a地址
@@ -404,7 +448,7 @@ class S三层接口项:
 		self.m描述 = ""
 	def __str__(self):
 		return 字符串.ft字符串(self.m接口, self.m地址, self.m状态, self.m描述)
-class S二层接口项:
+class S接口表项:
 	def __init__(self, a接口 = None, a状态 = None, a描述 = ""):
 		self.m接口 = a接口
 		self.m状态 = a状态
@@ -613,7 +657,7 @@ class E接口分类(enum.IntEnum):
 class E方向(enum.IntEnum):
 	e入 = 0
 	e出 = 1
-g接口名称字典 = {
+ca接口名称 = {
 	E接口.e空: "Null",
 	E接口.e环回: "Loopback",
 	E接口.e以太网: "Ethernet",
@@ -625,7 +669,7 @@ g接口名称字典 = {
 	E接口.e隧道: "Tunnel"
 }
 def fc接口名称字典(a字典 = None):
-	v字典 = copy.copy(g接口名称字典)
+	v字典 = copy.copy(ca接口名称)
 	if a字典:
 		v字典.update(a字典)
 	return v字典
@@ -639,14 +683,14 @@ class S接口:
 		if self.m名称:
 			return self.m名称 + self.fg序号字符串()
 		else:
-			self.ft字符串(g接口名称字典)
+			self.ft字符串(ca接口名称)
 	def __eq__(self, a):
 		if isinstance(a, S接口):
 			return (self.m类型 == a.m类型) and (self.m序号 == a.m序号)
 		else:
 			return False
 	@staticmethod
-	def fc字符串(a字符串, a全称字典 = g接口名称字典, ai字典字符串在右 = True):
+	def fc字符串(a字符串, a全称字典 = ca接口名称, ai字典字符串在右 = True):
 		if ai字典字符串在右:
 			va字符串 = a全称字典.values()
 			vf类型 = 运算.f字典按值找键
@@ -677,7 +721,7 @@ class S接口:
 			s += '.' + str(v子序号)
 		return s
 	@staticmethod
-	def f解析_取全称(a, a参考 = g接口名称字典):
+	def f解析_取全称(a, a参考 = ca接口名称):
 		v类型 = type(a参考)
 		if hasattr(a参考, "__iter__"):
 			v列表 = a参考
@@ -730,8 +774,8 @@ class S接口:
 		elif self.m名称:
 			return self.m名称
 		else:
-			return g接口名称字典[self.m类型]
-	def ft字符串(self, a字典 = g接口名称字典):
+			return ca接口名称[self.m类型]
+	def ft字符串(self, a字典 = ca接口名称):
 		return self.fg名称(a字典) + self.fg序号字符串()
 	def fg主序号数(self):
 		return len(self.m序号) - 1
@@ -746,7 +790,7 @@ class S接口:
 				return True
 		return False
 class F创建接口:
-	def __init__(self, a全称字典 = g接口名称字典):
+	def __init__(self, a全称字典 = ca接口名称):
 		self.m全称字典 = a全称字典
 	def __call__(self, a):
 		v类型 = type(a)
@@ -1414,11 +1458,7 @@ class I访问控制列表(I模式):
 	c模式名 = "访问控制列表配置模式"
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def f添加规则(self, a序号 = None, a规则 = None):
-		raise NotImplementedError()
-	def f删除规则(self, a序号):
-		raise NotImplementedError()
-	def f移动规则(self, a旧序号, a新序号, a覆盖 = True):
+	def fs规则(self, a序号 = None, a规则 = None, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fe规则(self):
 		raise NotImplementedError()
@@ -1653,9 +1693,7 @@ class I流量行为(I模式):
 class I流量策略(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def f绑定(self, a类, a行为):
-		raise NotImplementedError()
-	def f解绑(self, a类, a行为):
+	def fs绑定(self, a类, a行为, a操作 = E操作.e设置):
 		raise NotImplementedError()
 #===============================================================================
 # ipsec和ike

@@ -8,6 +8,9 @@ class I连接:
 	def f读_最近(self, a数量):
 		"读最近几次内容，包括最新的"
 		raise NotImplementedError()
+	def f读_直到(self, a文本 = "", a时间 = 5):
+		"一直读到某个文本时停止. 如果没有指定文本,直到读出任何内容时返回"
+		raise NotImplementedError()
 	def f写(self, a文本):#向设备传输文本
 		raise NotImplementedError()
 	def fs编码(self, a编码):#传输文本时使用的编码

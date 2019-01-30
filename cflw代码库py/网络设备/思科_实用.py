@@ -71,3 +71,9 @@ def f生成地址4或接口(a):
 			return 地址.S网络地址4.fc自动(a)
 		elif "/" in a:	#接口
 			pass
+def f生成地址和掩码4(a地址):
+	v地址 = 地址.S网络地址4.fc自动(a地址)
+	return "%s %s" % (v地址.fg地址s(), v地址.fg掩码s())
+def f生成地址和前缀长度6(a地址):
+	v地址 = 地址.S网络地址6.fc自动(a地址)
+	return "%s /%d" % (v地址.fg地址s(), v地址.fg前缀长度())

@@ -10,6 +10,11 @@ class C用户配置(设备.C同级模式, 设备.I用户配置模式):
 		self.m命令前缀 = 设备.C命令("username %s " % (self.m用户名,))
 	def fg删除命令(self):
 		return c不 + self.m命令前缀
+	#显示
+	def f显示_当前模式配置(self):
+		v命令 = "show running-config | section " + self.m命令前缀
+		return self.m设备.f执行显示命令(v命令)
+	#执行
 	def f执行用户命令(self, a命令):
 		v命令 = self.m命令前缀 + a命令
 		self.f执行当前模式命令(v命令)

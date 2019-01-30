@@ -7,6 +7,9 @@ import cflw网络地址 as 地址
 import cflw网络连接 as 连接
 import cflw网络设备 as 设备
 import cflw字符串 as 字符串
+import 网络设备.通用_实用 as 通用实用
+import 网络设备.华为_接口 as 接口
+import 网络设备.华为_基本表信息 as 基本表信息
 import 网络设备.华为_开放最短路径优先 as 开放最短路径优先
 import 网络设备.华为_访问控制列表 as 访问控制列表
 import 网络设备.华为_前缀列表 as 前缀列表
@@ -40,6 +43,7 @@ class C设备(设备.I设备):
 			self.m连接.fs编码("gb2312")
 		else:
 			raise TypeError("a连接 必须是 I连接 类型")
+		self.fs自动换页("  ---- More ----")
 	def f退出(self):
 		self.f执行命令("quit")
 	def f输入_结束符(self):
@@ -56,15 +60,13 @@ class C设备(设备.I设备):
 		self.f检测命令异常(v输出)
 		return v输出
 	def f执行显示命令(self, a命令, a自动换页 = False):
-		v命令 = str(a命令)
-		v输出 = 设备.I设备.f执行显示命令(self, v命令, a自动换页)
-		v输出 = 设备.C实用工具.f去头尾行(v输出)
+		v输出 = 设备.I设备.f执行显示命令(self, a命令, a自动换页)
+		v输出 = 通用实用.f去头尾行(v输出)
 		if v输出.count("\n") < 10:
-			self.f检测命令异常(self, v输出)
+			self.f检测命令异常(v输出)
 		return v输出
 	def f显示_当前模式配置(self):
 		v输出 = self.f执行显示命令("display this", a自动换页 = True)
-		v输出 = 设备.C实用工具.f去头尾行(v输出)
 		return v输出
 	#助手
 	def f助手_访问控制列表(self):
@@ -99,17 +101,13 @@ class C用户视图(设备.I用户模式):
 		#2017-02-19 14:09:32
 		#Sunday
 		#Time Zone(China-Standard-Time) : UTC-08:00
-
+		v输出 = v输出.split("\n")[0]
+		v时间 = time.strptime(v输出, "%Y-%m-%d %H:%M:%S")
+		return v时间
 	def f显示_设备名称(self):
 		v命令 = "display current-configuration | include sysname"
-		v输出 = self.m设备.f执行显示命令(v命令, a等待 = 5)
+		v输出 = self.m设备.f执行显示命令(v命令)
 		return C输出分析.f从配置取设备名称(v输出)
-	def f显示_物理地址表(self):
-		v命令 = "display mac-address"
-		v输出 = self.m设备.f执行显示命令(v命令, a等待 = 5)
-	def f显示_地址转换表(self):
-		v命令 = "display arp"
-		v输出 = self.m设备.f执行显示命令(v命令, a等待 = 5)
 	def f显示_运行时间(self):
 		"从开机到现在所经过的时间"
 		raise NotImplementedError()
@@ -119,9 +117,27 @@ class C用户视图(设备.I用户模式):
 		raise NotImplementedError()
 	def f显示_出厂日期(self):
 		raise NotImplementedError()
+	#显示 基本表信息
+	def f显示_物理地址表(self):
+		v命令 = "display mac-address"
+		v输出 = self.m设备.f执行显示命令(v命令)
+		return 基本表信息.C物理地址表(v输出)
+	def f显示_地址解析表(self):
+		v命令 = "display arp"
+		v输出 = self.m设备.f执行显示命令(v命令)
+		return 基本表信息.C地址解析表(v输出)
+	def f显示_接口表(self):
+		v命令 = "display interface brief"
+		v输出 = self.m设备.f执行显示命令(v命令)
+		return 基本表信息.C接口表(v输出)
+	def f显示_网络接口表4(self):
+		v命令 = "display ip interface brief"
+		v输出 = self.m设备.f执行显示命令(v命令)
+		return 基本表信息.C网络接口表4(v输出)
 #===============================================================================
 # 信息
 #===============================================================================
+#硬件信息
 class C板属性:
 	def __init__(self, a):
 		self.m字符串 = 字符串.f提取字符串之间(a, "[Board Properties]\n", "\n\n")
@@ -157,11 +173,10 @@ class C电子标签信息s3700:	#display elabel
 		self.m主板 = C板属性(a)
 	def fg序列号(self):
 		return self.m主板.fg板代码()
+
 #===============================================================================
 # 系统视图
 #===============================================================================
-g接口名称字典 = 设备.fc接口名称字典({})
-f创建接口 = 设备.F创建接口(g接口名称字典)
 class C系统视图(设备.I全局配置模式):
 	def __init__(self, a):
 		设备.I全局配置模式.__init__(self, a)
@@ -169,7 +184,7 @@ class C系统视图(设备.I全局配置模式):
 		return "system-view"
 	#模式
 	def f模式_接口配置(self, a接口):
-		v接口 = f创建接口(a接口)
+		v接口 = 接口.f创建接口(a接口)
 		#检查值
 		if v接口.fi属于分类(设备.E接口分类.e以太网):
 			if v接口.fg主序号数() != 3:
@@ -179,7 +194,7 @@ class C系统视图(设备.I全局配置模式):
 		if v接口.fi属于分类(设备.E接口分类.e环回):
 			if v接口.fg主序号数() != 1:
 				raise ValueError("环回口的序号只有1段")
-		return C接口视图(self, v接口)
+		return 接口.C接口视图(self, v接口)
 	#路由
 	def f模式_开放最短路径优先(self, a进程号, a版本 = 设备.E版本.e开放最短路径优先2):
 		return 开放最短路径优先.C路由(self, a进程号)
@@ -203,82 +218,6 @@ class C系统视图(设备.I全局配置模式):
 	#配置
 	def fs设备名(self, a名称):
 		self.f执行当前模式命令("sysname " + str(a名称))
-#===============================================================================
-# 接口
-#===============================================================================
-class C接口视图(设备.I接口配置模式):
-	def __init__(self, a, a接口):
-		设备.I接口配置模式.__init__(self, a, a接口)
-	@staticmethod
-	def f解析参数_网络地址(a地址, a次地址):
-		v地址 = 地址.C因特网协议4.fc接口(a地址)
-		v分割 = v地址.with_prefixlen.split('/')
-		if a次地址:
-			v次地址 = 'sub'
-		else:
-			v次地址 = ''
-		return '%s %s %s' % (*v分割, v次地址)
-	@staticmethod
-	def f解析参数_虚拟局域网(a虚拟局域网):
-		if type(a虚拟局域网) == range:
-			return '%d to %d' % (a虚拟局域网.start, a虚拟局域网.stop - 1)
-		else:
-			return str(a虚拟局域网)
-	@staticmethod
-	def f解析参数_端口安全动作(a动作):
-		v类型 = type(a动作)
-		if v类型 == str:
-			return a动作
-		elif v类型 == int:
-			return ("shutdown", "restrict", "protect")[a动作]
-		elif v类型 == bool:
-			if a动作:
-				return "restrict"
-			else:
-				return "shutdown"
-		return "restrict"
-	#接口操作
-	def f开关(self, a开关):
-		self.f切换到当前模式()
-		if a开关:
-			self.m设备.f执行命令("undo shutdown")
-		else:
-			self.m设备.f执行命令("shutdown")
-	def fs网络地址(self, a地址, a次地址 = False):
-		"设置地址"
-		self.f切换到当前模式()
-		self.m设备.f执行命令("ip address " + C接口视图.f解析参数_网络地址(a地址, a次地址))
-	#二层
-	def f二层中继_允许通过(self, a虚拟局域网):
-		self.m设备.f执行命令("port trunk allow-pass vlan " + C接口视图.f解析参数_虚拟局域网(a虚拟局域网))
-	#端口安全
-	def f端口安全_开关(self, a开关):
-		if a开关:
-			self.m设备.f执行命令("port-security enable")
-		else:
-			self.m设备.f执行命令("undo port-security enable")
-	def f端口安全_s数量(self, a数量):
-		v命令 = "port-security max-mac-num " + int(a数量)
-		self.m设备.f执行命令(v命令)
-	def f端口安全_s动作(self, a动作):
-		v命令 = "port-security protect-action " + C接口视图.f解析参数_端口安全动作(a动作)
-		self.m设备.f执行命令(v命令)
-class C端口组(C接口视图):
-	def __init__(self, a, a接口: 设备.S接口):
-		C接口视图.__init__(self, a, a接口)
-		#计算哈希
-		v范围 = a接口.m序号[2]
-		v字节 = struct.pack('iiiii', a接口.m名称, a接口.m序号[0], a接口.m序号[1], v范围.start, v范围.stop)
-		v校验 = hashlib.md5()
-		v校验.update(v字节)
-		self.m哈希 = v校验.hexdigest()
-	def fg模式参数(self):	#在这里确定不同厂商的接口名称
-		return self.m哈希
-	def fg进入命令(self):
-		return 'port-group ' + self.fg模式参数()
-	def f切换到当前模式(self):
-		C接口视图.f切换到当前模式(self)
-		#是否绑定端口,没有则绑定
 #===============================================================================
 # 用户配置
 #===============================================================================
