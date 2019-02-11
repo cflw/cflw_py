@@ -177,24 +177,24 @@ def f去后面(a字符串: str, a后面: str):
 	return a字符串
 def f插入字符串(a字符串, a位置, a插入字符串):
 	return a字符串[:a位置] + a插入字符串 + a字符串[a位置:]
-def f隔段插入字符串(a字符串, a插入字符串, a):
+def f隔段插入字符串(a字符串, a插入字符串, a间隔):
 	v字符串 = str(a字符串)
-	v类型 = type(a)
+	v类型 = type(a间隔)
 	if v类型 == int:
 		v长度 = len(a字符串)
-		v余数 = v长度 % a
+		v余数 = v长度 % a间隔
 		if v余数 == 0:	#不能包含尾
-			i = v长度 - a
+			i = v长度 - a间隔
 		else:
 			i = v长度 - v余数
 		while i > 0:
 			v字符串 = f插入字符串(v字符串, i, a插入字符串)
-			i -= a
+			i -= a间隔
 	elif v类型 == range:
 		v长度 = len(a字符串)
-		v尾 = int(a.stop)
-		v头 = int(a.start)
-		v步进 = int(a.step)
+		v尾 = int(a间隔.stop)
+		v头 = int(a间隔.start)
+		v步进 = int(a间隔.step)
 		if v头 < 0:
 			v头 = v步进
 		v余数 = (v尾 - v头) % v步进
@@ -205,6 +205,8 @@ def f隔段插入字符串(a字符串, a插入字符串, a):
 		while i >= v头:
 			v字符串 = f插入字符串(v字符串, i, a插入字符串)
 			i -= v步进
+			if i == 0:
+				break	#不能包含头
 	else:
 		raise TypeError
 	return v字符串
@@ -250,6 +252,7 @@ def fe分割(a字符串, a分割 = "\n", a开始位置 = 0):
 			if v开始位置 >= v长度:
 				break
 def fe按位置分割(a字符串, *aa位置, af暂回 = str.strip):
+	"包含位置字符"
 	v开始 = 0
 	vf暂回处理 = af暂回 if af暂回 else 运算.f原值
 	for v位置 in aa位置:
@@ -258,7 +261,18 @@ def fe按位置分割(a字符串, *aa位置, af暂回 = str.strip):
 		v结束 = v位置
 		yield vf暂回处理(a字符串[v开始:v结束])
 		v开始 = v结束
-	yield vf暂回处理(a字符串[v开始:])
+	if v开始 < len(a字符串):
+		yield vf暂回处理(a字符串[v开始:])
+def fe按字符分割(a字符串, *aa字符, af暂回 = str.strip):
+	"不包含分割字符"
+	v开始 = 0
+	vf暂回处理 = af暂回 if af暂回 else 运算.f原值
+	for v字符 in aa字符:
+		v结束 = a字符串.find(v字符, v开始)
+		yield vf暂回处理(a字符串[v开始:v结束])
+		v开始 = v结束 + 1
+	if v开始 < len(a字符串):
+		yield vf暂回处理(a字符串[v开始:])
 def f回车处理(a字符串: str):
 	"\\r后的字符会覆盖行首内容"
 	va行 = []

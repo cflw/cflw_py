@@ -303,11 +303,12 @@ class S网络地址6:
 	"ipv6地址"
 	c最大前缀长度 = 128
 	c全f = 0xffffffffffffffffffffffffffffffff
+	c多个零正则 = re.compile(r"(\:0){2,6}")
 	def __init__(self):
 		self.m地址 = 0
 		self.m前缀长度 = 0
 	def __str__(self):
-		return self.fg字符串()
+		return self.ft字符串()
 	@staticmethod
 	def fc自动(*a):
 		"""
@@ -351,6 +352,7 @@ class S网络地址6:
 		else:
 			v这.m地址 = int(a地址)
 		v这.m前缀长度 = a前缀长度
+		return v这
 	@staticmethod
 	def f地址字符串转整数(a):
 		v类型 = type(a)
@@ -361,7 +363,7 @@ class S网络地址6:
 				raise ValueError("冒号太少或太多")
 			#填充,把::改为:0:0:0:0
 			v位置 = a.find("::")
-			v插入字符串 = ":0" * (9 - v冒号数量)	#要替换掉其中一个冒号，所以数量+1
+			v插入字符串 = ":0" * (8 - v冒号数量)
 			v字符串 = v字符串[:v位置] + v插入字符串 + v字符串[v位置+1:]
 			#转换
 			v数字 = 0
@@ -388,8 +390,19 @@ class S网络地址6:
 	def fg广播地址i(self):
 		return self.m地址 | (2 ** (128 - self.m前缀长度) - 1)
 	def ft字符串(self):
-		v字符串 = hex(self.m地址)[2:]	#去掉0x
-		return 字符串.f隔段插入字符串(v字符串, a分隔符, 4)
+		v分段 = [0, 0, 0, 0, 0, 0, 0, 0]
+		#地址分割
+		v地址 = self.m地址
+		for i in range(8):
+			v数字 = v地址 % 0x10000
+			v分段[7-i] = v数字
+			v地址 //= 0x10000
+		#地址转字符串
+		for i in range(8):
+			v分段[i] = hex(v分段[i])[2:]	#去掉0x
+		v字符串 = ":".join(v分段)
+		v字符串 = S网络地址6.c多个零正则.sub(":", v字符串, 1)
+		return v字符串
 	def fg主机地址数(self):
 		return 2 ** (S网络地址6.c最大前缀长度 - self.m前缀长度) - 2
 	def fg前缀长度(self):

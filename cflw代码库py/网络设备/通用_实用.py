@@ -31,13 +31,15 @@ def f去头尾行(a文本, a头行 = 1, a尾行 = 1, a行分割符 = '\n', a转�
 		for i in range(a头行):
 			v头行位置 = a文本.find(a行分割符, v头行位置)
 			if v头行位置 == -1:
-				raise ValueError('头行位置超出范围')
+				return ""
+				#raise ValueError('头行位置超出范围')
 			v头行位置 += 1
 		v尾行位置 = len(a文本)
 		for i in range(a尾行):
 			v尾行位置 = a文本.rfind(a行分割符, v头行位置, v尾行位置)
 			if v尾行位置 == -1:
-				raise ValueError('尾行位置超出范围')
+				return ""
+				#raise ValueError('尾行位置超出范围')
 		return a文本[v头行位置 : v尾行位置]
 def f参数等级(a, a最高):
 	"不同厂商对于权限等级的定义不同。为了统一，参数限制为只能用[0,1]之间的值"

@@ -254,7 +254,7 @@ class C命令:	#快速添加命令参数
 		return self
 	def f前置否定(self, a判断: bool, a命令):
 		if not a判断:
-			self.fs前面添加(a命令)
+			self.f前面添加(a命令)
 		return self
 def F检测命令异常(a列表):
 	def f检测命令异常(self, a输出):
@@ -401,9 +401,15 @@ class I用户模式(I模式):
 	def f显示_网络接口表6(self):
 		"返回网络接口表,应能迭代出 S网络接口表项"	
 		raise NotImplementedError()
-	def f显示_物理地址表(self):	#mac表
+	def f显示_接口详细(self, a接口 = None):
 		raise NotImplementedError()
-	def f显示_地址解析表(self):	#arp表
+	def f显示_网络接口详细4(self, a接口 = None):
+		raise NotImplementedError()
+	def f显示_网络接口详细6(self, a接口 = None):
+		raise NotImplementedError()
+	def f显示_物理地址表(self, a接口 = None):	#mac表
+		raise NotImplementedError()
+	def f显示_地址解析表(self, a接口 = None):	#arp表
 		raise NotImplementedError()
 	def f显示_网络地址转换表(self):	#nat表
 		raise NotImplementedError()
@@ -411,6 +417,21 @@ class I用户模式(I模式):
 	def f登录(self, a用户名 = "", a密码 = ""):
 		raise NotImplementedError()
 	def f提升权限(self, a密码 = ""):
+		raise NotImplementedError()
+#===============================================================================
+# 启动模式的操作
+#===============================================================================
+class I启动模式(I模式):
+	def __init__(self, a):
+		I模式.__init__(self, a)
+	def f登录(self, a密码 = "", a超时 = 60):
+		"尝试进入设备启动模式,有密码输密码,超时抛异常"
+		raise NotImplementedError()
+	def f更新系统(self, a文件):
+		raise NotImplementedError()
+	def f清除配置(self):
+		raise NotImplementedError()
+	def f重新启动(self):
 		raise NotImplementedError()
 #===============================================================================
 # 信息
@@ -447,7 +468,10 @@ class S网络接口表项:
 		self.m状态 = a状态
 		self.m描述 = ""
 	def __str__(self):
-		return 字符串.ft字符串(self.m接口, self.m地址, self.m状态, self.m描述)
+		if type(self.m地址) in (tuple, list):
+			return 字符串.ft字符串(self.m接口, 字符串.ft字符串(*self.m地址), self.m状态, self.m描述)
+		else:
+			return 字符串.ft字符串(self.m接口, self.m地址, self.m状态, self.m描述)
 class S接口表项:
 	def __init__(self, a接口 = None, a状态 = None, a描述 = ""):
 		self.m接口 = a接口
@@ -675,18 +699,19 @@ def fc接口名称字典(a字典 = None):
 	return v字典
 class S接口:
 	"表示一个接口"
-	def __init__(self, a类型: int, a名称: str, a序号: list):
+	def __init__(self, a类型: int, a名称: str, aa序号: tuple, a子序号 = 0):
 		self.m类型 = int(a类型)
 		self.m名称 = str(a名称)
-		self.m序号 = list(a序号)
+		self.ma序号 = aa序号
+		self.m子序号 = a子序号
 	def __str__(self):
 		if self.m名称:
 			return self.m名称 + self.fg序号字符串()
 		else:
-			self.ft字符串(ca接口名称)
+			return self.ft字符串(ca接口名称)
 	def __eq__(self, a):
 		if isinstance(a, S接口):
-			return (self.m类型 == a.m类型) and (self.m序号 == a.m序号)
+			return (self.m类型 == a.m类型) and (self.ma序号 == a.ma序号)
 		else:
 			return False
 	@staticmethod
@@ -699,17 +724,17 @@ class S接口:
 			vf类型 = dict.__getitem__
 		v名称 = S接口.f解析_取全称(a字符串, va字符串)
 		v类型 = vf类型(a全称字典, v名称)
-		v序号 = S接口.f解析_取序号(a字符串)
-		return S接口(v类型, v名称, v序号)
+		v序号, v子序号 = S接口.f解析_取序号(a字符串)
+		return S接口(v类型, v名称, v序号, v子序号)
 	@staticmethod
-	def fc标准(a类型, *a序号):
+	def fc标准(a类型, *a序号, a子序号 = 0):
 		"(类型,*序号,子序号)"
-		return S接口(a序号, "", a序号[1:])
+		return S接口(a类型, "", a序号, a子序号)
 	def fg序号字符串(self):
 		"包含子序号"
 		#转成字符串列表
-		v列表 = list(self.m序号)
-		v子序号 = v列表.pop()
+		v列表 = list(self.ma序号)
+		v子序号 = self.m子序号
 		for i in range(len(v列表)):
 			v = v列表[i]
 			if type(v) == range:
@@ -756,10 +781,14 @@ class S接口:
 				v列表[i] = range(int(v分割[0]), int(v分割[1]))
 			else:
 				v列表[i] = int(v)
-		v列表.append(v子序号)
-		return v列表
+		return v列表, v子序号
 	def fi范围(self):
-		return type(self.m序号[-2]) == range
+		for v序号 in self.ma序号:
+			if type(self.ma序号[-1]) == range:
+				return True
+		if type(self.m子序号) == range:
+			return True
+		return False
 	def fs名称(self, a):
 		v类型 = type(a)
 		if v类型 == str:
@@ -778,7 +807,7 @@ class S接口:
 	def ft字符串(self, a字典 = ca接口名称):
 		return self.fg名称(a字典) + self.fg序号字符串()
 	def fg主序号数(self):
-		return len(self.m序号) - 1
+		return len(self.ma序号) - 1
 	def fg分类(self):
 		#取类型的16进制的低3,4位
 		return self.m类型 % 0x10000 // 0x10
@@ -789,6 +818,28 @@ class S接口:
 			if v值 == v分类:
 				return True
 		return False
+	def fe接口(self, i = 0):
+		if i == len(self.ma序号):	#结束
+			v指定序号 = self.m子序号
+			if type(v指定序号) == range:
+				for j in v指定序号:
+					v接口0 = S接口(self.m类型, self.m名称, self.ma序号, j)
+					yield v接口0
+			else:
+				v接口0 = self
+				yield v接口0
+		else:	#递归
+			v指定序号 = self.ma序号[i]
+			if type(v指定序号) == range:
+				for j in v指定序号:
+					va新序号 = self.ma序号[:i] + (j,) + self.ma序号[i+1:]
+					v接口0 = S接口(self.m类型, self.m名称, va新序号, self.m子序号)
+					for v接口1 in v接口0.fe接口(i+1):
+						yield v接口1
+			else:
+				v接口0 = self
+				for v接口1 in v接口0.fe接口(i+1):
+					yield v接口1
 class F创建接口:
 	def __init__(self, a全称字典 = ca接口名称):
 		self.m全称字典 = a全称字典

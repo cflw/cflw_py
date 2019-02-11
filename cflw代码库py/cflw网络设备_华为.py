@@ -283,6 +283,8 @@ class C配置内容:
 class C输出分析:
 	@staticmethod
 	def f从配置取设备名称(a配置):
+		if not a配置:
+			return ""
 		v指定行 = a配置.find(' sysname ')
 		v结束 = a配置.find('\n', v指定行)
 		if v结束 == -1:

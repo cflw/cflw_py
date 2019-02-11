@@ -25,9 +25,9 @@ class C接口配置(设备.I接口配置模式):
 	#操作
 	def f开关(self, a开关):
 		v命令 = 设备.C命令("shutdown")
-		v命令.f前置否定(a开关, c不)
+		v命令.f前置否定(not a开关, c不)
 		self.f执行当前模式命令(v命令)
-	def fs网络地址4(self, a地址, a操作 = 设备.E操作.e添加):
+	def fs网络地址4(self, a地址, a操作 = 设备.E操作.e设置):
 		v命令 = 设备.C命令("ip address")
 		v命令 += 思科实用.f生成地址和掩码4(a地址)
 		if a操作 == 设备.E操作.e设置:

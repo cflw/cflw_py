@@ -17,6 +17,8 @@ class C接口表:
 	def __init__(self, a):
 		v位置 = 字符串.f连续找最后(a, C接口表.c标题行, "\n")
 		self.m文本 = a[v位置+1:]
+	def __iter__(self):
+		return self.fe行()
 	def fe行(self):
 		for v行 in self.m文本.split("\n"):
 			if len(v行) != C接口表.c标题行长度:
@@ -37,6 +39,8 @@ class C网络接口表4:
 	def __init__(self, a):
 		v位置 = 字符串.f连续找最后(a, C网络接口表4.c标题行, "\n")
 		self.m文本 = a[v位置+1:]
+	def __iter__(self):
+		return self.fe行()
 	def fe行(self):
 		for v行 in self.m文本.split("\n"):
 			if len(v行) != C接口表.c标题行长度:

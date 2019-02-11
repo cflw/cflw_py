@@ -1,5 +1,7 @@
 import cflw网络设备 as 设备
 import cflw字符串 as 字符串
+import cflw网络地址 as 地址
+import 网络设备.思科_接口 as 接口
 ca物理地址类型 = {
 	"STATIC": 设备.E物理地址类型.e静态,
 	"DYNAMIC": 设备.E物理地址类型.e动态,
@@ -34,6 +36,7 @@ class C网络接口表4:
 	c方法开始 = 43
 	c状态开始 = 50
 	c协议开始 = 72
+	ca列开始 = (c接口开始, c地址开始, c好开始, c方法开始, c状态开始, c协议开始)
 	def __init__(self, a):
 		self.m字符串 = str(a)
 	def __iter__(self):
@@ -53,9 +56,34 @@ class C网络接口表4:
 				v地址 = 地址.S网络地址4.fc地址前缀长度(v地址s, 32)
 			#状态
 			v状态s = v行[C网络接口表4.c状态开始 : C网络接口表4.c协议开始]
-			if "up" in v状态s:
-				v状态 = True
-			else:
-				v状态 = False
+			v状态 = "up" in v状态s
 			#退回
 			yield 设备.S网络接口表项(a接口 = v接口, a地址 = v地址, a状态 = v状态)
+class C网络接口表6:
+	c接口开始 = 0
+	c状态开始 = 23
+	c地址开始 = 4
+	def __init__(self, a):
+		self.m字符串 = str(a)
+	def __iter__(self):
+		return self.fe行()
+	def fe行(self):
+		v项 = None
+		for v行 in 字符串.fe分割(self.m字符串, "\n"):
+			if "/" in v行:	#接口行包含斜杠
+				if v项:
+					yield v项
+				v接口s, v状态s, v协议s  = 字符串.fe按字符分割(v行, "[", "/", "]")
+				v接口 = 设备.S接口.fc字符串(v接口s, 接口.ca接口名称)
+				v状态 = "up" in v状态s
+				v项 = 设备.S网络接口表项(a接口 = v接口, a地址 = [], a状态 = v状态)
+			elif v项:	#地址行
+				v地址s = v行.strip()
+				if "unassigned" in v地址s:
+					pass
+				else:
+					v地址 = 地址.S网络地址6.fc地址前缀长度(v地址s, 128)
+					v项.m地址.append(v地址)
+			else:
+				raise RuntimeError("迷之错误")
+		yield v项
