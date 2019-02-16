@@ -6,6 +6,7 @@ import cflw网络连接 as 连接
 import cflw网络设备 as 设备
 import cflw字符串 as 字符串
 from 网络设备.华三_常量 import *
+import 网络设备.华三_启动 as 启动
 import 网络设备.华三_用户 as 用户
 import 网络设备.华三_登陆 as 登陆
 import 网络设备.华三_接口 as 接口
@@ -17,8 +18,12 @@ import 网络设备.华为_网络时间协议 as 网络时间协议
 class E型号(enum.IntEnum):
 	s2126 = 22126
 	s3100 = 23100
+	s3100v2 = 23120
+	s3100v3 = 23130
 	s3600 = 23600
 	s3928 = 23928
+	s5100 = 25100
+	s5130 = 25130
 	s5500 = 25500
 	s6500 = 26500
 	s6503 = 26503
@@ -50,7 +55,8 @@ class C设备(设备.I设备):
 	def f退出(self):
 		self.f执行命令("quit")
 	def f输入_结束符(self):
-		self.f输入(c结束符 + "\r")
+		self.f输入(c中断符 + c回车符)
+		self.f输入(c结束符 + c回车符)
 	def f模式_用户(self):
 		self.f刷新()
 		self.f输入_结束符()
@@ -59,6 +65,8 @@ class C设备(设备.I设备):
 		if not self.ma模式:
 			self.ma模式.append(v用户模式)
 		return v用户模式
+	def f模式_启动(self):
+		return 启动.C启动(self)
 	def f执行显示命令(self, a命令, a自动换页 = False):
 		v命令 = str(a命令)
 		v输出 = 设备.I设备.f执行显示命令(self, v命令, a自动换页)

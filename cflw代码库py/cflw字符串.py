@@ -261,8 +261,7 @@ def fe按位置分割(a字符串, *aa位置, af暂回 = str.strip):
 		v结束 = v位置
 		yield vf暂回处理(a字符串[v开始:v结束])
 		v开始 = v结束
-	if v开始 < len(a字符串):
-		yield vf暂回处理(a字符串[v开始:])
+	yield vf暂回处理(a字符串[v开始:])	#最后一列
 def fe按字符分割(a字符串, *aa字符, af暂回 = str.strip):
 	"不包含分割字符"
 	v开始 = 0

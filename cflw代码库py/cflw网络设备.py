@@ -38,9 +38,14 @@ class I设备:
 	def f关闭(self):
 		self.m连接.f关闭()
 	def f设备_回显(self, a内容):
+		"输出时自动调用"
 		if self.m回显:
 			print(a内容, end = '', flush = True)
 		self.f设备_停顿()
+	def f设备_等待回显(self):
+		"手动调用,在需要等待的地方调用,显示一个点"
+		if self.m等待回显:
+			print(".", end = '', flush = True)
 	def f设备_停顿(self, a倍数 = 1):
 		time.sleep(self.m间隔 * a倍数)
 	def f退出(self, a关闭 = False):
@@ -52,8 +57,12 @@ class I设备:
 		self.m连接.f写(a文本)
 	def f输出(self, a等待 = False):
 		"读取输出缓存中的内容, 清除输出缓存"
+		#不等待
 		if not a等待:
-			return self.m连接.f读_最新()
+			v内容 = self.m连接.f读_最新()
+			self.f设备_回显(v内容)
+			return v内容
+		#有等待
 		v计数 = 0
 		v内容 = ""
 		while True:
@@ -69,6 +78,7 @@ class I设备:
 				else:
 					time.sleep(self.m间隔)
 					continue
+		self.f设备_回显(v内容)
 		return v内容
 	def f输入_回车(self, a数量 = 1, a等待 = 1):
 		if a数量 > 0:
@@ -93,15 +103,13 @@ class I设备:
 		self.m连接.f写(v字符)
 	def f输入_注释(self):
 		self.m连接.f写(self.m注释)
-	def f刷新(self, a回显 = True):
+	def f刷新(self):
 		"清除正在输入的命令, 清除输出缓存"
 		self.f设备_停顿()
 		v输出 = self.f输出()
-		if a回显:
-			self.f设备_回显(v输出)
 	def f等待响应(self, a时间 = 5):
 		v输出 = self.m连接.f读_直到('', a时间)
-		if self.m回显 and v输出:
+		if self.m回显 and v输出:	#回显
 			print(v输出, end = '', flush = True)
 			return
 	def f检查命令(self, a命令):
@@ -113,7 +121,6 @@ class I设备:
 		self.f输入(str(a命令))
 		self.f输入_回车()
 		v输出 = self.f输出()
-		self.f设备_回显(v输出)
 		return v输出
 	def f执行显示命令(self, a命令, a自动换页 = False):
 		"有自动换页功能"
@@ -127,8 +134,7 @@ class I设备:
 				v输出 += v读
 				if self.m自动换页文本 in v读:	#还有更多
 					self.f输入_空格()
-					if self.m等待回显:
-						print('.', end = '', flush = True)
+					self.f设备_等待回显()
 					continue
 				else:
 					break
@@ -136,7 +142,6 @@ class I设备:
 		else:
 			v输出 = self.f输出(a等待 = True)
 		v输出 = v输出.replace("\r\n", "\n")
-		self.f设备_回显(v输出)
 		return v输出
 	def f自动换页替换(self, a字符串: str):
 		v替换位置 = a字符串.find(self.m自动换页文本)
@@ -413,10 +418,19 @@ class I用户模式(I模式):
 		raise NotImplementedError()
 	def f显示_网络地址转换表(self):	#nat表
 		raise NotImplementedError()
+	#连接
+	def f连接_网络终端(self, a地址, **a参数):
+		raise NotImplementedError()
+	def f连接_安全外壳(self, a地址, **a参数):
+		raise NotImplementedError()
+	def f连接_集群(self, a名称):
+		raise NotImplementedError()
 	#动作
 	def f登录(self, a用户名 = "", a密码 = ""):
 		raise NotImplementedError()
 	def f提升权限(self, a密码 = ""):
+		raise NotImplementedError()
+	def f重新启动(self):
 		raise NotImplementedError()
 #===============================================================================
 # 启动模式的操作
@@ -453,7 +467,7 @@ class E物理地址类型(enum.IntEnum):
 	e动态 = 0
 	e静态 = 1
 	e安全 = 2
-class S物理地址项:
+class S物理地址表项:
 	def __init__(self, a地址 = None, a接口 = None, a虚拟局域网 = None, a类型 = None):
 		self.m地址 = a地址
 		self.m接口 = a接口
@@ -479,6 +493,14 @@ class S接口表项:
 		self.m描述 = ""
 	def __str__(self):
 		return 字符串.ft字符串(self.m接口, self.m状态, self.m描述)
+class S地址解析表项:
+	def __init__(self, a网络地址 = None, a物理地址 = None, a接口 = None, a寿命 = None):
+		self.m网络地址 = a网络地址
+		self.m物理地址 = a物理地址
+		self.m接口 = a接口
+		self.m寿命 = a寿命
+	def __str__(self):
+		return 字符串.ft字符串(self.m网络地址, self.m物理地址, self.m接口, self.m寿命)
 #===============================================================================
 # 全局配置模式的操作
 #===============================================================================
@@ -908,34 +930,27 @@ class I接口配置模式_以太网(I接口配置模式):
 	#端口安全
 	def f端口安全_开关(self, a):
 		raise NotImplementedError()
-	def f端口安全_绑定地址(self, a地址):
+	def f端口安全_s地址(self, a地址, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f端口安全_解绑地址(self, a地址):
+	def f端口安全_s最大地址数(self, a数量, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f端口安全_s最大地址数(self, a数量):
+	def f端口安全_s自动恢复时间(self, a时间, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f端口安全_s自动恢复时间(self, a时间):
+	def f端口安全_s地址老化时间(self, a时间, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f端口安全_s地址老化时间(self, a时间):
-		raise NotImplementedError()
-	def f端口安全_s端口安全动作(self, a动作):
+	def f端口安全_s端口安全动作(self, a动作, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	#流量控制
-	def fs访问控制列表(self, a访问控制列表, a方向):
+	def fs访问控制列表(self, a访问控制列表, a方向, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def fd访问控制列表(self, a方向):
-		raise NotImplementedError()
-	def fs服务质量(self, a, a方向):
-		raise NotImplementedError()
-	def fd服务质量(self, a方向):
+	def fs服务质量(self, a, a方向, a操作 = E操作.e设置):
 		raise NotImplementedError()
 class I接口配置模式_串行(I接口配置模式):
 	def __init__(self, a, a接口):
 		I接口配置模式.__init__(self, a, a接口)
 	#接口
-	def fs时钟频率(self, a频率):
+	def fs时钟频率(self, a频率, a操作 = E操作.e设置):
 		raise NotImplementedError()
-
 #===============================================================================
 # 用户&密码&权限
 #===============================================================================
@@ -1517,21 +1532,21 @@ class I访问控制列表(I模式):
 		raise NotImplementedError()
 class I访问控制列表助手:
 	"用来计算到目标设备的访问控制列表序号, 原始参数的n从0开始, 返回时不做类型转换"
-	def f计算序号_标准4(self, n):
+	def f计算标准4(self, n):
 		return n
-	def f计算序号_扩展4(self, n):
+	def f计算扩展4(self, n):
 		return n
-	def f计算序号_标准6(self, n):
+	def f计算标准6(self, n):
 		return n
-	def f计算序号_扩展6(self, n):
+	def f计算扩展6(self, n):
 		return n
-	def f反算序号_标准4(self, n):
+	def f反算标准4(self, n):
 		return n
-	def f反算序号_扩展4(self, n):
+	def f反算扩展4(self, n):
 		return n
-	def f反算序号_标准6(self, n):
+	def f反算标准6(self, n):
 		return n
-	def f反算序号_扩展6(self, n):
+	def f反算扩展6(self, n):
 		return n
 #===============================================================================
 # 前缀列表

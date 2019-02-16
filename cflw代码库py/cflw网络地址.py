@@ -111,7 +111,7 @@ class S网络地址4:
 		self.m前缀长度 = 0
 	def __str__(self):
 		v字符串 = self.fg地址s()
-		v长度 = self.fg长度()
+		v长度 = self.fg前缀长度()
 		if v长度 > 0:
 			v字符串 += "/" + str(v长度)
 		return v字符串
