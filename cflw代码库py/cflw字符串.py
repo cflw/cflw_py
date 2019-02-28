@@ -101,7 +101,6 @@ def fe分隔后每组长度(a字符串, a分隔):
 def f找前面匹配(aa字符串, a找, a标记 = 0):
 	'从列表中找出前面与a字符串匹配的项'
 	v正则 = re.compile(r"^" + a找, a标记)
-	v长度 = len(a找)
 	for v字符串 in aa字符串:
 		if type(v字符串) != str:
 			raise TypeError("元素类型必须是字符串")

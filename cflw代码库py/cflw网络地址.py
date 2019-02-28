@@ -6,8 +6,8 @@ import cflw字符串 as 字符串
 #===============================================================================
 # 常量
 #===============================================================================
-cipv4正则 = re.compile(r"(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}")
-cipv6正则 = re.compile(r"([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){0,7}::[a-f0-9]{0,4}(:[a-f0-9]{1,4}){0,7})")
+c网络地址4正则 = re.compile(r"(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}")
+c网络地址6正则 = re.compile(r"([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){0,7}::[a-f0-9]{0,4}(:[a-f0-9]{1,4}){0,7})")
 c前缀正则 = re.compile(r"\/\d{1,3}\s")
 #===============================================================================
 # 创建地址对象
@@ -106,9 +106,9 @@ class S网络地址4:
 	"ipv4地址结构"
 	c最大前缀长度 = 32
 	c全f = 0xffffffff
-	def __init__(self):
-		self.m地址 = 0
-		self.m前缀长度 = 0
+	def __init__(self, a地址 = 0, a前缀长度 = 0):
+		self.m地址 = a地址
+		self.m前缀长度 = a前缀长度
 	def __str__(self):
 		v字符串 = self.fg地址s()
 		v长度 = self.fg前缀长度()
@@ -190,12 +190,24 @@ class S网络地址4:
 			v这.m前缀长度 = S网络地址4.f掩码整数转前缀长度(int(a掩码))
 		return v这
 	@staticmethod
+	def fc四段(a0, a1, a2, a3, a前缀长度 = 32):
+		v整数 = S网络地址4.f四段转整数(a0, a1, a2, a3)
+		return S网络地址4(v整数, a前缀长度)
+	@staticmethod
 	def f地址字符串转整数(a):
 		assert(type(a) == str)
 		if a.count(".") != 3:
 			raise ValueError()
 		v = a.split(".")
-		return int(v[0]) * 2 ** 24 + int(v[1]) * 2 ** 16 + int(v[2]) * 2 ** 8 + int(v[3])
+		return S网络地址4.f四段转整数(v[0], v[1], v[2], v[3])
+	@staticmethod
+	def f四段转整数(a0, a1, a2, a3):
+		def f(a):
+			v = int(a)
+			if v < 0 or v > 0xff:
+				raise ValueError("数字超出范围0~255")
+			return v
+		return f(a0) * 2 ** 24 + f(a1) * 2 ** 16 + f(a2) * 2 ** 8 + f(a3)
 	@staticmethod
 	def f掩码字符串转前缀长度(a):
 		"处理正掩码,反掩码,前缀长度3种格式"
@@ -304,9 +316,9 @@ class S网络地址6:
 	c最大前缀长度 = 128
 	c全f = 0xffffffffffffffffffffffffffffffff
 	c多个零正则 = re.compile(r"(\:0){2,6}")
-	def __init__(self):
-		self.m地址 = 0
-		self.m前缀长度 = 0
+	def __init__(self, a地址, a前缀长度):
+		self.m地址 = a地址
+		self.m前缀长度 = a前缀长度
 	def __str__(self):
 		return self.ft字符串()
 	@staticmethod
@@ -354,6 +366,10 @@ class S网络地址6:
 		v这.m前缀长度 = a前缀长度
 		return v这
 	@staticmethod
+	def fc八段(a0, a1, a2, a3, a4, a5, a6, a7, a前缀长度 = 128):
+		v整数 = S网络地址6.f八段转整数(a0, a1, a2, a3, a4, a5, a6, a7)
+		return S网络地址6(v整数, a前缀长度)
+	@staticmethod
 	def f地址字符串转整数(a):
 		v类型 = type(a)
 		if v类型 == str:
@@ -375,7 +391,15 @@ class S网络地址6:
 				v数字 = v数字 * 0x10000 + int(v, 16)
 			return v数字
 		else:
-			raise TypeError
+			raise TypeError("无法解析的参数类型")
+	@staticmethod
+	def f八段转整数(a0, a1, a2, a3, a4, a5, a6, a7):
+		def f(a):
+			v = int(a)
+			if v < 0 or v > 0xffff:
+				raise ValueError("数字超出范围0~0xffff")
+			return v
+		return f(a0) * 2 ** 112 + f(a1) * 2 ** 96 + f(a2) * 2 ** 80 + f(a3) * 2 ** 64 +f(a4) * 2 ** 48 + f(a5) * 2 ** 32 + f(a6) * 2 ** 16 + f(a7)
 	@staticmethod
 	def fi地址格式(a):
 		return True
