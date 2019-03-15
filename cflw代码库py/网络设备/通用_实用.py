@@ -1,6 +1,7 @@
 import re
 import math
 import fractions
+import cflw网络设备 as 设备
 c匹配数字 = re.compile(r'(?<!\w)\d+\.?\d*(?!\w)')
 def f设备名_括号包围式(a文本):
 	return a文本[1:-1]
@@ -68,3 +69,19 @@ def f命令补全(a, *a元组):
 			v匹配程度 = v当前匹配程度
 			v匹配字符串 = v字符串
 	return v匹配字符串
+def f生成开关命令(a命令, a不, a操作):
+	v命令 = 设备.C命令(a命令)
+	if a操作 == True or a操作 == 设备.E操作.e设置:
+		pass
+	elif a操作 == False or a操作 == 设备.E操作.e删除:
+		v命令.f前面添加(a不)
+	elif a操作 == 设备.E操作.e重置:
+		v命令.f前面添加("default")
+	return v命令
+def f生成描述命令(a命令, a不, a描述, a操作):
+	v命令 = 设备.C命令(a命令)
+	if a操作 == 设备.E操作.e设置:
+		v命令 += a描述
+	elif a操作 == 设备.E操作.e删除:
+		v命令.f前面添加(a不)
+	return v命令

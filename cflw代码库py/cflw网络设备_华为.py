@@ -1,6 +1,3 @@
-import ipaddress
-import hashlib
-import struct
 import enum
 import time
 import cflw网络地址 as 地址
@@ -13,6 +10,7 @@ import 网络设备.华为_基本表信息 as 基本表信息
 import 网络设备.华为_开放最短路径优先 as 开放最短路径优先
 import 网络设备.华为_访问控制列表 as 访问控制列表
 import 网络设备.华为_前缀列表 as 前缀列表
+import 网络设备.华为_虚拟局域网 as 虚拟局域网
 c不 = "undo "
 c结束符 = '\x1a'	#ctrl+z
 #===============================================================================
@@ -33,7 +31,8 @@ def f创建设备(a连接, a型号 = 0, a版本 = 0):
 # 设备
 #===============================================================================
 ca错误文本与异常类 = [
-	("Error: Wrong parameter found at '^' position.", 设备.X命令)
+	("Error: Wrong parameter found at '^' position.", 设备.X命令),
+	("Error:Too many parameters found at '^' position.", 设备.X命令)
 ]
 class C设备(设备.I设备):
 	def __init__(self, a连接):
@@ -134,6 +133,11 @@ class C用户视图(设备.I用户模式):
 		v命令 = "display ip interface brief"
 		v输出 = self.m设备.f执行显示命令(v命令)
 		return 基本表信息.C网络接口表4(v输出)
+	#动作
+	def fs终端监视(self, a开关):
+		v命令 = 设备.C命令("terminal monitor")
+		v命令.f前置否定(a开关, c不)
+		self.f执行当前模式命令(v命令)
 #===============================================================================
 # 信息
 #===============================================================================
@@ -195,6 +199,16 @@ class C系统视图(设备.I全局配置模式):
 			if v接口.fg主序号数() != 1:
 				raise ValueError("环回口的序号只有1段")
 		return 接口.C接口视图(self, v接口)
+	def f模式_虚拟局域网(self, a序号, a操作 = 设备.E操作.e设置):	#vlan
+		v类型 = type(a序号)
+		if v类型 == int:
+			return 虚拟局域网.C配置(self, a序号)
+		elif v类型 == 设备.S接口:
+			return 接口.C虚拟局域网(self, a序号)
+		elif isinstance(a序号, 设备.I接口配置模式基础):
+			return 接口.C虚拟局域网(self, a序号.m接口)
+		else:
+			raise ValueError()
 	#路由
 	def f模式_开放最短路径优先(self, a进程号, a版本 = 设备.E版本.e开放最短路径优先2):
 		return 开放最短路径优先.C路由(self, a进程号)

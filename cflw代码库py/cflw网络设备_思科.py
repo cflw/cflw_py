@@ -14,6 +14,7 @@ import 网络设备.通用_实用 as 通用实用
 import 网络设备.思科_实用 as 思科实用
 import 网络设备.思科_接口 as 接口
 import 网络设备.思科_用户 as 用户
+import 网络设备.思科_连接 as 连接包装
 import 网络设备.思科_基本表信息 as 基本表信息
 import 网络设备.思科_访问控制列表 as 访问控制列表
 import 网络设备.思科_路由信息协议 as 路由信息协议
@@ -58,30 +59,25 @@ class C设备(设备.I设备):
 	def f输入_结束符(self):	#ctrl+c
 		self.f输入(c结束符)
 	def f模式_用户(self):
-		self.f刷新()
-		self.f输入_结束符()
-		self.f输入_回车(-1, 5)
-		if not self.ma模式:
-			self.ma模式.append(C用户模式(self))
-		return self.ma模式[0]
+		v模式 = C用户模式(self)
+		# self.fs顶级模式(v模式)
+		return v模式
 	def f执行命令(self, a命令):
 		v输出 = 设备.I设备.f执行命令(self, a命令)
 		self.f检测命令异常(v输出)
 		return v输出
 	def f执行用户命令(self, a命令):
-		v命令 = str(a命令)
-		if isinstance(self.ma模式[-1], C用户模式):
-			v输出 = self.f执行命令(v命令)
-		else:	#在配置模式，命令前要加个do
-			v输出 = self.f执行命令(c做 + v命令)
+		v命令 = 设备.C命令(a命令)
+		if not isinstance(self.fg当前模式(), C用户模式):	#在配置模式，命令前要加个do
+			v命令.f前面添加(c做)
+		v输出 = self.f执行命令(v命令)
 		v输出 = v输出.replace("\r\n", "\n")
 		return v输出
 	def f执行显示命令(self, a命令, a自动换页 = True):
-		v命令 = str(a命令)
-		if isinstance(self.ma模式[-1], C用户模式):
-			v输出 = 设备.I设备.f执行显示命令(self, a命令 = v命令, a自动换页 = a自动换页)
-		else:	#在配置模式，命令前要加个do
-			v输出 = 设备.I设备.f执行显示命令(self, a命令 = c做 + v命令, a自动换页 = a自动换页)
+		v命令 = 设备.C命令(a命令)
+		if not isinstance(self.fg当前模式(), C用户模式):	#在配置模式，命令前要加个do
+			v命令.f前面添加(c做)
+		v输出 = 设备.I设备.f执行显示命令(self, a命令 = v命令, a自动换页 = a自动换页)
 		v输出 = v输出.replace("\r\n", "\n")
 		v输出 = 通用实用.f去头尾行(v输出)
 		if v输出.count("\n") < 10:	#输出行数太少,检测是否有异常
@@ -119,6 +115,10 @@ class C用户模式(设备.I用户模式):
 	def f切换到当前模式(self):
 		self.m设备.f输入_结束符()
 		self.m设备.ma模式 = self.m设备.ma模式[0:1]
+	def f事件_进入模式(self):
+		self.m设备.f刷新()
+		self.m设备.f输入_结束符()
+		self.m设备.f输入_回车(-1, 5)
 	def f模式_全局配置(self):
 		return C全局配置(self)
 	#显示
@@ -143,6 +143,9 @@ class C用户模式(设备.I用户模式):
 		return v时间
 	def f显示_设备版本(self):
 		return self.fg版本信息()
+	#连接
+	def f连接_网络终端(self, a地址, **a参数):
+		return 连接包装.C网络终端(self, a地址, **a参数)
 	#操作
 	def f登录(self, a用户名 = "", a密码 = ""):
 		self.m设备.f执行命令(a用户名)
@@ -153,6 +156,10 @@ class C用户模式(设备.I用户模式):
 			v输出 = self.m设备.f执行命令(a密码)
 		if "Error" in v输出:
 			raise 设备.X执行(v输出)
+	def fs终端监视(self, a开关):
+		v命令 = 设备.C命令("terminal monitor")
+		v命令.f前置否定(a开关, c不)
+		self.m设备.f执行用户模式命令(v命令)
 	#内部
 	def fg版本信息(self):
 		if time.time() - self.m版本信息时间 >= 60:	#超过1分种则刷新
