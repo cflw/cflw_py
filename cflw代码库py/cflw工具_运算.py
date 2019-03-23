@@ -46,3 +46,9 @@ def f字典按值找键(a字典: dict, a值):
 f包含 = operator.contains
 def f不包含(a, b):
 	return not b in a
+def f整数位与键为真则添加值(a整数, a字典):
+	v列表 = []
+	for k, v in a字典.items():
+		if a整数 & k:
+			v列表.append(v)
+	return v列表

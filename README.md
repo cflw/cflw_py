@@ -9,6 +9,7 @@
 * [用python编写控制网络设备的自动化脚本1：框架设计](https://zhuanlan.zhihu.com/p/53641620) \[知乎\]
 * [用python编写控制网络设备的自动化脚本2：显示](https://zhuanlan.zhihu.com/p/56108138) \[知乎\]
 * [用python编写控制网络设备的自动化脚本3：启动](https://zhuanlan.zhihu.com/p/56833809) \[知乎\]
+* [用python编写控制网络设备的自动化脚本4：接口](https://zhuanlan.zhihu.com/p/59428605) \[知乎\]
 
 ## 内容包含
 ### 工具
@@ -40,3 +41,6 @@
 
 ### 其他
 * **cflw英语**：包含常用单词的字符串数组
+
+## 使用说明
+见[使用说明](文档/使用说明.md)

@@ -220,7 +220,7 @@ class I设备:
 		self.fs延迟(v和 / 5)	#间隔设置为平均响应时间的2倍
 	def f退出(self, a关闭 = False):
 		"""设备默认退出当前模式行为, 如果模式重写了 fg退出命令 则不调用该函数\n
-		如果当前模式是用户模式, 则退出登陆"""
+		如果当前模式是用户模式, 则退出登录"""
 		raise NotImplementedError()	#实现示例: self.f执行命令("exit")
 	def fg提示符(self):
 		raise NotImplementedError()
@@ -315,12 +315,22 @@ def F检测命令异常(a列表):
 # 模式基类
 #===============================================================================
 class E版本(enum.IntEnum):
+	#中文
 	e网络协议4 = 4
 	e网络协议6 = 6
 	e路由信息协议 = 4
 	e下一代路由信息协议 = 6
 	e开放最短路径优先2 = 4
 	e开放最短路径优先3 = 6
+	#英文
+	ip = 4
+	ipv4 = 4
+	ipv6 = 6
+	rip = 4
+	ripng = 6
+	ospf = 4
+	ospfv2 = 4
+	ospfv3 = 6
 class E操作(enum.IntEnum):
 	e设置 = 0	#覆盖原有配置,不存在则创建
 	e重置 = 1	#恢复默认配置
@@ -337,7 +347,7 @@ class I模式:
 			self.m设备 = a.m设备
 			self.m模式栈 = a.m模式栈 + (self, )
 		else:
-			raise TypeError()
+			raise TypeError("创建模式对象的第一个参数类型必需是 I设备 或 I模式")
 	def __eq__(self, a):	#通用的模式相等比较
 		if isinstance(a, I模式):
 			if self is a:
@@ -580,7 +590,7 @@ class I全局配置模式(I模式):
 		raise NotImplementedError()
 	def f模式_用户配置(self, a用户名, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_登陆配置(self, a方式, a范围, a操作 = E操作.e设置):	#console,vty之类的
+	def f模式_登录配置(self, a方式, a范围, a操作 = E操作.e设置):	#console,vty之类的
 		raise NotImplementedError()
 	def f模式_时间范围(self, a名称, a操作 = E操作.e设置):
 		raise NotImplementedError()
@@ -615,7 +625,7 @@ class I全局配置模式(I模式):
 	#模式 服务
 	def f模式_端口安全(self):
 		raise NotImplementedError()
-	def f模式_远端登入(self):	#telnet
+	def f模式_远程登录(self):	#telnet
 		raise NotImplementedError()
 	def f模式_安全外壳(self):	#ssh
 		raise NotImplementedError()
@@ -683,27 +693,47 @@ class I时间(I模式):
 		else:
 			raise TypeError()
 #===============================================================================
-# 登陆
+# 登录
 #===============================================================================
-class E登陆方式(enum.IntEnum):
+class E登录方式(enum.IntEnum):
 	e控制台 = 0	#console
+	e辅助接口 = 1	#aux
 	e虚拟终端 = 3	#vty
-class E登陆认证方式(enum.IntEnum):
+class E登录认证方式(enum.IntEnum):
 	e无 = 0,
 	e密码 = 1,
 	e账号 = 2
 	e认证授权记账 = 3
 	aaa = 3
-class I登陆配置模式(I模式):
+class E登录协议(enum.IntEnum):
+	e无 = 0
+	e远程登录 = 0x0001
+	e安全外壳 = 0x0002
+	e全部 = 0xffffffff
+class I登录配置模式(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def fs认证方式(self, a):
+	def fs认证方式(self, a认证方式, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def fs登陆协议(self, a):
+	def fs登录协议(self, a登录协议, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def fs访问控制列表(self, a):
+	def fs访问控制列表(self, a访问列表, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def fs超时时间(self, a秒):
+	def fs登录超时(self, a秒, a操作 = E操作.e设置):
+		"登录中在规定时间内输完用户名密码"
+		raise NotImplementedError()
+	def fs操作超时(self, a秒, a操作 = E操作.e设置):
+		"登录后在规定时间内没有任何操作则断开连接"
+		raise NotImplementedError()
+	def fg认证方式(self):
+		raise NotImplementedError()
+	def fg登录协议(self):
+		raise NotImplementedError()
+	def fg访问控制列表(self):
+		raise NotImplementedError()
+	def fg登录超时(self):
+		raise NotImplementedError()
+	def fg操作超时(self):
 		raise NotImplementedError()
 #===============================================================================
 # 结构
@@ -898,10 +928,8 @@ class S接口:
 		for i in range(v长度):
 			v = v列表[i]
 			if "-" in v:
-				if i != v长度 - 1:
-					raise ValueError("只有最后一段才能使用范围")
 				v分割 = v.split("-")
-				v列表[i] = range(int(v分割[0]), int(v分割[1]))
+				v列表[i] = range(int(v分割[0]), int(v分割[1])+1)
 			else:
 				v列表[i] = int(v)
 		return v列表, v子序号

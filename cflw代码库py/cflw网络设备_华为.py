@@ -48,12 +48,7 @@ class C设备(设备.I设备):
 	def f输入_结束符(self):
 		self.f输入(c结束符 + "\r")
 	def f模式_用户(self):
-		self.f刷新()
-		self.f输入_结束符()
-		self.f输入_回车()
-		if not self.ma模式:
-			self.ma模式.append(C用户视图(self))
-		return self.ma模式[0]
+		return C用户视图(self)
 	def f执行命令(self, a命令):
 		v输出 = 设备.I设备.f执行命令(self, a命令)
 		self.f检测命令异常(v输出)
@@ -78,6 +73,10 @@ class C设备(设备.I设备):
 class C用户视图(设备.I用户模式):
 	def __init__(self, a):
 		设备.I用户模式.__init__(self, a)
+	def f事件_进入模式(self):
+		self.m设备.f刷新()
+		self.m设备.f输入_结束符()
+		self.m设备.f输入_回车()
 	#模式
 	def f模式_全局配置(self):
 		return C系统视图(self)

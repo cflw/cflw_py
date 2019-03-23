@@ -167,13 +167,13 @@ class S时区:
 		v秒 = -time.timezone
 		return S时区(v时区, v秒)
 	def fg时(self):
-		return C时间计算.f总秒取时(self.m秒)
+		return f总秒取时(self.m秒)
 	def fg分(self):
-		return C时间计算.f总秒取分(self.m秒)
+		return f总秒取分(self.m秒)
 	def fg秒(self):
-		return C时间计算.f总秒取秒(self.m秒)
+		return f总秒取秒(self.m秒)
 	def fg时分秒(self):
-		return C时间计算.f总秒拆成时分秒(self.m秒)
+		return f总秒拆成时分秒(self.m秒)
 	def fg标准时区缩写(self):
 		return "GMT+" + str(self.fg时())
 	def f转datetime点timezone(self):
@@ -182,22 +182,21 @@ class S时区:
 #==============================================================================
 # 时间计算
 #==============================================================================
-class C时间计算:
-	@staticmethod
-	def f总秒取时(a):
-		return math.floor(v秒 / 3600)
-	@staticmethod
-	def f总秒取分(a):
-		return math.floor(v秒 % 3600 / 60)
-	@staticmethod
-	def f总秒取秒(a):
-		return math.floor(v秒 % 60)
-	@staticmethod
-	def f总秒拆成时分秒(a):
-		v时 = C时间计算.f总秒取时(a)
-		v分 = C时间计算.f总秒取分(a)
-		v秒 = C时间计算.f总秒取秒(a)
-		return (v时, v分, v秒)
+def f总秒取时(a):
+	return math.floor(v秒 // 3600)
+def f总秒取分(a):
+	return math.floor(v秒 % 3600 // 60)
+def f总秒取秒(a):
+	return math.floor(v秒 % 60)
+def f总秒拆成时分秒(a):
+	v时 = f总秒取时(a)
+	v分 = f总秒取分(a)
+	v秒 = f总秒取秒(a)
+	return (v时, v分, v秒)
+def f总秒拆成分秒(a秒):
+	v分 = a秒 // 60
+	v秒 = a秒 % 60
+	return (v分, v秒)
 #==============================================================================
 # 时区计算
 #==============================================================================

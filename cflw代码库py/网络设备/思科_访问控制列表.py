@@ -3,8 +3,8 @@ import ipaddress
 import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 import cflw字符串 as 字符串
-from . import 通用_访问控制列表 as 通用
-c不 = "no"
+import 网络设备.通用_访问控制列表 as 通用
+from 网络设备.思科_常量 import *
 c允许 = "permit"
 c拒绝 = "deny"
 c允许元组 = (c允许, c拒绝)

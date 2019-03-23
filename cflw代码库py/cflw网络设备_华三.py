@@ -8,7 +8,7 @@ import cflw字符串 as 字符串
 from 网络设备.华三_常量 import *
 import 网络设备.华三_启动 as 启动
 import 网络设备.华三_用户 as 用户
-import 网络设备.华三_登陆 as 登陆
+import 网络设备.华三_登录 as 登录
 import 网络设备.华三_接口 as 接口
 import 网络设备.华三_时间范围 as 时间范围
 import 网络设备.华为_网络时间协议 as 网络时间协议
