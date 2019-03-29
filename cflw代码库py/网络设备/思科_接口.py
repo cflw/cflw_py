@@ -25,6 +25,7 @@ class C接口配置(设备.I接口配置模式):
 	def __init__(self, a父模式, a接口):
 		设备.I接口配置模式.__init__(self, a父模式, a接口)
 		f检查接口范围(self)
+	#模式命令
 	def fg进入命令(self):
 		if self.mi范围:
 			v命令 = 设备.C命令("interface range")
@@ -36,6 +37,15 @@ class C接口配置(设备.I接口配置模式):
 		return str(self.m接口)
 	def fg删除命令(self):
 		return c不 + self.fg进入命令()
+	#模式
+	def f模式_路由信息协议(self, a进程号 = 1, a版本 = 设备.E协议.e路由信息协议):
+		return self.fg上级模式().f模式_路由信息协议(a进程号 = a进程号, a版本 = a版本, a接口 = self.m接口)
+	def f模式_开放最短路径优先(self, a进程号 = 1, a版本 = 设备.E协议.e开放最短路径优先):
+		return self.fg上级模式().f模式_开放最短路径优先(a进程号 = a进程号, a版本 = a版本, a接口 = self.m接口)
+	def f模式_增强内部网关路由协议(self, a版本 = 设备.E协议.e网络协议4):
+		return self.fg上级模式().f模式_增强内部网关路由协议(a版本 = a版本, a接口 = self.m接口)
+	def f模式_中间系统到中间系统(self, a版本 = 设备.E协议.e网络协议4):
+		return self.fg上级模式().f模式_中间系统到中间系统(a进程号 = a进程号, a版本 = a版本, a接口 = self.m接口)
 	#显示
 	def f显示_当前模式配置(self):
 		self.m设备.f执行用户命令("show running-config interface " + self.fg模式参数())

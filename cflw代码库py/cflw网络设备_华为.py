@@ -209,7 +209,7 @@ class C系统视图(设备.I全局配置模式):
 		else:
 			raise ValueError()
 	#路由
-	def f模式_开放最短路径优先(self, a进程号, a版本 = 设备.E版本.e开放最短路径优先2):
+	def f模式_开放最短路径优先(self, a进程号, a版本 = 设备.E协议.e开放最短路径优先2):
 		return 开放最短路径优先.C路由(self, a进程号)
 	#其它
 	def f模式_访问控制列表(self, a名称, a类型):

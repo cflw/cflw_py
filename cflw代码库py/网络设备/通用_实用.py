@@ -3,6 +3,7 @@ import math
 import fractions
 import cflw网络设备 as 设备
 c匹配数字 = re.compile(r'(?<!\w)\d+\.?\d*(?!\w)')
+c接口正则 = re.compile(r"\w+\d+(\/\d+)*(\.\d+)?")	#字母加数字就是接口
 def f设备名_括号包围式(a文本):
 	return a文本[1:-1]
 def f设备名_前缀式(a文本):

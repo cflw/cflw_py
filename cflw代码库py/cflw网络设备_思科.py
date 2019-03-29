@@ -9,20 +9,25 @@ import cflw网络连接 as 连接
 import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 import cflw时间 as 时间
+#思科基础
 from 网络设备.思科_常量 import *
 import 网络设备.通用_实用 as 通用实用
+import 网络设备.通用_路由 as 通用路由
 import 网络设备.思科_实用 as 思科实用
 import 网络设备.思科_接口 as 接口
 import 网络设备.思科_用户 as 用户
 import 网络设备.思科_登录 as 登录
 import 网络设备.思科_连接 as 连接包装
 import 网络设备.思科_基本表信息 as 基本表信息
-import 网络设备.思科_访问控制列表 as 访问控制列表
+import 网络设备.思科_密码 as 密码
+#路由
+import 网络设备.思科_静态路由 as 静态路由
 import 网络设备.思科_路由信息协议 as 路由信息协议
 import 网络设备.思科_增强内部网关路由协议 as 增强内部网关路由协议
 import 网络设备.思科_开放最短路径优先 as 开放最短路径优先
 import 网络设备.思科_边界网关协议 as 边界网关协议
-import 网络设备.思科_密码 as 密码
+#其它
+import 网络设备.思科_访问控制列表 as 访问控制列表
 import 网络设备.思科_动态主机配置协议 as 动态主机配置协议
 import 网络设备.思科_前缀列表 as 前缀列表
 import 网络设备.思科_钥匙链 as 钥匙链
@@ -279,30 +284,51 @@ class C全局配置(设备.I全局配置模式):
 	def f模式_钥匙链(self, a名称):
 		return 钥匙链.C钥匙链(self, a名称)
 	#路由
-	def f模式_路由信息协议(self, a进程号 = 0, a版本 = 设备.E版本.e路由信息协议):	#rip
-		v版本 = 设备.C路由协议.f解析_版本(a版本)
-		if v版本 == 设备.E版本.e路由信息协议:	#rip
+	def f模式_静态路由(self, a版本 = 设备.E协议.e网络协议4, a虚拟路由转发 = None):
+		v版本 = f解析网络协议版本(a版本)
+		if v版本 == 设备.E协议.e网络协议4:
+			return 静态路由.C静态路由4(self)
+		elif v版本 == 设备.E协议.e网络协议6:
+			raise NotImplementedError()
+		else:
+			raise ValueError("未知的版本")
+	def f模式_路由信息协议(self, a进程号 = 0, a版本 = 设备.E协议.e路由信息协议, a接口 = None, a操作 = 设备.E操作.e设置):	#rip
+		v版本 = 通用路由.f解析路由信息协议版本(a版本)
+		if v版本 == 设备.E协议.e路由信息协议:	#rip
 			return 路由信息协议.C当代(self)
-		elif v版本 == 设备.E版本.e下一代路由信息协议:	#ripng
+		elif v版本 == 设备.E协议.e下一代路由信息协议:	#ripng
 			v进程号 = str(a进程号)
 			if not v进程号:
 				raise ValueError("当版本为ripng时,必须指定进程号")
 			return 路由信息协议.C下代(self, a进程号)
 		else:
 			raise ValueError("未知的版本")
-	def f模式_开放最短路径优先(self, a进程号, a版本 = 设备.E版本.e开放最短路径优先2):
-		v版本 = 设备.C路由协议.f解析_版本(a版本)
-		if a版本 == 设备.E版本.e开放最短路径优先2:
+	def f模式_开放最短路径优先(self, a进程号 = 1, a版本 = 设备.E协议.e开放最短路径优先, a接口 = None, a操作 = 设备.E操作.e设置):
+		v版本 = 通用路由.f解析开放最短路径优先版本(a版本)
+		if a接口:	#有接口
+			v接口 = 接口.f创建接口(a接口)
+			if a版本 == 设备.E协议.e开放最短路径优先2:
+				return 开放最短路径优先.C接口(self, a进程号, v接口)
+			elif a版本 == 设备.E协议.e开放最短路径优先3:
+				raise NotImplementedError()
+			else:
+				raise ValueError("未知的版本")
+		#没有接口
+		if a版本 == 设备.E协议.e开放最短路径优先2:
 			return 开放最短路径优先.C路由配置(self, a进程号)
-		elif a版本 == 设备.E版本.e开放最短路径优先3:
-			return 开放最短路径优先.C路由配置(self, a进程号)
+		elif a版本 == 设备.E协议.e开放最短路径优先3:
+			raise NotImplementedError()
 		else:
 			raise ValueError("未知的版本")
-	def f模式_增强内部网关路由协议(self, a, a版本 = 设备.E版本.e网络协议4):	#eigrp
-		v类型 = type(a)
-		if v类型 == int:
+	def f模式_增强内部网关路由协议(self, a, a版本 = 设备.E协议.e网络协议4, a接口 = None, a操作 = 设备.E操作.e设置):	#eigrp
+		v版本 = f解析网络协议版本(a版本)
+		if v版本 == 设备.E协议.e网络协议4:
 			return 增强内部网关路由协议.C经典(self, a)
-	def f模式_边界网关协议(self, a自治系统号):
+		elif v版本 == 设备.E协议.e网络协议6:
+			raise NotImplementedError()
+		else:
+			raise ValueError("未知的版本")
+	def f模式_边界网关协议(self, a自治系统号, a操作 = 设备.E操作.e设置):
 		return 边界网关协议.C路由(self, a自治系统号)
 	#服务
 	def f模式_动态主机配置协议地址池(self, a名称):

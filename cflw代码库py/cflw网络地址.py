@@ -110,11 +110,7 @@ class S网络地址4:
 		self.m地址 = a地址
 		self.m前缀长度 = a前缀长度
 	def __str__(self):
-		v字符串 = self.fg地址s()
-		v长度 = self.fg前缀长度()
-		if v长度 > 0:
-			v字符串 += "/" + str(v长度)
-		return v字符串
+		return self.ft字符串()
 	@staticmethod
 	def fc自动(*a):
 		"""
@@ -308,6 +304,12 @@ class S网络地址4:
 		if self.m前缀长度 == a地址.m前缀长度 and a真子集:
 			return False
 		return self.fg网络号i() == a地址.m地址 & self.fg掩码i()
+	def ft字符串(self):
+		v字符串 = self.fg地址s()
+		v长度 = self.fg前缀长度()
+		if v长度 > 0:
+			v字符串 += "/" + str(v长度)
+		return v字符串
 #===============================================================================
 # 网络地址6
 #===============================================================================
@@ -316,7 +318,7 @@ class S网络地址6:
 	c最大前缀长度 = 128
 	c全f = 0xffffffffffffffffffffffffffffffff
 	c多个零正则 = re.compile(r"(\:0){2,6}")
-	def __init__(self, a地址, a前缀长度):
+	def __init__(self, a地址 = 0, a前缀长度 = 0):
 		self.m地址 = a地址
 		self.m前缀长度 = a前缀长度
 	def __str__(self):
@@ -339,7 +341,7 @@ class S网络地址6:
 			if "/" in v0:
 				if v0.count("/") != 1:
 					raise ValueError("斜杠太多")
-				v地址, v前缀长度 = a.split("/")
+				v地址, v前缀长度 = v0.split("/")
 			else:
 				v地址 = v0
 			#赋值
@@ -388,7 +390,10 @@ class S网络地址6:
 				v长度 = len(v)
 				if v长度 > 4:
 					raise ValueError("字符数量太多")
-				v数字 = v数字 * 0x10000 + int(v, 16)
+				if v:
+					v数字 = v数字 * 0x10000 + int(v, 16)
+				else:
+					v数字 *= 0x10000
 			return v数字
 		else:
 			raise TypeError("无法解析的参数类型")
@@ -414,23 +419,69 @@ class S网络地址6:
 	def fg广播地址i(self):
 		return self.m地址 | (2 ** (128 - self.m前缀长度) - 1)
 	def ft字符串(self):
-		v分段 = [0, 0, 0, 0, 0, 0, 0, 0]
-		#地址分割
-		v地址 = self.m地址
-		for i in range(8):
-			v数字 = v地址 % 0x10000
-			v分段[7-i] = v数字
-			v地址 //= 0x10000
-		#地址转字符串
-		for i in range(8):
-			v分段[i] = hex(v分段[i])[2:]	#去掉0x
-		v字符串 = ":".join(v分段)
-		v字符串 = S网络地址6.c多个零正则.sub(":", v字符串, 1)
+		def f列表数字转字符串(a列表):
+			v列表 = []
+			for v in a列表:
+				v列表.append(hex(v)[2:])
+			return ":".join(v列表)
+		v分段 = self.fg八段()
+		v索引, v数量 = S网络地址6.f计算最长零段(v分段)
+		if v数量 >= 2:
+			v列表0 = v分段[:v索引]
+			v列表1 = v分段[v索引 + v数量 :]
+			v字符串 = f列表数字转字符串(v列表0) + "::" + f列表数字转字符串(v列表1)
+		else:
+			v字符串 = f列表数字转字符串(v分段)
+		v字符串 += "/" + str(self.m前缀长度)
 		return v字符串
 	def fg主机地址数(self):
 		return 2 ** (S网络地址6.c最大前缀长度 - self.m前缀长度) - 2
 	def fg前缀长度(self):
 		return self.m前缀长度
+	@staticmethod
+	def f计算最长零段(a分段):
+		"返回(索引,数量)"
+		v索引 = 0
+		v数量 = 0
+		v索引0 = 0
+		v数量0 = 0
+		i = 0
+		for v in a分段:
+			if v == 0:
+				v数量0 += 1
+			else:
+				if v数量 < v数量0:
+					v索引 = v索引0
+					v数量 = v数量0
+				v数量0 = 0
+				v索引0 = i + 1
+			i += 1
+		if v数量0 != 0:
+			if v数量 < v数量0:
+				v索引 = v索引0
+				v数量 = v数量0
+		return v索引, v数量
+	def fe八段(self, a升序 = False):
+		v地址 = self.m地址
+		if a升序:
+			for i in range(8):
+				v数字 = v地址 % 0x10000
+				yield v数字
+				v地址 //= 0x10000
+		else:	#降序
+			for i in range(8):
+				v除数 = 0x10000 ** (7 - i)
+				v数字 = v地址 // v除数
+				yield v数字
+				v地址 %= v除数
+	def fg八段(self):
+		v分段 = [0, 0, 0, 0, 0, 0, 0, 0]
+		v地址 = self.m地址
+		for i in range(8):
+			v数字 = v地址 % 0x10000
+			v分段[7-i] = v数字
+			v地址 //= 0x10000
+		return v分段
 #===============================================================================
 # 物理地址
 #===============================================================================

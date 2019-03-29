@@ -14,6 +14,22 @@ f小于 = operator.lt
 f大于 = operator.gt
 f小于等于 = operator.le
 f大于等于 = operator.ge
+def f比较(a, b):
+	if hasattr(a, "__cmp__"):
+		return a.__cmp__(b)
+	if a > b:
+		return 1
+	if a < b:
+		return -1
+	return 0
+def f反比较(a, b):
+	if hasattr(a, "__cmp__"):
+		return -a.__cmp__(b)
+	if a > b:
+		return -1
+	if a < b:
+		return 1
+	return 0
 #逻辑运算
 def f且(a, b):
 	return a and b

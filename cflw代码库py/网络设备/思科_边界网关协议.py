@@ -24,10 +24,10 @@ class C路由(设备.I边界网关协议):
 		return C对等体(self, f生成对等体字符串(a对等体))
 	def f模式_对等体组(self, a对等体):
 		return C对等体(self, f生成对等体字符串(a对等体), a对等体组 = True)
-	def f模式_地址簇(self, *a地址簇):
-		v地址簇类型 = a地址簇[0]
-		if v地址簇类型 == 设备.E边界网关协议地址地址簇.e单播4:
-			return C单播地址簇4(self)
+	def f模式_地址族(self, *a地址族):
+		v地址族类型 = a地址族[0]
+		if v地址族类型 == 设备.E边界网关协议地址族.e单播4:
+			return C单播地址族4(self)
 	#显示
 	def f显示_路由表(self):
 		v命令 = "show ip route bgp"
@@ -49,20 +49,20 @@ class C对等体(设备.I边界网关协议对等体, 设备.C同级模式):
 		self.f执行当前模式命令(v命令)
 	def f绑定对等体组(self, a对等体组):
 		v命令 = self.fg前置命令() + "peer-group" + str(a对等体组)
-class C地址簇(设备.I边界网关协议地址簇):
-	def __init__(self, a, a地址簇):
-		设备.I边界网关协议地址簇.__init__(self, a, a地址簇)
+class C地址族(设备.I边界网关协议地址族):
+	def __init__(self, a, a地址族):
+		设备.I边界网关协议地址族.__init__(self, a, a地址族)
 	def fg退出命令(self):
 		return "exit-address-family"
 #具体模式
-class C单播地址簇4(C地址簇):
-	def __init__(self, a, a地址簇 = ""):
-		C地址簇.__init__(self, a, a地址簇)
+class C单播地址族4(C地址族):
+	def __init__(self, a, a地址族 = ""):
+		C地址族.__init__(self, a, a地址族)
 	def fg进入命令(self):
 		return "address-family ipv4 unicast"
 	def f模式_对等体(self, a对等体):
-		return C地址簇对等体4(self, f生成对等体字符串(a对等体))
-class C地址簇对等体4(C对等体):
+		return C地址族对等体4(self, f生成对等体字符串(a对等体))
+class C地址族对等体4(C对等体):
 	def __init__(self, a, a对等体):
 		C对等体.__init__(self, a, a对等体)
 	def fs远端自治系统号(self, a自治系统号):

@@ -22,7 +22,7 @@ def f生成端口(a前置: str, a端口):
 def f生成地址(a前置: str, a地址):
 	return a前置 + " " + 通用.f生成地址和通配符4(a地址)
 #到字符串
-class C到字符串(设备.I访问控制列表端口号到字符串):
+class C到字符串(设备.I端口号到字符串):
 	def f大于(self, a值):
 		return "gt " + str(a值)
 	def f小于(self, a值):

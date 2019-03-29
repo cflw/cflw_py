@@ -40,11 +40,11 @@ def f生成允许(a元组: tuple, a允许)->str:
 		return a元组[0]
 	else:
 		return a元组[1]
-def f生成端口(a转换对象: 设备.I访问控制列表端口号到字符串, a端口)->str:
+def f生成端口(a转换对象: 设备.I端口号到字符串, a端口)->str:
 	if not a端口:
 		return ""
 	v类型 = type(a端口)
-	if v类型 == 设备.S访问控制列表端口号:
+	if v类型 == 设备.S端口号:
 		return a端口.ft字符串(a转换对象)
 	elif v类型 == int:
 		return a转换对象.f等于([a端口])
