@@ -2,6 +2,11 @@ import copy
 import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 from 网络设备.思科_常量 import *
+ca命令前缀 = {
+	设备.E操作.e设置: "",
+	设备.E操作.e删除: c不,
+	设备.E操作.e重置: c默认
+}
 def f接口字符串(a接口: 设备.S接口)->str:
 	s = g接口名称[a接口.m名称]
 	for i in range(len(a接口.m序号) - 1):
@@ -48,6 +53,8 @@ def f执行模式操作命令(a父模式, a模式, a操作):
 	if a操作 == 设备.E操作.e删除:
 		if a模式.fg删除命令 != 设备.I模式.fg删除命令:
 			v命令 = a模式.fg删除命令()
+			a父模式.f执行当前模式命令(v命令)
+			return
 		else:
 			v命令 = a模式.fg进入命令()
 	elif a操作 == 设备.E操作.e重置:
@@ -55,14 +62,7 @@ def f执行模式操作命令(a父模式, a模式, a操作):
 			v命令 = a模式.fg进入命令()
 	f执行命令操作命令(a父模式, v命令, a操作)
 def f执行命令操作命令(a模式, a命令, a操作):
-	if not a命令:
-		return
-	v前面添加 = ""
-	if a操作 == 设备.E操作.e删除:
-		v前面添加 = c不
-	elif a操作 == 设备.E操作.e重置:
-		v前面添加 = c默认
-	v命令 = copy.copy(a命令).f前面添加(v前面添加)
+	v命令 = a命令.f前面添加(ca命令前缀[a操作])
 	a模式.f执行当前模式命令(v命令)
 def f生成地址4或接口(a):
 	v类型 = type(a)

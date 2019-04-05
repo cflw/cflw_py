@@ -3,6 +3,7 @@ import cflw网络地址 as 地址
 from 网络设备.思科_常量 import *
 import 网络设备.通用_实用 as 通用实用
 import 网络设备.思科_实用 as 思科实用
+import 网络设备.通用_接口 as 通用接口
 ca接口名称 = 设备.fc接口名称字典({})
 f创建接口 = 设备.F创建接口(ca接口名称)
 ca接口缩写 = {
@@ -50,11 +51,11 @@ class C接口配置(设备.I接口配置模式):
 	def f显示_当前模式配置(self):
 		self.m设备.f执行用户命令("show running-config interface " + self.fg模式参数())
 	#操作
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs开关(self, a操作 = 设备.E操作.e设置):
 		v命令 = 通用实用.f生成开关命令("shutdown", c不, a操作)
 		self.f执行当前模式命令(v命令)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs描述(self, a描述 = "", a操作 = 设备.E操作.e设置):
 		v命令 = 设备.C命令("description")
 		if a操作 == 设备.E操作.e删除:
@@ -64,7 +65,7 @@ class C接口配置(设备.I接口配置模式):
 		else:
 			v命令 += a描述
 		self.f执行当前模式命令(v命令)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs网络地址4(self, a地址, a操作 = 设备.E操作.e设置):
 		v命令 = 设备.C命令("ip address")
 		v命令 += 思科实用.f生成地址和掩码4(a地址)
@@ -75,7 +76,7 @@ class C接口配置(设备.I接口配置模式):
 		elif a操作 == 设备.E操作.e删除:
 			v命令.f前面添加(c不)
 		self.f执行当前模式命令(v命令)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs网络地址6(self, a地址, a操作 = 设备.E操作.e添加):
 		v命令 = 设备.C命令("ipv6 address")
 		v命令 += 思科实用.f生成地址和前缀长度6(a地址)

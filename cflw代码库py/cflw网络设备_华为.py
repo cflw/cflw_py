@@ -4,15 +4,18 @@ import cflw网络地址 as 地址
 import cflw网络连接 as 连接
 import cflw网络设备 as 设备
 import cflw字符串 as 字符串
+#
+from 网络设备.华为_常量 import *
 import 网络设备.通用_实用 as 通用实用
 import 网络设备.华为_接口 as 接口
 import 网络设备.华为_基本表信息 as 基本表信息
+#路由
 import 网络设备.华为_开放最短路径优先 as 开放最短路径优先
+#其它
+import 网络设备.通用_访问控制列表 as 通用访问列表
 import 网络设备.华为_访问控制列表 as 访问控制列表
 import 网络设备.华为_前缀列表 as 前缀列表
 import 网络设备.华为_虚拟局域网 as 虚拟局域网
-c不 = "undo "
-c结束符 = '\x1a'	#ctrl+z
 #===============================================================================
 # 工厂
 #===============================================================================
@@ -24,7 +27,8 @@ class E型号(enum.IntEnum):
 	ar201 = 30201
 	ar1220 = 31220
 	ar2220 = 32220
-	ar3620 = 33620
+	ar2240 = 32240
+	ar3260 = 33260
 def f创建设备(a连接, a型号 = 0, a版本 = 0):
 	return C设备(a连接)
 #===============================================================================
@@ -64,7 +68,7 @@ class C设备(设备.I设备):
 		return v输出
 	#助手
 	def f助手_访问控制列表(self):
-		return 访问控制列表.C助手()
+		return 访问控制列表.C助手
 	#其它
 	f检测命令异常 = 设备.F检测命令异常(ca错误文本与异常类)
 #===============================================================================
@@ -209,22 +213,37 @@ class C系统视图(设备.I全局配置模式):
 		else:
 			raise ValueError()
 	#路由
-	def f模式_开放最短路径优先(self, a进程号, a版本 = 设备.E协议.e开放最短路径优先2):
-		return 开放最短路径优先.C路由(self, a进程号)
+	def f模式_开放最短路径优先(self, a进程号 = 1, a版本 = 设备.E协议.e开放最短路径优先, a接口 = None, a操作 = 设备.E操作.e设置):
+		if a接口:	#有接口
+			v接口 = 接口.f创建接口(a接口)
+			if a版本 == 设备.E协议.e开放最短路径优先2:
+				return 开放最短路径优先.C接口4(self, a进程号, a接口)
+			elif a版本 == 设备.E协议.e开放最短路径优先3:
+				raise NotImplementedError()
+			else:
+				raise ValueError()
+		#没有接口
+		if a版本 == 设备.E协议.e开放最短路径优先2:
+			return 开放最短路径优先.C路由4(self, a进程号)
+		elif a版本 == 设备.E协议.e开放最短路径优先3:
+			raise NotImplementedError()
+		else:
+			raise ValueError()
 	#其它
 	def f模式_访问控制列表(self, a名称, a类型):
-		if a类型 == 设备.E访问控制列表类型.ipv4标准:
-			return 访问控制列表.C基本4(self, a名称)
-		elif a类型 == 设备.E访问控制列表类型.ipv4扩展:
-			return 访问控制列表.C高级4(self, a名称)
-		elif a类型 == 设备.E访问控制列表类型.ipv6:
-			return 访问控制列表.C高级6(self, a名称)
+		v名称 = 通用访问列表.f解析名称(a名称, a类型, 访问控制列表.C助手)
+		if a类型 == 设备.E访问控制列表类型.e标准4:
+			return 访问控制列表.C基本4(self, v名称)
+		elif a类型 == 设备.E访问控制列表类型.e扩展4:
+			return 访问控制列表.C高级4(self, v名称)
+		elif a类型 == 设备.E访问控制列表类型.e扩展6:
+			return 访问控制列表.C高级6(self, v名称)
 		else:
 			raise ValueError("错误的类型")
-	def f模式_前缀列表(self, a名称, a类型 = 设备.E前缀列表类型.e版本4):
-		if a类型 == 设备.E前缀列表类型.e版本4:
+	def f模式_前缀列表(self, a名称, a类型 = 设备.E协议.e网络协议4):
+		if a类型 == 设备.E协议.e网络协议4:
 			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本4, 地址.S网络地址4)
-		elif a类型 == 设备.E前缀列表类型.e版本6:
+		elif a类型 == 设备.E协议.e网络协议6:
 			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本6, 地址.S网络地址6)
 		else:
 			raise ValueError("错误的类型")

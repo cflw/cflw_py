@@ -14,7 +14,7 @@ import cflw工具_运算 as 运算
 import cflw网络连接 as 连接
 c等待 = 2
 c间隔 = c等待 / 10
-c网络终端换码 = "\x1b["	#telnetlib的退格标记
+c网络终端换码 = "\x1b["	#vt100控制码
 class I设备:
 	def __init__(self):
 		self.m等待 = c等待
@@ -103,7 +103,7 @@ class I设备:
 	def f刷新(self):
 		"清除正在输入的命令, 清除输出缓存"
 		self.f设备_停顿()
-		v输出 = self.f输出()
+		v输出 = self.m连接.f读_最新()
 	def f等待响应(self, a时间 = 5):
 		v输出 = self.m连接.f读_直到('', a时间)
 		if self.m回显 and v输出:	#回显
@@ -464,7 +464,7 @@ class I用户模式(I模式):
 		raise NotImplementedError()
 	def f显示_设备版本(self)->str:
 		raise NotImplementedError()
-	def f显示_cpu使用率(self):
+	def f显示_中央处理器使用率(self):
 		raise NotImplementedError()
 	def f显示_内存使用率(self):
 		"返回数字"
@@ -524,6 +524,11 @@ class I用户模式(I模式):
 		raise NotImplementedError()
 	def f重新启动(self):
 		raise NotImplementedError()
+	def f保存配置(self):
+		raise NotImplementedError()
+	def f清除配置(self):
+		"重启生效"
+		raise NotImplementedError()	
 	def fs终端监视(self, a开关):
 		"terminal monitor"
 		raise NotImplementedError()
@@ -599,12 +604,15 @@ class S网络接口表项:
 		else:
 			return 字符串.ft字符串(self.m接口, self.m地址, self.m状态, self.m描述)
 class S接口表项:
-	def __init__(self, a接口 = None, a状态 = None, a描述 = ""):
+	def __init__(self, a接口 = None, a状态 = None, a速率 = None, a双工 = None, a虚拟局域网 = 0, a描述 = ""):
 		self.m接口 = a接口
 		self.m状态 = a状态
+		self.m速率 = a速率
+		self.m双工 = a双工
+		self.m虚拟局域网 = a虚拟局域网
 		self.m描述 = a描述
 	def __str__(self):
-		return 字符串.ft字符串(self.m接口, self.m状态, self.m描述)
+		return 字符串.ft字符串(self.m接口, self.m状态, self.m速率, self.m双工, self.m虚拟局域网, self.m描述)
 class S地址解析表项:
 	def __init__(self, a网络地址 = None, a物理地址 = None, a接口 = None, a寿命 = None):
 		self.m网络地址 = a网络地址
@@ -817,8 +825,9 @@ class I时间范围配置模式(I模式):
 # 接口配置模式的操作
 #===============================================================================
 class E接口(enum.IntEnum):#为保证取接口全名有个优先级顺序，高位16位为优先级
-	e空 = 0x00000000
-	e管理 = 0x00000001
+	e无 = 0x00000000	#没有接口名的无接口
+	e空 = 0x00000001	#只丢包的空接口
+	e管理 = 0x00000002
 	e环回 = 0x00000100
 	e十兆以太网 = 0x00000210	#10M=10'000'000
 	e以太网 = e十兆以太网
@@ -839,8 +848,11 @@ class E接口(enum.IntEnum):#为保证取接口全名有个优先级顺序，高
 	e串行 = 0x00000400
 	e虚拟局域网 = 0x00000500
 	e隧道 = 0x00000600
-	qx = 0x000f0700
-	qx以太网 = 0x00000701
+	qx = 0x000f0700	#在中兴m6000中出现
+	qx以太网 = 0x00000701	#在中兴m6000中出现
+	e无源光网络 = 0x00000800	#pon
+	e以无源光网络 = 0x00000801	#epon
+	e吉无源光网络 = 0x00000802	#gpon
 class E接口分类(enum.IntEnum):
 	e空 = 0
 	e环回 = 1
@@ -860,7 +872,9 @@ ca接口名称 = {
 	E接口.e十吉以太网: "TenGigabitEthernet",
 	E接口.e串行: "Serial",
 	E接口.e虚拟局域网: "Vlan",
-	E接口.e隧道: "Tunnel"
+	E接口.e隧道: "Tunnel",
+	E接口.e以无源光网络: "epon",
+	E接口.e吉无源光网络: "gpon",
 }
 def fc接口名称字典(a字典 = None):
 	v字典 = copy.copy(ca接口名称)
@@ -943,7 +957,7 @@ class S接口:
 	@staticmethod
 	def f解析_取名称(a):
 		"提取接口字符串的名称部分"
-		return re.split(r"\d", a)[0]
+		return re.split(r"\d", a)[0].strip()
 	@staticmethod
 	def f解析_取序号(a):
 		"提取接口字符串的序号部分,返回列表,包含子序号"
@@ -1126,28 +1140,6 @@ class I接口配置模式(I接口配置模式基础):	#常见的接口配置
 		raise NotImplementedError()
 	def fs服务质量(self, a, a方向, a操作 = E操作.e设置):
 		raise NotImplementedError()
-#接口展开
-def fe接口模式展开(a接口模式):
-	for v接口 in a接口模式.m接口.fe接口():
-		v接口模式 = copy.copy(a接口模式)
-		v接口模式.m模式栈 = a接口模式.m模式栈[:-1] + (v接口模式,)
-		v接口模式.m接口 = v接口
-		yield v接口模式
-def A接口自动展开(af):
-	def fi展开(self):
-		if not self.m接口.fi范围():
-			return False
-		elif hasattr(self, "mi接口自动展开"):
-			return bool(self.mi接口自动展开)
-		else:
-			return True
-	def f包装(self, *a元组, **a字典):
-		if fi展开(self):
-			for v接口模式 in fe接口模式展开(self):
-				af(v接口模式, *a元组, **a字典)
-		else:
-			return af(self, *a元组, **a字典)
-	return f包装
 #===============================================================================
 # 用户&密码&权限
 #===============================================================================
@@ -1264,32 +1256,15 @@ class S路由条目:
 		return 0
 	def f匹配地址(self, a地址):
 		return self.m网络号.fi范围内(a地址)
-class C路由协议:
-	c版本字符串转数字 = {
-		"ip": 4,
-		"ipv4": 4,
-		"ipv6": 6,
-		"rip": 4,
-		"ripng": 6,
-	}
-	@staticmethod
-	def f解析_版本(a):	#返回整数
-		v类型 = type(a)
-		if v类型 == int or isinstance(a, enum.Enum):
-			return v类型
-		elif v类型 == str:
-			return C路由协议.c版本字符串转数字[a]
-		else:
-			raise TypeError("无法解析的类型")
 #静态路由	=====================================================================
 class I静态路由配置模式(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
 	def f显示_路由表(self):
 		raise NotImplementedError()
-	def fs路由(self, a网络号, a下一跳, a操作 = E操作.e添加):
+	def fs路由(self, a网络号, a下一跳, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def fs默认路由(self, a下一跳, a操作 = E操作.e添加):
+	def fs默认路由(self, a下一跳, a操作 = E操作.e设置):
 		raise NotImplementedError()
 #路由信息协议rip	=============================================================
 class I路由信息协议(I模式):
@@ -1297,13 +1272,18 @@ class I路由信息协议(I模式):
 		I模式.__init__(self, a)
 	def f显示_路由表(self):
 		raise NotImplementedError()
-	def f通告网络(self, a网络号):
+	def f显示_数据库(self):
 		raise NotImplementedError()
-	def f删除网络(self, a网络号):
+	def fs通告网络(self, a网络号, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f通告接口(self, a接口):
+	def fs通告接口(self, a接口, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f删除接口(self, a接口):
+class I路由信息协议接口(I接口配置模式基础):
+	def __init__(self, a):
+		I模式.__init__(self, a)
+	def fs通告接口(self, a接口, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs认证(self, a认证方式 = None, a密码 = "", a操作 = E操作.e设置):
 		raise NotImplementedError()
 #开放最短路径优先ospf	=========================================================
 class E开放最短路径优先链路状态通告类型(enum.IntEnum):
@@ -1345,19 +1325,15 @@ class I开放最短路径优先(I模式):
 	def fg模式参数(self):
 		"返回进程号"
 		return (self.m进程号,)
-	def f模式_区域(self, a区域):
+	def fg进程号(self):
+		return self.m进程号
+	#模式
+	def f模式_区域(self, a区域, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def f模式_接口(self, a接口):
 		raise NotImplementedError()
-	def f模式_虚链路(self, a区域, a对端):
+	def f模式_虚链路(self, a区域, a对端, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	#静态
-	@staticmethod
-	def f解析区域(a区域):
-		v区域 = int(a区域)
-		if v区域 < 0 or v区域 > 4294967295:
-			raise ValueError("a区域 超出范围,应该在0~4294967295之间")
-		return v区域
 	#显示
 	def f显示_路由表(self):
 		raise NotImplementedError()
@@ -1370,39 +1346,39 @@ class I开放最短路径优先(I模式):
 		raise NotImplementedError()
 	def fs路由器号(self, a):
 		raise NotImplementedError()
-	def f通告默认路由(self, a总是 = False, a开销 = 0):
+	def fs通告默认路由(self, a总是 = False, a开销 = 0, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f通告网络(self, a网络号, a区域):
+	def fs通告网络(self, a网络号, a区域号, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f删除网络(self, a网络号, a区域):
-		raise NotImplementedError()
-	def f通告接口(self, a接口, a区域):
-		raise NotImplementedError()
-	def f删除接口(self, a接口, a区域):
+	def fs通告接口(self, a接口, a区域号, a操作 = E操作.e设置):
 		raise NotImplementedError()
 class I开放最短路径优先区域(I模式):
 	c模式名 = "开放最短路径优先区域配置模式"
-	def __init__(self, a, a进程号, a区域):
+	def __init__(self, a, a进程号, a区域号):
 		I模式.__init__(self, a)
 		self.m进程号 = a进程号
-		self.m区域 = a区域
-	def f通告网络(self, a网络号):
+		self.m区域号 = a区域号
+	def fg进程号(self):
+		return self.m进程号
+	def fg区域号(self):
+		return self.m区域号
+	def fs通告网络(self, a网络号, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f删除网络(self, a网络号):
+	def fs通告接口(self, a接口, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f通告接口(self, a接口):
-		raise NotImplementedError()
-	def f删除接口(self, a接口):
+	def fs认证(self, a认证方式 = None, a密码 = "", a操作 = E操作.e设置):
 		raise NotImplementedError()
 class I开放最短路径优先接口(I接口配置模式基础):
 	c模式名 = "开放最短路径优先接口配置模式"
 	def __init__(self, a, a进程号, a接口):
 		I接口配置模式基础.__init__(self, a, a接口)
 		self.m进程号 = a进程号
-	def f通告接口(self, a进程号, a区域):
+	def fg进程号(self):
+		return self.m进程号
+	def fs通告接口(self, a区域号, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f删除接口(self, a进程号, a区域):
-		raise NotImplementedError()	
+	def fs认证(self, a认证方式 = None, a密码 = "", a操作 = E操作.e设置):
+		raise NotImplementedError()
 	def fs问候时间(self, a时间 = 10):
 		raise NotImplementedError()
 	def fs死亡时间(self, a时间 = 40):
@@ -1421,10 +1397,12 @@ class I开放最短路径优先接口(I接口配置模式基础):
 		raise NotImplementedError()
 class I开放最短路径优先虚链路(I模式):
 	c模式名 = "开放最短路径优先虚链路配置模式"
-	def __init__(self, a, a进程号, a区域, a对端):
+	def __init__(self, a, a进程号, a区域号, a对端):
 		I模式.__init__(self, a)
-		self.m区域 = a区域
+		self.m区域号 = a区域号
 		self.m对端 = a对端
+	def fs认证(self, a认证方式 = None, a密码 = "", a操作 = E操作.e设置):
+		raise NotImplementedError()
 	def fs问候时间(self, a时间 = 10):
 		raise NotImplementedError()
 	def fs死亡时间(self, a时间 = 40):
@@ -1445,7 +1423,43 @@ class S开放最短路径优先邻居表项:
 	def __str__(self):
 		return 字符串.ft字符串(self.m邻居标识, self.m优先级, self.m邻居状态, self.m选举状态, self.m死亡时间, self.m对端地址, self.m接口)
 #增强内部网关路由协议eigrp	======================================================
-
+class I增强内部网关路由协议(I模式):
+	def __init__(self, a, a自制系统号):
+		I模式.__init__(self, a)
+		self.m自制系统号 = a自制系统号
+	#显示
+	def f显示_路由表(self):
+		raise NotImplementedError()
+	def f显示_邻居(self):
+		raise NotImplementedError()
+	#操作
+	def fs开关(self, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs路由器号(self, a路由器号):
+		raise NotImplementedError()
+	def fs通告网络(self, a网络号, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs通告接口(self, a接口, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs自动汇总(self, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	#度量值
+	def fs带宽(self, a带宽, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs延迟(self, a延迟, a操作 = E操作.e设置):
+		raise NotImplementedError()
+class I增强内部网关路由协议接口(I接口配置模式基础):
+	def __init__(self, a, a接口, a自制系统号):
+		I接口配置模式基础.__init__(self, a, a接口)
+		self.m自制系统号 = a自制系统号
+	def fs通告接口(self, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs被动(self, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs水平分割(self, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs汇总(self, a网络号, a操作 = E操作.e设置):
+		raise NotImplementedError()
 #边界网关协议bgp ================================================================
 class E边界网关协议地址族(enum.IntEnum):
 	e单播4 = 0
@@ -1464,9 +1478,9 @@ class I边界网关协议(I模式):
 		"返回自治系统号"
 		return (self.m自治系统号,)
 	#模式
-	def f模式_对等体(self, a对等体):
+	def f模式_对等体(self, a对等体, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_地址族(self, *a地址族):
+	def f模式_地址族(self, *a地址族, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	#显示
 	def f显示_路由表(self):
@@ -1475,8 +1489,6 @@ class I边界网关协议(I模式):
 		raise NotImplementedError()
 	#操作
 	def fs路由器号(self, a):
-		raise NotImplementedError()
-	def f删除地址族(self, *a地址族):
 		raise NotImplementedError()
 class I边界网关协议地址族(I模式):
 	c模式名 = "边界网关协议地址族配置模式"
@@ -1487,13 +1499,9 @@ class I边界网关协议地址族(I模式):
 		raise NotImplementedError()
 	def f显示_路由表(self):
 		raise NotImplementedError()
-	def f通告网络(self, a网络号):
+	def fs通告网络(self, a网络号, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f删除网络(self, a网络号):
-		raise NotImplementedError()
-	def f通告接口(self, a接口):
-		raise NotImplementedError()
-	def f删除接口(self, a接口):
+	def fs通告接口(self, a接口, a操作 = E操作.e设置):
 		raise NotImplementedError()
 class I边界网关协议对等体(I模式):
 	c模式名 = "边界网关协议对等体配置模式"
@@ -1503,7 +1511,7 @@ class I边界网关协议对等体(I模式):
 	def __str__(self):
 		return str(self.m对等体)
 	#操作
-	def f激活(self):
+	def fs激活(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fs远端自治系统号(self, a):
 		raise NotImplementedError()
@@ -1520,9 +1528,7 @@ class I中间系统到中间系统(I模式):
 		raise NotImplementedError()
 	def f显示_邻居(self):
 		raise NotImplementedError()
-	def f通告接口(self, a接口):
-		raise NotImplementedError()
-	def f删除接口(self, a接口):
+	def fs通告接口(self, a接口, a操作 = E操作.e设置):
 		raise NotImplementedError()
 #===============================================================================
 # 冗余路由
@@ -1575,15 +1581,18 @@ class I路由策略节点(I模式):
 		"用于: ospf, eigrp, isis"
 		raise NotImplementedError()
 #===============================================================================
-# acl
+# 访问控制列表acl
 #===============================================================================
 class E访问控制列表类型(enum.IntEnum):
-	"模式用"
-	e标准 = 40
-	e扩展 = 41
-	ipv4标准 = 40
-	ipv4扩展 = 41
-	ipv6 = 60
+	e接口 = 0x1000
+	e物理 = 0x2000
+	mac = e物理
+	e标准4 = 0x3040
+	e扩展4 = 0x3041
+	e标准6 = 0x3060
+	e扩展6 = 0x3061
+	e多协议标签交换 = 0x4000
+	mpls = e多协议标签交换
 class I端口号到字符串:
 	def f等于(self, a序列):
 		raise NotImplementedError()
@@ -1644,16 +1653,16 @@ class S端口号:
 			return S端口号.fc范围(字符串.ft范围(a))
 		#"符号 数字"的格式
 		ca符号表 = {
-			">": S端口号.fc大于,
 			">=": S端口号.fc大于等于,
+			"<=": S端口号.fc小于等于,
+			"!=": S端口号.fc不等于,
+			"<>": S端口号.fc不等于,
+			">": S端口号.fc大于,
 			"≥": S端口号.fc大于等于,
 			"<": S端口号.fc小于,
-			"<=": S端口号.fc小于等于,
 			"≤": S端口号.fc小于等于,
 			"=": S端口号.fc等于,
 			"≠": S端口号.fc不等于,
-			"!=": S端口号.fc不等于,
-			"<>": S端口号.fc不等于
 		}
 		for k, v in ca符号表.items():
 			v符号长度 = len(k)
@@ -1704,7 +1713,7 @@ class S端口号:
 			return a接口.f不等于(self.m值)
 		else:
 			return ""
-class C访问控制列表规则:
+class S访问控制列表规则:
 	"""成员&参数:\n
 	允许: bool, 决定动作是permit还是deny\n
 	协议: int, 值来自E协议\n
@@ -1712,19 +1721,6 @@ class C访问控制列表规则:
 	目标地址: S网络地址4\n
 	源端口: S端口\n
 	目标端口: S端口"""
-	#常量	--------------------------------------------------------------------
-	class E端(enum.IntEnum):
-		e地址 = 0
-		e通配符 = 1
-		e掩码 = 2
-		e端口符号 = 3
-		e端口 = 4
-	class E协议(enum.IntEnum):
-		ip = 30,
-		ipv4 = 31,
-		ipv6 = 32,
-		tcp = 40,
-		udp = 41
 	#方法	--------------------------------------------------------------------
 	def __init__(self, **a):
 		self.m规则类型 = None
@@ -1732,14 +1728,14 @@ class C访问控制列表规则:
 		self.m地址类型 = None
 		self.m解析 = True	#是否解析参数类型
 		self.m允许 = None
-		self.m协议 = C访问控制列表规则.E协议.ip
+		self.m协议 = E协议.ip
 		self.m源地址 = None
 		self.m目的地址 = None
 		self.m源端口 = None
 		self.m目的端口 = None
 		self.f更新(**a)
 	def f更新(self, **a):
-		for k, v in C访问控制列表规则.ca更新.items():
+		for k, v in S访问控制列表规则.ca更新函数.items():
 			if k in a:
 				v(self, a[k])
 	def __str__(self):
@@ -1753,7 +1749,7 @@ class C访问控制列表规则:
 		else:
 			v += "拒绝, "
 		#协议
-		v += C访问控制列表规则.ca协议到字符串[self.m协议] + ", "
+		v += S访问控制列表规则.ca协议到字符串[self.m协议] + ", "
 		#地址
 		if self.m源地址:
 			v += "源地址%s, " % (self.m源地址,)
@@ -1786,20 +1782,21 @@ class C访问控制列表规则:
 		return self.m源端口.fi范围内(a端口)
 	def f匹配目的端口(self, a端口):
 		return self.m目的端口.fi范围内(a端口)
-C访问控制列表规则.ca更新 = {
-	"a允许": C访问控制列表规则.fs允许,
-	"a协议": C访问控制列表规则.fs协议,
-	"a源地址": C访问控制列表规则.fs源地址,
-	"a目的地址": C访问控制列表规则.fs目的地址,
-	"a源端口": C访问控制列表规则.fs源端口,
-	"a目的端口": C访问控制列表规则.fs目的端口,
-}
-C访问控制列表规则.ca协议到字符串 = {
-	C访问控制列表规则.E协议.ip: "互联网协议第4版",
-	C访问控制列表规则.E协议.ipv6: "互联网协议第6版",
-	C访问控制列表规则.E协议.tcp: "传输控制协议",
-	C访问控制列表规则.E协议.udp: "用户数据报协议",
-}
+	#后置常量
+	ca更新函数 = {
+		"a允许": fs允许,
+		"a协议": fs协议,
+		"a源地址": fs源地址,
+		"a目的地址": fs目的地址,
+		"a源端口": fs源端口,
+		"a目的端口": fs目的端口,
+	}
+	ca协议到字符串 = {
+		E协议.ip: "互联网协议第4版",
+		E协议.ipv6: "互联网协议第6版",
+		E协议.tcp: "传输控制协议",
+		E协议.udp: "用户数据报协议",
+	}
 class I访问控制列表(I模式):
 	c模式名 = "访问控制列表配置模式"
 	def __init__(self, a):
@@ -1811,32 +1808,30 @@ class I访问控制列表(I模式):
 	def f应用到(self, a):
 		raise NotImplementedError()
 class I访问控制列表助手:
-	"用来计算到目标设备的访问控制列表序号, 原始参数的n从0开始, 返回时不做类型转换"
-	def f计算标准4(self, n):
+	"用来计算到目标设备的访问控制列表序号, 原始参数的n从0开始"
+	@staticmethod
+	def ft特定序号(n, a类型):
 		return n
-	def f计算扩展4(self, n):
+	@staticmethod
+	def ft统一序号(n, a类型 = None):
 		return n
-	def f计算标准6(self, n):
-		return n
-	def f计算扩展6(self, n):
-		return n
-	def f反算标准4(self, n):
-		return n
-	def f反算扩展4(self, n):
-		return n
-	def f反算标准6(self, n):
-		return n
-	def f反算扩展6(self, n):
-		return n
+class S访问控制列表序号:
+	def __init__(self, a统一, a特定 = None, a类型 = None):
+		self.m统一序号 = a统一
+		self.m特定序号 = a特定
+		self.m类型 = a类型
+	def __str__(self):
+		return str(self.m特定序号)
+	@staticmethod
+	def fc特定序号(n, a类型 = None):
+		return S访问控制列表序号(None, n, a类型)
+	@staticmethod
+	def fc统一序号(n, a类型 = None):
+		return S访问控制列表序号(n, None, a类型)
 #===============================================================================
 # 前缀列表
 #===============================================================================
-class E前缀列表类型(enum.IntEnum):
-	e版本4 = 0
-	ipv4 = 0
-	e版本6 = 1
-	ipv6 = 1
-class C前缀列表规则:
+class S前缀列表规则:
 	def __init__(self, **a):
 		self.m序号 = None
 		self.m允许 = True
@@ -1845,7 +1840,7 @@ class C前缀列表规则:
 		self.m最大长度 = None
 		self.f更新(**a)
 	def f更新(self, **a):
-		for k, v in C前缀列表规则.ca更新.items():
+		for k, v in S前缀列表规则.ca更新函数.items():
 			if k in a:
 				v(self, a[k])
 	def fs序号(self, a):
@@ -1858,19 +1853,17 @@ class C前缀列表规则:
 		self.m最小长度 = a
 	def fs最大长度(self, a):
 		self.m最大长度 = a
-C前缀列表规则.ca更新 = {
-	"a允许": C前缀列表规则.fs允许,
-	"a网络号": C前缀列表规则.fs网络号,
-	"a最小长度": C前缀列表规则.fs最小长度,
-	"a最大长度": C前缀列表规则.fs最大长度,
-}
+	ca更新函数 = {
+		"a允许": fs允许,
+		"a网络号": fs网络号,
+		"a最小长度": fs最小长度,
+		"a最大长度": fs最大长度,
+	}
 class I前缀列表(I模式):
 	c模式名 = "前缀列表配置模式"
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def f添加规则(self, a序号 = None, a规则 = None):
-		raise NotImplementedError()
-	def f删除规则(self, a序号):
+	def fs规则(self, a序号 = None, a规则 = None, a操作 = E操作.e添加):
 		raise NotImplementedError()
 	def fe规则(self):
 		raise NotImplementedError()

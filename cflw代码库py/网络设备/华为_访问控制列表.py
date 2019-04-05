@@ -1,6 +1,7 @@
 import functools
 import cflw网络设备 as 设备
-from . import 通用_访问控制列表 as 通用
+import 网络设备.通用_访问控制列表 as 通用访问列表
+import 网络设备.通用_实用 as 通用实用
 c不 = "undo"
 c允许 = "permit"
 c拒绝 = "deny"
@@ -15,12 +16,12 @@ def f生成规则序号(a序号):
 	if a序号:
 		v命令 += a序号
 	return v命令
-f生成协议4 = 通用.f生成协议4
-f生成允许 = functools.partial(通用.f生成允许, c允许元组)
+f生成协议4 = 通用访问列表.f生成协议4
+f生成允许 = functools.partial(通用访问列表.f生成允许, c允许元组)
 def f生成端口(a前置: str, a端口):
-	return a前置 + " " + 通用.f生成端口(g到字符串, a端口)
+	return a前置 + " " + 通用访问列表.f生成端口(g到字符串, a端口)
 def f生成地址(a前置: str, a地址):
-	return a前置 + " " + 通用.f生成地址和通配符4(a地址)
+	return a前置 + " " + 通用访问列表.f生成地址和通配符4(a地址)
 #到字符串
 class C到字符串(设备.I端口号到字符串):
 	def f大于(self, a值):
@@ -59,6 +60,12 @@ class I访问控制列表(设备.I访问控制列表):
 		v命令 = self.fg进入命令()
 		v命令.f前面添加(c不)
 		self.f执行当前模式命令(v命令)
+	def fs规则(self, a序号 = None, a规则 = None, a操作 = 设备.E操作.e设置):
+		v操作 = 通用实用.f解析操作(a操作)
+		if 通用实用.fi加操作(v操作):
+			self.f添加规则(a序号, a规则)
+		elif 通用实用.fi减操作(v操作):
+			self.f删除规则(a序号)
 class C基本4(I访问控制列表):
 	def __init__(self, a, a名称):
 		I访问控制列表.__init__(self, a, a名称)
@@ -105,3 +112,17 @@ class C助手(设备.I访问控制列表助手):
 	f计算扩展4 = F计算(3000)
 	f反算标准4 = F反算(2000)
 	f反算扩展4 = F反算(3000)
+	@staticmethod
+	def ft特定序号(n, a类型):
+		if a类型 == 设备.E访问控制列表类型.e标准4:
+			return C助手.f计算标准4(n)
+		elif a类型 == 设备.E访问控制列表类型.e扩展4:
+			return C助手.f计算扩展4(n)
+		return n
+	@staticmethod
+	def ft统一序号(n, a类型):
+		if a类型 == 设备.E访问控制列表类型.e标准4:
+			return C助手.f反算标准4(n)
+		elif a类型 == 设备.E访问控制列表类型.e扩展4:
+			return C助手.f反算扩展4(n)
+		return n

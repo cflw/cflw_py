@@ -3,6 +3,7 @@ import struct
 import cflw网络设备 as 设备
 from 网络设备.华为_常量 import *
 import 网络设备.通用_地址 as 通用地址
+import 网络设备.通用_接口 as 通用接口
 import 网络设备.通用_虚拟局域网 as 通用虚拟局域网
 import 网络设备.华为_实用 as 华为实用
 ca接口名称 = 设备.fc接口名称字典({
@@ -18,12 +19,14 @@ class C接口视图(设备.I接口配置模式):
 	#模式
 	def f模式_虚拟局域网(self):
 		return C虚拟局域网(self.fg上级模式(), self.m接口)
+	def f模式_开放最短路径优先(self, a进程号 = 1, a版本 = 设备.E协议.e开放最短路径优先):
+		return self.fg上级模式().f模式_开放最短路径优先(a进程号 = a进程号, a版本 = a版本, a接口 = self.m接口)
 	#接口操作
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs开关(self, a操作 = 设备.E操作.e设置):
 		v命令 = 通用实用.f生成开关命令("shutdown", c不, a操作)
 		self.f执行当前模式命令(v命令)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs网络地址4(self, a地址, a操作 = 设备.E操作.e设置):
 		v命令 = 设备.C命令("ip address")
 		v命令 += 华为实用.f生成地址和前缀长度4(a地址)
@@ -58,17 +61,17 @@ class C虚拟局域网(设备.I虚拟局域网接口):
 	}
 	def __init__(self, a, a接口):
 		设备.I虚拟局域网接口.__init__(self, a, a接口)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs链路类型(self, a类型):
 		v命令 = 设备.C命令("port link-type")
 		v命令 += C虚拟局域网.ca链路类型[a类型]
 		self.f执行当前模式命令(v命令)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def f中继_s通过(self, a虚拟局域网, a操作 = 设备.E操作.e设置):
 		v命令 = 设备.C命令("port trunk allow-pass vlan")
 		v命令 += 通用虚拟局域网.f生成(a虚拟局域网)
 		self.m设备.f执行命令(v命令)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def f接入_s绑定(self, a虚拟局域网, a操作 = 设备.E操作.e设置):
 		v命令 = 设备.C命令("port default vlan")
 		v命令 += 通用虚拟局域网.f生成一个(a虚拟局域网)
@@ -77,17 +80,17 @@ class C虚拟局域网(设备.I虚拟局域网接口):
 class C端口安全(设备.I端口安全接口):
 	def __init__(self, a, a接口):
 		设备.I端口安全接口.__init__(self, a, a接口)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs开关(self, a开关):
 		if a开关:
 			self.f执行当前模式命令("port-security enable")
 		else:
 			self.f执行当前模式命令("undo port-security enable")
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs数量(self, a数量):
 		v命令 = "port-security max-mac-num " + int(a数量)
 		self.f执行当前模式命令(v命令)
-	@设备.A接口自动展开
+	@通用接口.A接口自动展开
 	def fs动作(self, a动作):
 		v命令 = "port-security protect-action " + C端口安全.f生成动作(a动作)
 		self.f执行当前模式命令(v命令)

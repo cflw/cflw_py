@@ -174,7 +174,7 @@ def fi连续范围(a字符串: str):
 		return False
 	if len(v分割) != 2:
 		return False
-	a, b = v分割[0], v分割[1]
+	a, b = v分割
 	if not fi数字(a):
 		return False
 	if not fi数字(b):
@@ -189,7 +189,7 @@ def fi区间范围(a字符串: str):
 	v分割 = a字符串[1:-1].split(",")
 	if len(v分割) != 2:
 		return False
-	a, b = v分割[0], v分割[1]
+	a, b = v分割
 	if not fi数字(a):
 		return False
 	if not fi数字(b):
@@ -392,7 +392,7 @@ def ft范围(a字符串: str):
 		v分割 = a字符串[1:-1].split(",")
 	else:
 		raise ValueError("未知格式")
-	a, b = v分割[0], v分割[1]
+	a, b = v分割
 	v左 = int(a)
 	if not v左闭:	#左开
 		v左 += 1

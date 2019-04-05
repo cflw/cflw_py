@@ -119,7 +119,6 @@ class S网络地址4:
 		可用的其它类型：ipaddress模块中的ipv4相关类\n
 		可用的多参数：(地址, 掩码)
 		"""
-		v这 = S网络地址4()
 		v长度 = len(a)
 		if v长度 > 1:
 			v1 = a[1]
@@ -130,61 +129,60 @@ class S网络地址4:
 		if v类型0 == S网络地址4:	#参数类型(S网络地址4)
 			if v长度 > 1:
 				raise TypeError("参数太多")
-			v这.m地址 = v0.m地址
-			v这.m前缀长度 = v0.m前缀长度
+			return S网络地址4(v0.m地址, v0.m前缀长度)
 		elif v类型0 == str:
 			#取参数
 			if "/" in v0:
-				if v0.count("/") != 1:
-					raise ValueError("斜杠太多")
-				v地址, v1 = v0.split("/")
+				v地址0, v1 = v0.split("/")
+				if "." in v1:
+					return S网络地址4.fc地址掩码(v地址0, v1)
+				else:
+					return S网络地址4.fc地址前缀长度(v地址0, v1)
 			else:
-				v地址 = v0
+				v地址0 = v0
 			#赋值
 			if type(v1) == str:
-				v这.m前缀长度 = S网络地址4.f掩码字符串转前缀长度(v1)
+				v前缀长度 = S网络地址4.f掩码字符串转前缀长度(v1)
 			else:
-				v这.m前缀长度 = int(v1)
-			v这.m地址 = S网络地址4.f地址字符串转整数(v地址)
+				v前缀长度 = int(v1)
+			v地址 = S网络地址4.f地址字符串转整数(v地址0)
+			return S网络地址4(v地址, v前缀长度)
 		elif v类型0 == int:	#地址是整数
-			v这.m地址 = v0
-			v这.m前缀长度 = S网络地址4.f掩码字符串转前缀长度(v1)
+			v前缀长度 = S网络地址4.f掩码字符串转前缀长度(v1)
+			return S网络地址4(v0, v前缀长度)
 		elif v类型0 in (ipaddress.IPv4Network, ipaddress.IPv4Interface):
-			v地址, v1 = v0.with_prefixlen
-			v这.m地址 = S网络地址4.f地址字符串转整数(v地址)
-			v这.m前缀长度 = int(v1)
+			v地址, v前缀长度 = v0.with_prefixlen.split("/")
+			return S网络地址4.fc地址前缀长度(v地址, v前缀长度)
 		elif v类型0 == ipaddress.IPv4Address:
-			v这.m地址 = int(v0)
-			v这.m前缀长度 = v1
+			v地址 = int(v0)
+			return S网络地址4(v地址, v1)
+		elif v0 == None:
+			return S网络地址4(0, 0)
 		else:
 			raise TypeError("无法解析参数类型")
-		return v这
 	@staticmethod
 	def fc地址字符串(a地址):
-		v这 = S网络地址4()
-		v这.m地址 = S网络地址4.f地址字符串转整数(a地址)
-		return v这
+		v地址 = S网络地址4.f地址字符串转整数(a地址)
+		return S网络地址4(v地址, 32)
 	@staticmethod
 	def fc地址前缀长度(a地址, a前缀长度):
-		v这 = S网络地址4()
 		if type(a地址) == str:
-			v这.m地址 = S网络地址4.f地址字符串转整数(a地址)
+			v地址 = S网络地址4.f地址字符串转整数(a地址)
 		else:
-			v这.m地址 = int(a地址)
-		v这.m前缀长度 = int(a前缀长度)
-		return v这
+			v地址 = int(a地址)
+		v前缀长度 = int(a前缀长度)
+		return S网络地址4(v地址, v前缀长度)
 	@staticmethod
 	def fc地址掩码(a地址, a掩码):
-		v这 = S网络地址4()
 		if type(a地址) == str:
-			v这.m地址 = S网络地址4.f地址字符串转整数(a地址)
+			v地址 = S网络地址4.f地址字符串转整数(a地址)
 		else:
-			v这.m地址 = int(a地址)
+			v地址 = int(a地址)
 		if type(a掩码) == str:
-			v这.m前缀长度 = S网络地址4.f掩码字符串转前缀长度(a掩码)
+			v前缀长度 = S网络地址4.f掩码字符串转前缀长度(a掩码)
 		else:
-			v这.m前缀长度 = S网络地址4.f掩码整数转前缀长度(int(a掩码))
-		return v这
+			v前缀长度 = S网络地址4.f掩码整数转前缀长度(int(a掩码))
+		return S网络地址4(v地址, v前缀长度)
 	@staticmethod
 	def fc四段(a0, a1, a2, a3, a前缀长度 = 32):
 		v整数 = S网络地址4.f四段转整数(a0, a1, a2, a3)
@@ -310,6 +308,12 @@ class S网络地址4:
 		if v长度 > 0:
 			v字符串 += "/" + str(v长度)
 		return v字符串
+	def fi空掩码(self):
+		"掩码全0"
+		return self.m前缀长度 == 0
+	def fi主机掩码(self):
+		"掩码全1"
+		return self.m前缀长度 == 32
 #===============================================================================
 # 网络地址6
 #===============================================================================
@@ -328,7 +332,6 @@ class S网络地址6:
 		"""
 		字符串格式："x:x:x:x:x:x:x:x/64"（可以使用缩写地址）
 		"""
-		v这 = S网络地址6()
 		v长度 = len(a)
 		if v长度 > 1:
 			v前缀长度 = a[1]
@@ -345,28 +348,28 @@ class S网络地址6:
 			else:
 				v地址 = v0
 			#赋值
-			v这.m前缀长度 = int(v前缀长度)
-			v这.m地址 = S网络地址6.f地址字符串转整数(v地址)
+			v前缀长度 = int(v前缀长度)
+			v地址 = S网络地址6.f地址字符串转整数(v地址)
+			return S网络地址6(v地址, v前缀长度)
 		elif v类型 == int:
-			v这.m地址 = v0
-			v这.m前缀长度 = int(v前缀长度)
+			v前缀长度 = int(v前缀长度)
+			return S网络地址6(v0, v前缀长度)
 		elif v类型 in (ipaddress.IPv6Network, ipaddress.IPv6Interface):
-			v地址, v前缀长度 = v0.with_prefixlen
-			v这.m地址 = S网络地址6.f地址字符串转整数(v地址)
-			v这.m前缀长度 = int(v前缀长度)
+			v地址, v前缀长度 = v0.with_prefixlen.split("/")
+			return S网络地址6.fc地址前缀长度(v地址, v前缀长度)
 		elif v类型 == ipaddress.IPv6Address:
-			v这.m地址 = int(v0)
-			v这.m前缀长度 = 128
-		return v这
+			return S网络地址6(int(v0), 128)
+		elif v0 == None:
+			return S网络地址6(0, 0)
+		else:
+			raise TypeError("无法解析参数类型")
 	@staticmethod
 	def fc地址前缀长度(a地址, a前缀长度):
-		v这 = S网络地址6()
 		if type(a地址) == str:
-			v这.m地址 = S网络地址6.f地址字符串转整数(a地址)
+			v地址 = S网络地址6.f地址字符串转整数(a地址)
 		else:
-			v这.m地址 = int(a地址)
-		v这.m前缀长度 = a前缀长度
-		return v这
+			v地址 = int(a地址)
+		return S网络地址6(v地址, a前缀长度)
 	@staticmethod
 	def fc八段(a0, a1, a2, a3, a4, a5, a6, a7, a前缀长度 = 128):
 		v整数 = S网络地址6.f八段转整数(a0, a1, a2, a3, a4, a5, a6, a7)
@@ -398,6 +401,22 @@ class S网络地址6:
 		else:
 			raise TypeError("无法解析的参数类型")
 	@staticmethod
+	def f地址整数转字符串(a):
+		def f列表数字转字符串(a列表):
+			v列表 = []
+			for v in a列表:
+				v列表.append(hex(v)[2:])
+			return ":".join(v列表)
+		v分段 = S网络地址6.f地址整数转八段(a)
+		v索引, v数量 = S网络地址6.f计算最长零段(v分段)
+		if v数量 >= 2:
+			v列表0 = v分段[:v索引]
+			v列表1 = v分段[v索引 + v数量 :]
+			v字符串 = f列表数字转字符串(v列表0) + "::" + f列表数字转字符串(v列表1)
+		else:
+			v字符串 = f列表数字转字符串(v分段)
+		return v字符串
+	@staticmethod
 	def f八段转整数(a0, a1, a2, a3, a4, a5, a6, a7):
 		def f(a):
 			v = int(a)
@@ -406,32 +425,37 @@ class S网络地址6:
 			return v
 		return f(a0) * 2 ** 112 + f(a1) * 2 ** 96 + f(a2) * 2 ** 80 + f(a3) * 2 ** 64 +f(a4) * 2 ** 48 + f(a5) * 2 ** 32 + f(a6) * 2 ** 16 + f(a7)
 	@staticmethod
+	def f地址整数转八段(a):
+		v分段 = [0, 0, 0, 0, 0, 0, 0, 0]
+		v地址 = a
+		for i in range(8):
+			v数字 = v地址 % 0x10000
+			v分段[7-i] = v数字
+			v地址 //= 0x10000
+		return v分段
+	@staticmethod
 	def fi地址格式(a):
 		return True
+	def fg地址i(self):
+		return self.m地址
+	def fg地址s(self):
+		return S网络地址6.f地址整数转字符串(self.m地址)
 	def fg网络号(self):
 		v地址 = self.fg网络号i()
 		return S网络地址6.fc地址前缀长度(v地址, self.m前缀长度)
 	def fg网络号i(self):
 		return self.m地址 & (S网络地址6.c全f - 2 ** (128 - self.m前缀长度) + 1)
+	def fg网络号s(self):
+		return S网络地址6.f地址整数转字符串(self.fg网络号i())
 	def fg广播地址(self):
 		v地址 = self.fg广播地址i()
 		return S网络地址6.fc地址前缀长度(v地址, self.m前缀长度)
 	def fg广播地址i(self):
 		return self.m地址 | (2 ** (128 - self.m前缀长度) - 1)
+	def fg广播地址s(self):
+		return S网络地址6.f地址整数转字符串(self.fg广播地址i())
 	def ft字符串(self):
-		def f列表数字转字符串(a列表):
-			v列表 = []
-			for v in a列表:
-				v列表.append(hex(v)[2:])
-			return ":".join(v列表)
-		v分段 = self.fg八段()
-		v索引, v数量 = S网络地址6.f计算最长零段(v分段)
-		if v数量 >= 2:
-			v列表0 = v分段[:v索引]
-			v列表1 = v分段[v索引 + v数量 :]
-			v字符串 = f列表数字转字符串(v列表0) + "::" + f列表数字转字符串(v列表1)
-		else:
-			v字符串 = f列表数字转字符串(v分段)
+		v字符串 = S网络地址6.f地址整数转字符串(self.m地址)
 		v字符串 += "/" + str(self.m前缀长度)
 		return v字符串
 	def fg主机地址数(self):
@@ -475,13 +499,13 @@ class S网络地址6:
 				yield v数字
 				v地址 %= v除数
 	def fg八段(self):
-		v分段 = [0, 0, 0, 0, 0, 0, 0, 0]
-		v地址 = self.m地址
-		for i in range(8):
-			v数字 = v地址 % 0x10000
-			v分段[7-i] = v数字
-			v地址 //= 0x10000
-		return v分段
+		return S网络地址6.f地址整数转八段(self.m地址)
+	def fi空掩码(self):
+		"掩码全0"
+		return self.m前缀长度 == 0
+	def fi主机掩码(self):
+		"掩码全1"
+		return self.m前缀长度 == 128
 #===============================================================================
 # 物理地址
 #===============================================================================
@@ -502,7 +526,9 @@ class S物理地址:
 				return S物理地址(int(v字符串, 16))
 			else:
 				raise ValueError()
-		raise TypeError()
+		else:
+			raise TypeError()
+		return None
 	def __str__(self):
 		return self.fg字符串()
 	def fg字符串(self, a分隔符 = "", a分隔位数 = 4):

@@ -10,7 +10,13 @@ class I连接:
 		raise NotImplementedError()
 	def f读_直到(self, a文本 = "", a时间 = 5):
 		"一直读到某个文本时停止. 如果没有指定文本,直到读出任何内容时返回"
-		raise NotImplementedError()
+		v阻塞 = 时间.C循环阻塞(a时间)
+		v内容 = ""
+		while v阻塞.f滴答():
+			v内容 += self.f读_最新()
+			if (a文本 in v内容 if a文本 else bool(v内容)):
+				return v内容
+		return v内容
 	def f写(self, a文本):#向设备传输文本
 		raise NotImplementedError()
 	def fs编码(self, a编码):#传输文本时使用的编码

@@ -86,3 +86,36 @@ def f生成描述命令(a命令, a不, a描述, a操作):
 	elif a操作 == 设备.E操作.e删除:
 		v命令.f前面添加(a不)
 	return v命令
+#操作
+def f解析操作(a操作):
+	v类型 = type(a操作)
+	if v类型 == 设备.E操作:
+		return a操作
+	elif v类型 == bool:
+		return 设备.E操作.e设置 if a操作 else 设备.E操作.e删除
+	elif v类型 == int:
+		return 设备.E操作.e设置 if a操作 else 设备.E操作.e删除
+	elif v类型 == str:
+		if a操作.isdigit():
+			return 设备.E操作.e设置 if int(a操作) else 设备.E操作.e删除
+		elif a操作 in ("no", "undo", "delete", "del"):
+			return 设备.E操作.e删除
+		elif a操作 in ("default", "reset"):
+			return 设备.E操作.e重置
+		elif a操作 in ("add",):
+			return 设备.E操作.e添加
+		elif a操作 in ("set",):
+			return 设备.E操作.e设置
+		elif a操作 == "":
+			return 设备.E操作.e设置
+		else:
+			raise ValueError("无法解析的字符串")
+	else:
+		raise TypeError("无法解析的类型")
+ca加操作 = (设备.E操作.e设置, 设备.E操作.e新建, 设备.E操作.e添加, 设备.E操作.e修改)
+ca减操作 = (设备.E操作.e删除, 设备.E操作.e重置)
+def fi加操作(a操作):
+	"设置,添加,修改都是加操作"
+	return a操作 in ca加操作
+def fi减操作(a操作):
+	return a操作 in ca减操作

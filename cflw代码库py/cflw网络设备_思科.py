@@ -27,6 +27,7 @@ import 网络设备.思科_增强内部网关路由协议 as 增强内部网关�
 import 网络设备.思科_开放最短路径优先 as 开放最短路径优先
 import 网络设备.思科_边界网关协议 as 边界网关协议
 #其它
+import 网络设备.通用_访问控制列表 as 通用访问列表
 import 网络设备.思科_访问控制列表 as 访问控制列表
 import 网络设备.思科_动态主机配置协议 as 动态主机配置协议
 import 网络设备.思科_前缀列表 as 前缀列表
@@ -35,6 +36,8 @@ import 网络设备.思科_钥匙链 as 钥匙链
 # 工厂
 #===============================================================================
 class E型号(enum.IntEnum):
+	l2iou = 2
+	l3iou = 3
 	c2950 = 2950
 	c2960 = 2960
 	c3560 = 3560
@@ -104,7 +107,7 @@ class C设备(设备.I设备):
 		return None
 	#助手
 	def f助手_访问控制列表(self):
-		return 访问控制列表.C助手()
+		return 访问控制列表.C助手
 	def f助手_密码(self, a强密码 = True):
 		if a强密码:
 			return 密码.C强密码助手()
@@ -160,6 +163,14 @@ class C用户模式(设备.I用户模式):
 			v输出 = self.m设备.f执行命令(a密码)
 		if "Error" in v输出:
 			raise 设备.X执行(v输出)
+	def f保存配置(self):
+		self.f执行当前模式命令("write")
+	def f清除配置(self):
+		self.f执行当前模式命令("erase startup-config")
+		self.m设备.f执行命令("y")
+	def f重新启动(self):
+		self.f执行当前模式命令("reload")
+		self.m设备.f执行命令("y")
 	def fs终端监视(self, a开关):
 		v命令 = 设备.C命令("terminal monitor")
 		v命令.f前置否定(a开关, c不)
@@ -249,22 +260,17 @@ class C全局配置(设备.I全局配置模式):
 		return 登录.C登录(self, a方式, a范围)
 	def f模式_时间范围(self, a, a操作 = 设备.E操作.e设置):
 		return C时间范围(self, a)
-	def f模式_访问控制列表(self, a名称, a类型 = 设备.E访问控制列表类型.e标准, a操作 = 设备.E操作.e设置):
-		def f整数范围检查(aa范围: list, a错误文本: str):
-			if type(a名称) == int:
-				for v in aa范围:
-					if a名称 in v:
-						return
-				raise ValueError(a错误文本)
+	def f模式_访问控制列表(self, a名称, a类型 = 设备.E访问控制列表类型.e标准4, a操作 = 设备.E操作.e设置):
+		v名称 = 通用访问列表.f解析名称(a名称, a类型, 访问控制列表.C助手)
 		#创建访问控制列表对象
-		if a类型 == 设备.E访问控制列表类型.ipv4标准:
-			f整数范围检查([range(1, 100), range(1300, 2000)], "标准访问控制列表号码范围应为1~99,1300~1999")
-			v模式 = 访问控制列表.C标准4(self, a名称)
-		elif a类型 == 设备.E访问控制列表类型.ipv4扩展:
-			f整数范围检查([range(100, 200), range(2000, 2700)], "扩展访问控制列表号码范围应为100~199,2000~2699")
-			v模式 = 访问控制列表.C扩展4(self, a名称)
-		elif a类型 == 设备.E访问控制列表类型.ipv6:
-			v模式 = 访问控制列表.C六(self, a名称)
+		if a类型 == 设备.E访问控制列表类型.e标准4:
+			访问控制列表.fi标准范围(v名称)
+			v模式 = 访问控制列表.C标准4(self, v名称)
+		elif a类型 == 设备.E访问控制列表类型.e扩展4:
+			访问控制列表.fi扩展范围(v名称)
+			v模式 = 访问控制列表.C扩展4(self, v名称)
+		elif a类型 in (设备.E访问控制列表类型.e标准6, 设备.E访问控制列表类型.e扩展6):
+			v模式 = 访问控制列表.C六(self, v名称)
 		else:
 			raise ValueError("未知的访问控制列表类型")
 		if a操作 == 设备.E操作.e删除:
@@ -274,10 +280,10 @@ class C全局配置(设备.I全局配置模式):
 			v命令 = c默认 + v模式.fg进入命令()
 			self.f执行当前模式命令(v命令)
 		return v模式
-	def f模式_前缀列表(self, a名称, a类型 = 设备.E前缀列表类型.e版本4, a操作 = 设备.E操作.e设置):
-		if a类型 == 设备.E前缀列表类型.e版本4:
+	def f模式_前缀列表(self, a名称, a类型 = 设备.E协议.e网络协议4, a操作 = 设备.E操作.e设置):
+		if a类型 == 设备.E协议.e网络协议4:
 			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本4, 地址.S网络地址4)
-		elif a类型 == 设备.E前缀列表类型.e版本6:
+		elif a类型 == 设备.E协议.e网络协议6:
 			return 前缀列表.C前缀列表(self, a名称, 前缀列表.c版本6, 地址.S网络地址6)
 		else:
 			raise ValueError("错误的 a类型")

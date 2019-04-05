@@ -29,7 +29,7 @@ class C物理地址表:
 				continue
 			v虚拟局域网s, v地址s, v类型s, v接口s = 字符串.fe按位置分割(v行, *C物理地址表.ca列开始)
 			v虚拟局域网 = int(v虚拟局域网s)
-			v接口 = 设备.S接口.fc字符串(v接口s, ca接口缩写, False)
+			v接口 = 设备.S接口.fc字符串(v接口s, 接口.ca接口缩写, False)
 			v地址 = 地址.S物理地址.fc字符串(v地址s)
 			v类型 = ca物理地址类型[str.strip(v类型s)]
 			yield 设备.S物理地址表项(a地址 = v地址, a接口 = v接口, a虚拟局域网 = v虚拟局域网, a类型 = v类型)
