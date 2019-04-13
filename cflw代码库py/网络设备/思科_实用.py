@@ -7,35 +7,6 @@ ca命令前缀 = {
 	设备.E操作.e删除: c不,
 	设备.E操作.e重置: c默认
 }
-def f接口字符串(a接口: 设备.S接口)->str:
-	s = g接口名称[a接口.m名称]
-	for i in range(len(a接口.m序号) - 1):
-		s += str(a接口.m序号[i]) + '/'
-	s += a接口.m序号[-1]
-	if a接口.m子序号:
-		s += '.' + str(a接口.m子序号)
-	return s
-def f接口字符串_复杂(a接口: 设备.S接口)->str:	#支持连续地址
-	def f连续(a字符串: str, a范围: range):
-		#返回'f0/0.1-f0/0.100'这样子的字符串
-		#字符串:'f0/0.',范围:range(1,101)
-		v前 = a字符串 + str(a范围.start)
-		v后 = a字符串 + str(a范围.stop - 1)
-		return v前 + '-' + v后
-	#S接口
-	s = g接口名称[a接口.m名称]
-	for i in range(len(a接口.m序号) - 1):
-		s += str(a接口.m序号[i]) + '/'
-	if type(a接口.m序号[-1]) == range:	#最后一段是连续的
-		return f连续(s, a接口.m序号[-1])
-	else:
-		s += a接口.m序号[-1]
-		if a接口.m子序号:
-			if type(a接口.m子序号) == range:	#子序号是连续的
-				return f连续(s + '.', a接口.m子序号)
-			else:
-				s += '.' + str(a接口.m子序号)
-		return s
 def f路由协议_执行接口命令(a路由, a接口, a命令):	#在路由模式中调用,在接口执行命令
 	v命令 = str(a命令)
 	v接口类型 = type(a接口)

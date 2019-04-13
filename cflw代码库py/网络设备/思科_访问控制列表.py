@@ -55,40 +55,41 @@ def f生成规则序号6(a序号):
 		return ""
 	else:
 		return "sequence " + str(a序号)
+#协议
 #允许
 f生成允许 = functools.partial(通用访问列表.f生成允许, c允许元组)
-def f解析允许(a允许: str):
-	if a允许 == c允许:
-		return True
-	elif a允许 == c拒绝:
-		return False
-	else:
-		raise ValueError()
 #地址
-def f生成地址4(a地址):
-	"转成字符串"
+def f生成地址标准4(a地址):
+	if not a地址:
+		return "any"
 	v地址 = 地址.S网络地址4.fc自动(a地址)
-	if v地址.fi主机掩码():
+	if v地址.fi主机():
+		return v地址.fg地址s()
+	elif v地址.fi空():
+		return "any"
+	else:
+		return "%s %s" % (v地址.fg网络号s(), v地址.fg反掩码s())
+def f生成地址扩展4(a地址):
+	"转成字符串"
+	if not a地址:
+		return "any"
+	v地址 = 地址.S网络地址4.fc自动(a地址)
+	if v地址.fi主机():
 		return "host %s" % (v地址.fg地址s())
-	elif v地址.fi空掩码():
+	elif v地址.fi空():
 		return "any"
 	else:
 		return "%s %s" % (v地址.fg网络号s(), v地址.fg反掩码s())
 def f生成地址6(a地址):
+	if not a地址:
+		return "any"
 	v地址 = 地址.S网络地址6.fc自动(a地址)
-	if v地址.fi主机掩码():
+	if v地址.fi主机():
 		return "host %s" % (v地址.fg地址s())
-	elif v地址.fi空掩码():
+	elif v地址.fi空():
 		return "any"
 	else:
 		return "%s %s" % (v地址.fg网络号s(), v地址.fg前缀长度())
-def f解析地址(a地址: str, a通配符: str):
-	if a地址 == "any":
-		return None
-	v地址 = 地址.S网络地址4.fc地址字符串(a地址)
-	if a通配符:
-		v地址.m前缀长度 = 地址.S网络地址4.f掩码字符串转前缀长度(a通配符)
-	return v地址
 #===============================================================================
 # 类
 #===============================================================================
@@ -118,30 +119,23 @@ class I访问控制列表(设备.I访问控制列表):
 			yield af解析(v)
 	def fe规则(self):
 		return self.fe规则0(self.f解析规则)
+#===============================================================================
 class C标准4(I访问控制列表):
 	def __init__(self, a, a名称):
 		I访问控制列表.__init__(self, a, a名称, a类型 = "standard")
 	def f添加规则(self, a序号, a规则):
 		v序号 = f生成规则序号4(a序号)
 		v允许 = f生成允许(a规则.m允许)
-		v源地址 = f生成地址4(a规则.m源地址)
+		v源地址 = f生成地址标准4(a规则.m源地址)
 		v命令 = "%s %s %s" % (v序号, v允许, v源地址)
 		self.f执行当前模式命令(v命令)
 	@staticmethod
 	def f解析规则(a规则: str):
-		va词 = a规则.split()
-		i = 0
+		v解析器 = C规则解析器(a规则)
 		v规则 = 设备.S访问控制列表规则()
-		if va词[i].isdigit(): #规则序号
-			v规则.m序号 = int(va词[i])
-			i += 1
-		#允许
-		v规则.m允许 = f解析允许(va词[i])
-		i += 1
-		#地址
-		v地址 = va词[i]
-		v通配符 = "" if i+1 == len(va词) else va词[i+1]
-		v规则.m源地址 = f解析地址(v地址, v通配符)
+		v规则.m序号 = v解析器.f序号4()
+		v规则.m允许 = v解析器.f允许()
+		v规则.m源地址 = v解析器.f地址标准4()
 		return v规则
 class C扩展4(I访问控制列表):
 	def __init__(self, a, a名称):
@@ -151,25 +145,16 @@ class C扩展4(I访问控制列表):
 		v命令 += f生成规则序号4(a序号)
 		v命令 += f生成允许(a规则.m允许)
 		#确定
-		if a规则.m协议 == 设备.E协议.ipv4:
-			v命令 += "ip"
-			v层 = 3
-		elif a规则.m协议 == 设备.E协议.tcp:
-			v命令 += "tcp"
-			v层 = 4
-		elif a规则.m协议 == 设备.E协议.udp:
-			v命令 += "udp"
-			v层 = 4
-		else:
-			raise ValueError("无法识别的协议")
+		v命令 += 通用访问列表.ca协议到字符串4[a规则.m协议]
+		v层 = 通用实用.f取协议层(a规则.m协议)
 		#按层
 		if v层 == 3:
-			v命令 += f生成地址4(a规则.m源地址)
-			v命令 += f生成地址4(a规则.m目的地址)
+			v命令 += f生成地址扩展4(a规则.m源地址)
+			v命令 += f生成地址扩展4(a规则.m目的地址)
 		elif v层 == 4:
-			v命令 += f生成地址4(a规则.m源地址)
+			v命令 += f生成地址扩展4(a规则.m源地址)
 			v命令 += f生成端口(a规则.m源端口)
-			v命令 += f生成地址4(a规则.m目的地址)
+			v命令 += f生成地址扩展4(a规则.m目的地址)
 			v命令 += f生成端口(a规则.m目的端口)
 		else:
 			raise NotImplementedError("迷之逻辑")
@@ -177,21 +162,57 @@ class C扩展4(I访问控制列表):
 		self.f执行当前模式命令(v命令)
 	@staticmethod
 	def f解析规则(a规则: str):
-		raise NotImplementedError()
+		v解析器 = C规则解析器(a规则)
+		v规则 = 设备.S访问控制列表规则()
+		v规则.m序号 = v解析器.f序号4()
+		v规则.m允许 = v解析器.f允许()
+		v规则.m协议 = v解析器.f协议()
+		v规则.m源地址 = v解析器.f地址扩展4()
+		v规则.m源端口 = v解析器.f端口号()
+		v规则.m目的地址 = v解析器.f地址扩展4()
+		v规则.m目的端口 = v解析器.f端口号()
+		return v规则
+#===============================================================================
 class C六(I访问控制列表):
 	def __init__(self, a, a名字):
 		I访问控制列表.__init__(self, a, a名字, a协议 = "ipv6")
+	def fg显示命令(self):
+		return "show ipv6 access-list %s" % (self.m名称,)
 	def f添加规则(self, a序号, a规则):
-		v序号 = f生成规则序号6(a序号)
-		v允许 = f生成允许(a规则.m允许)
-		v源地址 = f生成地址6(a规则.m源地址)
-		v命令 = "%s %s %s" % (v序号, v允许, v源地址)
+		v命令 = 设备.C命令()
+		v命令 += f生成规则序号6(a序号)
+		v命令 += f生成允许(a规则.m允许)
+		#确定
+		v命令 += 通用访问列表.ca协议到字符串6[a规则.m协议]
+		v层 = 通用实用.f取协议层(a规则.m协议)
+		#按层
+		if v层 == 3:
+			v命令 += f生成地址6(a规则.m源地址)
+			v命令 += f生成地址6(a规则.m目的地址)
+		elif v层 == 4:
+			v命令 += f生成地址6(a规则.m源地址)
+			v命令 += f生成端口(a规则.m源端口)
+			v命令 += f生成地址6(a规则.m目的地址)
+			v命令 += f生成端口(a规则.m目的端口)
+		else:
+			raise NotImplementedError("迷之逻辑")
+		#执行命令
 		self.f执行当前模式命令(v命令)
 	def f删除规则(self, a序号):
 		self.f执行当前模式命令(c不 + str(v序号))
 	@staticmethod
 	def f解析规则(a规则: str):
-		raise NotImplementedError()
+		v解析器 = C规则解析器(a规则)
+		v规则 = 设备.S访问控制列表规则()
+		v规则.m允许 = v解析器.f允许()
+		v规则.m协议 = v解析器.f协议()
+		v规则.m源地址 = v解析器.f地址6()
+		v规则.m源端口 = v解析器.f端口号()
+		v规则.m目的地址 = v解析器.f地址6()
+		v规则.m目的端口 = v解析器.f端口号()
+		v规则.m序号 = v解析器.f序号6()
+		return v规则
+#===============================================================================
 class C助手(设备.I访问控制列表助手):
 	#元组结构含意:(序号开始, 序号结束, 到目标序号的增加值)
 	def F计算(a0, a1):
@@ -228,3 +249,105 @@ class C助手(设备.I访问控制列表助手):
 			return C助手.f反算扩展4(n)
 		else:
 			raise ValueError("类型错")
+#===============================================================================
+# 解析器
+#===============================================================================
+class C规则解析器:
+	def __init__(self, a文本):
+		self.ma词 = a文本.split()
+		self.i = 0
+	def f取词(self):
+		if self.i >= len(self.ma词):
+			return None
+		return self.ma词[self.i]
+	def f推进(self):
+		self.i += 1
+	def f取词推进(self):	#先取词再推进
+		if self.i >= len(self.ma词):
+			return None
+		v词 = self.ma词[self.i]
+		self.i += 1
+		return v词
+	def f允许(self):
+		return self.f取词推进() == "permit"
+	def f协议(self):
+		return 通用访问列表.ca字符串到协议[self.f取词推进()]
+	def f序号4(self):
+		return int(self.f取词推进())
+	def f序号6(self):
+		self.f推进()	#"sequence"
+		return int(self.f取词推进())
+	def f地址标准4(self):	#标准4
+		v词0 = self.f取词推进()
+		if v词0 == "any":
+			return None
+		if v词0[-1] == ",":	#有通配符
+			v词0 = v词0[:-1]
+			self.f推进()
+			self.f推进()
+			v词1 = self.f取词推进()
+			v掩码 = 地址.S网络地址4.c全f - 地址.S网络地址4.f地址字符串转整数(v词1)
+			return 地址.S网络地址4.fc地址掩码(v词0, v掩码)
+		else:	#主机地址
+			return 地址.S网络地址4.fc地址字符串(v词0)
+	def f地址扩展4(self):	#扩展4
+		v词0 = self.f取词推进()
+		if v词0 == "any":
+			return None
+		elif v词0 == "host":
+			v词1 = self.f取词推进()
+			return 地址.S网络地址4.fc地址字符串(v词)
+		v词1 = self.f取词()	#通配符
+		if not v词1:
+			return 地址.S网络地址4.fc地址字符串(v词0)
+		self.f推进()
+		v掩码 = 地址.S网络地址4.c全f - 地址.S网络地址4.f地址字符串转整数(v词1)
+		return 地址.S网络地址4.fc地址掩码(v词0, v掩码)
+	def f地址6(self):	#六
+		v词0 = self.f取词推进()
+		if v词0 == "any":
+			return None
+		elif v词0 == "host":
+			v词1 = self.f取词推进()
+			return 地址.S网络地址6.fc自动(v词1)
+		return 地址.S网络地址6.fc自动(v词0)
+	def f端口号(self):
+		v词 = self.f取词()
+		if not v词 in C规则解析器.ca端口号运算函数:
+			return None	#不是端口号
+		self.f推进()
+		vf端口号 = C规则解析器.ca端口号运算函数[v词]
+		return vf端口号(self)
+	def f端口号_大于(self):
+		return 设备.S端口号.fc大于(int(self.f取词推进()))
+	def f端口号_小于(self):
+		return 设备.S端口号.fc小于(int(self.f取词推进()))
+	def f端口号_等于(self):
+		va端口号 = []
+		while True:
+			v词 = self.f取词()
+			if v词 and v词.isdigit():
+				self.f推进()
+				va端口号.append(int(v词))
+			else:
+				break
+		return 设备.S端口号.fc等于(*va端口号)
+	def f端口号_不等于(self):
+		va端口号 = []
+		while True:
+			v词 = self.f取词()
+			if v词.isdigit():
+				self.f推进()
+				va端口号.append(int(v词))
+		return 设备.S端口号.fc不等于(*va端口号)
+	def f端口号_范围(self):
+		v词1 = self.f取词推进()
+		v词2 = self.f取词推进()
+		return 设备.S端口号.fc范围(range(int(v词1), int(v词2) + 1))
+	ca端口号运算函数 = {
+		"eq": f端口号_等于,
+		"neq": f端口号_不等于,
+		"gt": f端口号_大于,
+		"lt": f端口号_小于,
+		"range": f端口号_范围,
+	}

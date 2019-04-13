@@ -33,19 +33,25 @@ def f解析名称(a名称, a类型, a助手):
 	else:
 		raise TypeError("无法解析的类型")
 #协议
-ca访问控制列表协议到字符串4 = {
+ca协议到字符串4 = {
 	设备.E协议.ip: "ip",
 	设备.E协议.ipv4: "ip",
 	设备.E协议.ipv6: "ipv6",
 	设备.E协议.tcp: "tcp",
 	设备.E协议.udp: "udp",
 }
-ca访问控制列表协议到字符串6 = {
+ca协议到字符串6 = {
 	设备.E协议.ip: "ipv6",
 	设备.E协议.ipv4: "ip",
 	设备.E协议.ipv6: "ipv6",
 	设备.E协议.tcp: "tcp",
 	设备.E协议.udp: "udp",
+}
+ca字符串到协议 = {
+	"ip": 设备.E协议.e网络协议4,
+	"ipv6": 设备.E协议.e网络协议6,
+	"tcp": 设备.E协议.e传输控制协议,
+	"udp": 设备.E协议.e用户数据报协议,
 }
 def f生成协议(a字典: dict, a协议)->str:
 	v类型 = type(a协议)
@@ -57,8 +63,8 @@ def f生成协议(a字典: dict, a协议)->str:
 		return a协议
 	else:
 		raise TypeError()
-f生成协议4 = functools.partial(f生成协议, ca访问控制列表协议到字符串4)
-f生成协议6 = functools.partial(f生成协议, ca访问控制列表协议到字符串6)
+f生成协议4 = functools.partial(f生成协议, ca协议到字符串4)
+f生成协议6 = functools.partial(f生成协议, ca协议到字符串6)
 #动作
 c允许 = "permit"
 c拒绝 = "deny"

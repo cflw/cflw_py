@@ -8,6 +8,7 @@ import math
 import copy
 import ipaddress
 import operator
+import weakref
 import cflw时间 as 时间
 import cflw字符串 as 字符串
 import cflw工具_运算 as 运算
@@ -24,6 +25,16 @@ class I设备:
 		self.fs回显(False, False)
 		self.m异常开关 = True
 		self.m注释 = "#"
+		self.m自动提交 = E自动提交.e不提交
+		self.m连接 = None
+	def __del__(self):
+		if not self.m连接:
+			return
+		#收集信息
+		vi自动提交 = self.m自动提交 != E自动提交.e不提交
+		#安全关闭
+		if vi自动提交:
+			self.f关闭()
 	#设备状态
 	def fs回显(self, a回显 = True, a等待回显 = True):
 		self.m回显 = a回显
@@ -36,7 +47,10 @@ class I设备:
 		self.m自动换页文本 = a文本
 		self.m自动换页替换 = None
 	def f关闭(self):
-		self.m连接.f关闭()
+		"执行清理操作, 然后关闭连接. f关闭 只能调用一次"
+		while self.ma模式:
+			self.f退出模式()
+		self.m连接 = None
 	def f设备_回显(self, a内容):
 		"输出时自动调用"
 		if self.m回显:
@@ -120,6 +134,10 @@ class I设备:
 		self.f输入_回车()
 		v输出 = self.f输出()
 		return v输出
+	def f执行配置命令(self, a命令, a自动提交 = True):
+		self.f执行命令(a命令)
+		if a自动提交:
+			self.f自动提交(E自动提交.e立即)
 	def f执行显示命令(self, a命令, a自动换页 = True):
 		"有自动换页功能"
 		self.f刷新()
@@ -174,13 +192,14 @@ class I设备:
 		self.ma模式.append(a模式)
 		a模式.f事件_进入模式()
 	def f退出模式(self):
-		v模式 = self.ma模式.pop()
+		v模式 = self.ma模式[-1]
 		v模式.f事件_退出模式()
 		if type(v模式).fg退出命令 != I模式.fg退出命令:
 			self.f执行命令(v模式.fg退出命令())
 		else:
 			self.f退出()
-	def f切换模式(self, aa模式: tuple):
+		self.ma模式.pop()
+	def f切换模式(self, aa模式):	#aa模式 必需是强引用, 而 I模式.m模式栈 全是弱引用需要转换
 		"自动退出当前模式并进入新模式"
 		v现模式长度 = len(self.ma模式)
 		v新模式长度 = len(aa模式)
@@ -202,11 +221,6 @@ class I设备:
 			self.f进入模式(aa模式[i])
 	def f抛出模式异常(self):
 		raise X模式(self.fg当前模式())
-	# def fs顶级模式(self, a模式):
-	# 	if not self.ma模式:
-	# 		self.ma模式.append(a模式)
-	# 	else:
-	# 		raise RuntimeError("存在多个顶级模式")
 	#动作&命令
 	def f自动适应延迟(self, a测试字符: str = '#'):
 		"发送字符测试延迟,根据响应时间确定间隔"
@@ -224,6 +238,24 @@ class I设备:
 		raise NotImplementedError()	#实现示例: self.f执行命令("exit")
 	def fg提示符(self):
 		raise NotImplementedError()
+	def fs自动提交(self, a):
+		"""设置自动提交行为:
+		0:不自动提交, 1:退出配置模式时自动提交, 2:退出当前模式时自动提交, 3:执行配置命令后立即提交"""
+		self.m自动提交 = a
+	def f提交(self):
+		"""手动提交"""
+		raise NotImplementedError()	#实现示例: self.f执行命令("commit")
+	def f自动提交(self, a级别):
+		"""判断级别确定是否提交"""
+		if self.m自动提交 == E自动提交.e不提交:
+			return
+		if a级别 > self.m自动提交:
+			return
+		v模式 = self.ma模式[-1]
+		if type(v模式).fg提交命令 != I模式.fg提交命令:
+			self.f执行命令(v模式.fg提交命令())
+		else:
+			self.f提交()
 	#模式
 	def f模式_用户(self):	#要求：ma模式[0]总是用户模式，没有则创建。不能创建多个用户模式对象。
 		"用户模式只能查看信息,做一些基本操作,不能配置"
@@ -353,9 +385,10 @@ class E协议(enum.IntEnum):
 	bgp = e边界网关协议
 	#网络层协议
 	c网络层协议 = 0x03000000
+	e网络协议 = c网络层协议
 	e网络协议4 = c网络层协议 + 0x0400
 	e网络协议6 = c网络层协议 + 0x0600
-	ip = e网络协议4
+	ip = e网络协议
 	ipv4 = e网络协议4
 	ipv6 = e网络协议6
 	#数据链路层协议
@@ -375,14 +408,21 @@ class E操作(enum.IntEnum):
 	e删除 = 3	#删除/恢复
 	e新建 = 4	#没有则创建,有则报错
 	e修改 = 6	#修改配置的部分选项
+	e开启 = 7
+	e关闭 = 8
+class E自动提交(enum.IntEnum):
+	e不提交 = 0
+	e退出配置模式时 = 1
+	e退出当前模式时 = 2
+	e立即 = 3
 class I模式:
 	def __init__(self, a):
 		if isinstance(a, I设备):	#a是设备
-			self.m设备 = a
-			self.m模式栈 = (self, )
+			self.m设备 = weakref.proxy(a)
+			self.m模式栈 = (weakref.ref(self), )
 		elif isinstance(a, I模式):	#a是父模式
 			self.m设备 = a.m设备
-			self.m模式栈 = a.m模式栈 + (self, )
+			self.m模式栈 = a.m模式栈[:-1] + (a, weakref.ref(self))
 		else:
 			raise TypeError("创建模式对象的第一个参数类型必需是 I设备 或 I模式")
 	def __eq__(self, a):	#通用的模式相等比较
@@ -399,7 +439,8 @@ class I模式:
 		return self == self.m设备.fg当前模式()
 	def f切换到当前模式(self):
 		if not self.fi当前模式():
-			self.m设备.f切换模式(self.m模式栈)
+			va模式 = [(r() if type(r) == weakref.ref else r) for r in self.m模式栈]
+			self.m设备.f切换模式(va模式)
 	def f执行当前模式命令(self, a命令: C命令):
 		self.f切换到当前模式()
 		self.m设备.f执行命令(a命令)
@@ -417,18 +458,21 @@ class I模式:
 		raise NotImplementedError()
 	def fg上级模式(self):
 		if len(self.m模式栈) > 1:
-			return self.m模式栈[-2]
+			return self.m模式栈[-2]()
 		else:
 			return None
 	def fg删除命令(self):
 		"删除当前模式所使用的完整命令,需要在上级模式执行"
+		raise NotImplementedError()
+	def fg提交命令(self):
+		"使配置生效所使用的完整命令"
 		raise NotImplementedError()
 	def f事件_进入模式(self):
 		"进入当前模式[后]做的事情"
 		pass
 	def f事件_退出模式(self):
 		"退出当前模式[前]做的事情"
-		pass
+		self.m设备.f自动提交(E自动提交.e退出当前模式时)
 class C同级模式(I模式):	#和上一层模式是同一级别的，不需要进入命令也不需要退出命令
 	def fg模式参数(self):
 		return ""
@@ -445,6 +489,8 @@ class I用户模式(I模式):
 		I模式.__init__(self, a设备)
 	#模式
 	def fg进入命令(self):	#用户模式不需要进入命令
+		return ""
+	def fg提交命令(self):	#用户模式不需要提交命令
 		return ""
 	def f模式_全局配置(self):
 		raise NotImplementedError()
@@ -644,11 +690,11 @@ class I全局配置模式(I模式):
 	def f模式_地址解析协议(self):
 		raise NotImplementedError()
 	#模式_路由
-	def f模式_静态路由(self, a协议 = E协议.e网络协议4, a虚拟路由转发 = None):
+	def f模式_静态路由(self, a版本 = E协议.e网络协议4, a虚拟路由转发 = None):
 		raise NotImplementedError()
-	def f模式_路由信息协议(self, a进程号 = 0, a协议 = E协议.e网络协议4, a接口 = None, a操作 = E操作.e设置):	#rip
+	def f模式_路由信息协议(self, a进程号 = 0, a版本 = E协议.e网络协议4, a接口 = None, a操作 = E操作.e设置):	#rip
 		raise NotImplementedError()
-	def f模式_开放最短路径优先(self, a进程号, a协议 = E协议.e开放最短路径优先2, a接口 = None, a操作 = E操作.e设置):	#ospf
+	def f模式_开放最短路径优先(self, a进程号, a版本 = E协议.e开放最短路径优先2, a接口 = None, a操作 = E操作.e设置):	#ospf
 		raise NotImplementedError()
 	def f模式_增强内部网关路由协议(self, a名称, a版本 = E协议.e网络协议4, a接口 = None, a操作 = E操作.e设置):	#eigrp
 		raise NotImplementedError()
@@ -670,7 +716,7 @@ class I全局配置模式(I模式):
 	#模式 服务
 	def f模式_端口安全(self):
 		raise NotImplementedError()
-	def f模式_远程登录(self):	#telnet
+	def f模式_网络终端(self):	#telnet
 		raise NotImplementedError()
 	def f模式_安全外壳(self):	#ssh
 		raise NotImplementedError()
@@ -1647,12 +1693,15 @@ class S端口号:
 			raise TypeError("无法解析的类型")
 	@staticmethod
 	def fc字符串(a: str):
+		#纯数字
 		if a.isdigit():
 			return S端口号.fc等于(int(a))
+		#区间
 		if 字符串.fi连续范围(a) or 字符串.fi区间范围(a):
 			return S端口号.fc范围(字符串.ft范围(a))
 		#"符号 数字"的格式
 		ca符号表 = {
+			"==": S端口号.fc等于,
 			">=": S端口号.fc大于等于,
 			"<=": S端口号.fc小于等于,
 			"!=": S端口号.fc不等于,
@@ -1774,14 +1823,29 @@ class S访问控制列表规则:
 	def fs目的端口(self, a端口):
 		self.m目的端口 = a端口
 	#计算
+	def f匹配(self, a源地址 = None, a源端口 = None, a目的地址 = None, a目的端口 = None):
+		def f匹配0(a成员, a匹配):
+			if a成员 != None and a匹配 != None:
+				return a成员.fi范围内(a匹配)
+			else:
+				return True
+		v匹配源地址 = f匹配0(self.m源地址, a源地址)
+		v匹配目的地址 = f匹配0(self.m目的地址, a目的地址)
+		v匹配源端口 = f匹配0(self.m源端口, a源端口)
+		v匹配目的端口 = f匹配0(self.m目的端口, a目的端口)
+		v匹配 = v匹配源地址 and v匹配目的地址 and v匹配源端口 and v匹配目的端口
+		if v匹配:
+			return self.m允许
+		else:
+			return None
 	def f匹配源地址(self, a地址):
-		return self.m源地址.fi范围内(a地址)
+		return self.m源地址.fi范围内(a地址) if self.m源地址 else True
 	def f匹配目的地址(self, a地址):
-		return self.m目的地址.fi范围内(a地址)
+		return self.m目的地址.fi范围内(a地址) if self.m目的地址 else True
 	def f匹配源端口(self, a端口):
-		return self.m源端口.fi范围内(a端口)
+		return self.m源端口.fi范围内(a端口) if self.m源端口 else True
 	def f匹配目的端口(self, a端口):
-		return self.m目的端口.fi范围内(a端口)
+		return self.m目的端口.fi范围内(a端口) if self.m目的端口 else True
 	#后置常量
 	ca更新函数 = {
 		"a允许": fs允许,
@@ -1876,7 +1940,7 @@ class I多生成树(I模式):
 	c模式名 = "多生成树配置模式"
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def f开关(self, a):
+	def fs开关(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fs实例映射(self, a实例, a虚拟局域网):
 		raise NotImplementedError()
@@ -1899,25 +1963,37 @@ class I生成树接口(I接口配置模式基础):
 	def fs开销(self, a树, a开销):
 		raise NotImplementedError()
 #===============================================================================
-# 远程连接
+# 远程登录协议
 #===============================================================================
-class I远端登入(I模式):
+class I网络终端(I模式):
+	"Telnet"
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def fs端口号(self, a):
+	def fs开关(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f开关(self, a):
+	def fs端口号(self, a端口号, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs源接口(self, a接口, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs连接数(self, a数量, a操作 = E操作.e设置):
 		raise NotImplementedError()
 class I安全外壳(I模式):
+	"SSH"
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def f开关(self, a):
+	def fs开关(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f生成密钥(self, a长度 = 0):
+	def f生成密钥(self, a长度 = 1024, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def fs版本(self, a版本):
+	def fs端口号(self, a端口号, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def fs连接数(self, a数量):
+	def fs源接口(self, a接口, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs版本(self, a版本, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs连接数(self, a数量, a操作 = E操作.e设置):
+		raise NotImplementedError()
+	def fs超时时间(self, a时间, a操作 = E操作.e设置):
 		raise NotImplementedError()
 #===============================================================================
 # 端口安全
@@ -1930,7 +2006,7 @@ class E端口安全动作(enum.IntEnum):
 class I端口安全(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def f开关(self, a):
+	def fs开关(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def f模式_接口(self, a接口):
 		raise NotImplementedError()
@@ -1943,7 +2019,7 @@ class I端口安全(I模式):
 class I端口安全接口(I接口配置模式基础):
 	def __init__(self, a, a接口):
 		I接口配置模式基础.__init__(self, a, a接口)
-	def f开关(self, a):
+	def fs开关(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fs地址(self, a地址, a操作 = E操作.e设置):
 		raise NotImplementedError()
@@ -1988,7 +2064,7 @@ class I动态主机配置协议(I模式):
 		raise NotImplementedError()
 	def f模式_地址池(self, a名称):
 		raise NotImplementedError()
-	def f开关(self, a):
+	def fs开关(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
 #===============================================================================
 # 简单网络管理协议 snmp
@@ -2006,7 +2082,7 @@ class I简单网络管理协议(I模式):
 class I网络时间协议服务器(I模式):
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def f开关(self, a):
+	def fs开关(self, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fs版本(self, a版本):
 		raise NotImplementedError()
@@ -2116,9 +2192,10 @@ class X输出(X设备):
 	def __init__(self, a):
 		X设备.__init__(self, a)
 class X操作(X设备):
-	"操作无效"
-	def __init__(self, a操作):
-		X设备.__init__(self, "操作 %s 无效" % (a操作))
+	"操作无效, 设备不支持的操作也用这个"
+	def __init__(self, a操作, a消息 = ""):
+		X设备.__init__(self, "操作 %s 无效: %s" % (a操作, a消息))
+		self.m操作 = a操作
 class X接口格式(X设备):
 	"""设备不支持接口格式,需要展开"""
 	def __init__(self, a接口):

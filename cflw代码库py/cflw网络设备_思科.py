@@ -12,7 +12,6 @@ import cflw时间 as 时间
 #思科基础
 from 网络设备.思科_常量 import *
 import 网络设备.通用_实用 as 通用实用
-import 网络设备.通用_路由 as 通用路由
 import 网络设备.思科_实用 as 思科实用
 import 网络设备.思科_接口 as 接口
 import 网络设备.思科_用户 as 用户
@@ -21,6 +20,7 @@ import 网络设备.思科_连接 as 连接包装
 import 网络设备.思科_基本表信息 as 基本表信息
 import 网络设备.思科_密码 as 密码
 #路由
+import 网络设备.通用_路由 as 通用路由
 import 网络设备.思科_静态路由 as 静态路由
 import 网络设备.思科_路由信息协议 as 路由信息协议
 import 网络设备.思科_增强内部网关路由协议 as 增强内部网关路由协议
@@ -155,8 +155,13 @@ class C用户模式(设备.I用户模式):
 		return 连接包装.C网络终端(self, a地址, **a参数)
 	#操作
 	def f登录(self, a用户名 = "", a密码 = ""):
-		self.m设备.f执行命令(a用户名)
-		self.m设备.f执行命令(a密码)
+		time.sleep(1)
+		v输出 = self.m设备.f输出()[-100:]
+		if "Username:" in v输出:
+			v输出 = self.m设备.f执行命令(a用户名)
+		if "Password:" in v输出:
+			self.m设备.f执行命令(a密码)
+		self.f切换到当前模式()
 	def f提升权限(self, a密码 = ""):
 		v输出 = self.m设备.f执行命令("enable")
 		while "Password" in v输出:
@@ -291,7 +296,7 @@ class C全局配置(设备.I全局配置模式):
 		return 钥匙链.C钥匙链(self, a名称)
 	#路由
 	def f模式_静态路由(self, a版本 = 设备.E协议.e网络协议4, a虚拟路由转发 = None):
-		v版本 = f解析网络协议版本(a版本)
+		v版本 = 通用路由.f解析网络协议版本(a版本)
 		if v版本 == 设备.E协议.e网络协议4:
 			return 静态路由.C静态路由4(self)
 		elif v版本 == 设备.E协议.e网络协议6:
@@ -327,7 +332,7 @@ class C全局配置(设备.I全局配置模式):
 		else:
 			raise ValueError("未知的版本")
 	def f模式_增强内部网关路由协议(self, a, a版本 = 设备.E协议.e网络协议4, a接口 = None, a操作 = 设备.E操作.e设置):	#eigrp
-		v版本 = f解析网络协议版本(a版本)
+		v版本 = 通用路由.f解析网络协议版本(a版本)
 		if v版本 == 设备.E协议.e网络协议4:
 			return 增强内部网关路由协议.C经典(self, a)
 		elif v版本 == 设备.E协议.e网络协议6:
@@ -341,6 +346,14 @@ class C全局配置(设备.I全局配置模式):
 		return 动态主机配置协议.C地址池4(self, a名称)
 	def f模式_动态主机配置协议(self):
 		return 动态主机配置协议.C服务4(self)
+	#全局配置
+	def fs设备名(self, a名称):
+		v命令 = "hostname " + str(a名称)
+		self.f执行当前模式命令(v命令)
+	#其它
+	def fs域名(self, a名称 = "a"):
+		v命令 = "ip domain-name" + str(a名称)
+		self.f执行当前模式命令(v命令)
 #===============================================================================
 # 时间
 #===============================================================================

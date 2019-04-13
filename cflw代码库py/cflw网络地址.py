@@ -209,7 +209,7 @@ class S网络地址4:
 			v整数 = S网络地址4.f地址字符串转整数(a)
 			#1..0
 			if v整数 & 0x80000000:
-				v整数 = 0xffffffff - v整数
+				v整数 = S网络地址4.c全f - v整数
 			#0..1
 			elif v整数 & 0x00000001:
 				pass
@@ -222,7 +222,7 @@ class S网络地址4:
 	def f掩码整数转前缀长度(a):
 		"参数必需是正掩码或前缀长度"
 		if a > 32:
-			return 32 - math.log2(a + 1)
+			return int(32 - math.log2(S网络地址4.c全f - a + 1))
 		else:
 			return a
 	@staticmethod
@@ -297,21 +297,22 @@ class S网络地址4:
 		for i in v范围:
 			yield S网络地址4(i, self.m前缀长度)
 	def fi范围内(self, a地址, a真子集 = False):
-		if self.m前缀长度 < a地址.m前缀长度:
+		v地址 = S网络地址4.fc自动(a地址)
+		if self.m前缀长度 < v地址.m前缀长度:
 			return False
-		if self.m前缀长度 == a地址.m前缀长度 and a真子集:
+		if self.m前缀长度 == v地址.m前缀长度 and a真子集:
 			return False
-		return self.fg网络号i() == a地址.m地址 & self.fg掩码i()
+		return self.fg网络号i() == v地址.m地址 & self.fg掩码i()
 	def ft字符串(self):
 		v字符串 = self.fg地址s()
 		v长度 = self.fg前缀长度()
 		if v长度 > 0:
 			v字符串 += "/" + str(v长度)
 		return v字符串
-	def fi空掩码(self):
+	def fi空(self):
 		"掩码全0"
 		return self.m前缀长度 == 0
-	def fi主机掩码(self):
+	def fi主机(self):
 		"掩码全1"
 		return self.m前缀长度 == 32
 #===============================================================================
@@ -454,6 +455,21 @@ class S网络地址6:
 		return self.m地址 | (2 ** (128 - self.m前缀长度) - 1)
 	def fg广播地址s(self):
 		return S网络地址6.f地址整数转字符串(self.fg广播地址i())
+	def fg掩码s(self):
+		return S网络地址6.f地址整数转字符串(self.fg掩码i())
+	def fg掩码i(self):
+		return S网络地址6.c全f - 2 ** (S网络地址6.c最大前缀长度 - self.m前缀长度) + 1
+	def fg反掩码s(self):
+		return S网络地址6.f地址整数转字符串(self.fg反掩码i())
+	def fg反掩码i(self):
+		return 2 ** (S网络地址6.c最大前缀长度 - self.m前缀长度) - 1
+	def fi范围内(self, a地址, a真子集 = False):
+		v地址 = S网络地址6.fc自动(a地址)
+		if self.m前缀长度 < v地址.m前缀长度:
+			return False
+		if self.m前缀长度 == v地址.m前缀长度 and a真子集:
+			return False
+		return self.fg网络号i() == v地址.m地址 & self.fg掩码i()
 	def ft字符串(self):
 		v字符串 = S网络地址6.f地址整数转字符串(self.m地址)
 		v字符串 += "/" + str(self.m前缀长度)
@@ -500,10 +516,10 @@ class S网络地址6:
 				v地址 %= v除数
 	def fg八段(self):
 		return S网络地址6.f地址整数转八段(self.m地址)
-	def fi空掩码(self):
+	def fi空(self):
 		"掩码全0"
 		return self.m前缀长度 == 0
-	def fi主机掩码(self):
+	def fi主机(self):
 		"掩码全1"
 		return self.m前缀长度 == 128
 #===============================================================================

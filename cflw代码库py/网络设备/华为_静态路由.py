@@ -1,13 +1,13 @@
 import cflw网络设备 as 设备
 import cflw网络地址 as 地址
-from 网络设备.思科_常量 import *
+from 网络设备.华为_常量 import *
 import 网络设备.通用_路由 as 通用路由
-import 网络设备.思科_接口 as 接口
-import 网络设备.思科_路由表信息 as 路由表信息
+import 网络设备.华为_接口 as 接口
+import 网络设备.华为_路由表信息 as 路由表信息
 def f生成静态路由命令4(a网络号, a下一跳):
 	v网络号 = 地址.S网络地址4.fc自动(a网络号)
 	v下一跳 = 通用路由.f生成下一跳4(a下一跳, 接口.f创建接口)
-	v命令 = 设备.C命令("ip route %s %s %s" % (v网络号.fg地址s(), v网络号.fg掩码s(), v下一跳))
+	v命令 = 设备.C命令("ip route-static %s %s %s" % (v网络号.fg地址s(), v网络号.fg前缀长度(), v下一跳))
 	return v命令
 class C静态路由4(设备.C同级模式, 设备.I静态路由配置模式):
 	def __init__(self, a):
