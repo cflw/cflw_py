@@ -1,12 +1,22 @@
 import cflw网络设备 as 设备
 import cflw网络地址 as 地址
 from 网络设备.华三_常量 import *
-from . import 通用_地址 as 通用地址
+import 网络设备.通用_地址 as 通用地址
 ca接口名称 = 设备.fc接口名称字典({
 	设备.E接口.e虚拟局域网: "Vlan-interface",
 })
 f创建接口 = 设备.F创建接口(ca接口名称)
-c不 = "undo"
+ca接口缩写 = {
+	"Eth": 设备.E接口.e百兆以太网,
+	"GE": 设备.E接口.e吉以太网,
+	"XGE": 设备.E接口.e万兆以太网,
+	"FGE": 设备.E接口.e四万兆以太网,
+	"InLoop": 设备.E接口.e内部,
+	"Loop": 设备.E接口.e环回,
+	"NULL": 设备.E接口.e空,
+	"Ser": 设备.E接口.e串行,
+	"REG": 设备.E接口.e注册隧道,	#Register-Tunnel
+}
 def f生成地址命令4(a地址, a肯定, a次):
 	v地址 = 地址.S网络地址4.fc自动(a地址)
 	v命令 = 设备.C命令("ip address")

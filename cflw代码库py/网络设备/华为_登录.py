@@ -7,19 +7,18 @@ import 网络设备.通用_登录 as 通用登录
 #===============================================================================
 # 常量
 #===============================================================================
-c命令_登录配置v5 = "user-interface"
-c命令_登录配置v7 = "line"
-c命令_访问控制列表 = "acl"
-c命令_登录协议 = "protocol inbound"
+c命令_登录配置 = "user-interface "
+c命令_访问控制列表 = "acl "
+c命令_登录协议 = "protocol inbound "
 ca登录方式 = {
-	设备.E登录方式.e控制台: "aux",
+	设备.E登录方式.e控制台: "con",
 	设备.E登录方式.e虚拟终端: "vty"
 }
 ca登录认证方式 = {
 	设备.E登录认证方式.e无: "none",
 	设备.E登录认证方式.e密码: "password",
-	设备.E登录认证方式.e账号: "scheme",
-	设备.E登录认证方式.e认证授权记账: "scheme"
+	设备.E登录认证方式.e账号: "aaa",
+	设备.E登录认证方式.e认证授权记账: "aaa"
 }
 #===============================================================================
 # 解析
@@ -66,33 +65,18 @@ class S登录配置:
 			return self.m范围 == a值
 		else:
 			return a值 in self.m范围
-class C登录配置表v5:
+class C登录配置表:
 	def __init__(self, a文本):
 		self.m文本 = a文本
 	def __iter__(self):
 		return self.fe节()
 	def fe节(self):
 		v位置0 = 0
-		for v位置1 in 字符串.f重复找(self.m文本, c命令_登录配置v5):
+		for v位置1 in 字符串.f重复找(self.m文本, c命令_登录配置):
 			if v位置0 != v位置1:
 				v文本 = self.m文本[v位置0 : v位置1]
 				v位置0 = v位置1
-				if not c命令_登录配置v5 in v文本:
-					continue
-				yield S登录配置(v文本)
-		yield S登录配置(self.m文本[v位置1:])
-class C登录配置表v7:
-	def __init__(self, a文本):
-		self.m文本 = a文本
-	def __iter__(self):
-		return self.fe节()
-	def fe节(self):
-		v位置0 = 0
-		for v位置1 in 字符串.f重复找(self.m文本, c命令_登录配置v7):
-			if v位置0 != v位置1:
-				v文本 = self.m文本[v位置0 : v位置1]
-				v位置0 = v位置1
-				if not c命令_登录配置v7 in v文本:
+				if not c命令_登录配置 in v文本:
 					continue
 				yield S登录配置(v文本)
 		yield S登录配置(self.m文本[v位置1:])
@@ -105,10 +89,9 @@ class C登录(设备.I登录配置模式):
 		self.m方式 = a方式
 		self.m范围 = a范围
 		self.m配置 = None
-		self.t登录配置表 = C登录配置表v5
 	#命令
 	def fg进入命令(self):
-		v命令 = 设备.C命令(c命令_登录配置v5)
+		v命令 = 设备.C命令(c命令_登录配置)
 		v命令 += self.fg模式参数()
 		return v命令
 	def fg模式参数(self):
@@ -119,7 +102,7 @@ class C登录(设备.I登录配置模式):
 			return self.m配置
 		self.f切换到当前模式()
 		v输出 = self.m设备.f执行显示命令("display this")
-		v表 = self.t登录配置表(v输出, self.m登录命令)
+		v表 = C登录配置表(v输出)
 		for v in v表:
 			if v.fg登录方式() != self.m方式:
 				continue
@@ -155,18 +138,3 @@ class C登录(设备.I登录配置模式):
 	def fg访问控制列表(self):
 		v配置 = self.f显示_当前模式配置()
 		return v配置.fg访问控制列表()
-class C登录v7(C登录):
-	def __init__(self, a, a方式, a范围 = None):
-		C登录.__init__(self, a, a方式, a范围)
-		self.t登录配置表 = C登录配置表v7
-	def fg进入命令(self):
-		v命令 = 设备.C命令(c命令_登录配置v7)
-		v命令 += self.fg模式参数()
-		return v命令
-	def fs访问控制列表(self, a访问列表):
-		pass	#没有命令
-	def fg访问控制列表(self):
-		v命令 = "display current-configuration configuration system | include .+server.+acl"
-		v输出 = self.m设备.f执行显示命令(v命令)
-		v名称 = 字符串.f提取字符串之间(v输出, "acl ", "\n", a结束严谨 = False)
-		return v名称

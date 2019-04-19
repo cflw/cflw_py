@@ -5,18 +5,23 @@ import cflw网络地址 as 地址
 c空序号 = -1
 c空规则 = 设备.S访问控制列表规则(a允许 = False)	#拒绝所有
 #名称
-def f解析名称(a名称, a类型, a助手):
+def f解析名称和类型(a名称, a类型, a助手):
+	def f返回(a名称1):	#解析类型
+		if a类型:
+			return a名称1, a类型
+		else:
+			return a名称1, a助手.f判断类型(a名称1)
 	v名称类型 = type(a名称)
 	if v名称类型 == int:
-		return a名称
+		return f返回(a名称)
 	elif v名称类型 == str:
 		if a名称.isdigit():
-			return int(a名称)
-		return a名称
-	elif v名称类型 == 设备.S访问控制列表序号:
+			return f返回(int(a名称))
+		return f返回(a名称)
+	elif v名称类型 == 设备.S统一序号:
 		#检查序号
 		if a名称.m特定序号:
-			return a名称.m特定序号
+			return f返回(a名称.m特定序号)
 		elif a名称.m统一序号 == None:
 			raise ValueError("没有序号")
 		#计算特定序号
@@ -29,7 +34,7 @@ def f解析名称(a名称, a类型, a助手):
 				raise ValueError("类型不同")
 		v类型 = a类型 if a类型 else a名称.m类型
 		v特定序号 = a助手.ft特定序号(a名称.m统一序号, v类型)
-		return v特定序号
+		return f返回(v特定序号)
 	else:
 		raise TypeError("无法解析的类型")
 #协议
@@ -91,5 +96,7 @@ def f生成地址和通配符4(a地址)->str:
 	return "%s %s" % (v地址.fg网络号s(), v地址.fg反掩码s())
 #端口号
 def f生成端口(a转换对象: 设备.I端口号到字符串, a端口)->str:
+	if not a端口:
+		return ""
 	v端口 = 设备.S端口号.fc自动(a端口)
 	return v端口.ft字符串(a转换对象)

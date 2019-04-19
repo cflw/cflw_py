@@ -155,13 +155,14 @@ class C用户模式(设备.I用户模式):
 		return 连接包装.C网络终端(self, a地址, **a参数)
 	#操作
 	def f登录(self, a用户名 = "", a密码 = ""):
-		time.sleep(1)
+		time.sleep(0.5)
 		v输出 = self.m设备.f输出()[-100:]
 		if "Username:" in v输出:
 			v输出 = self.m设备.f执行命令(a用户名)
 		if "Password:" in v输出:
 			self.m设备.f执行命令(a密码)
 		self.f切换到当前模式()
+		time.sleep(0.5)
 	def f提升权限(self, a密码 = ""):
 		v输出 = self.m设备.f执行命令("enable")
 		while "Password" in v输出:
@@ -174,12 +175,20 @@ class C用户模式(设备.I用户模式):
 		self.f执行当前模式命令("erase startup-config")
 		self.m设备.f执行命令("y")
 	def f重新启动(self):
-		self.f执行当前模式命令("reload")
-		self.m设备.f执行命令("y")
+		v输出 = self.f执行当前模式命令("reload")
+		#System configuration has been modified. Save? [yes/no]:
+		if "Save?" in v输出:
+			v输出 = self.m设备.f执行命令("n")
+		#Proceed with reload? [confirm]
+		if "reload?" in v输出:
+			self.m设备.f输入_回车()
 	def fs终端监视(self, a开关):
-		v命令 = 设备.C命令("terminal monitor")
-		v命令.f前置否定(a开关, c不)
-		self.m设备.f执行用户模式命令(v命令)
+		if a开关:
+			self.m设备.f执行用户命令("terminal monitor")
+		#↓某些未知情况不能关闭终端监视，先注释
+		# v命令 = 设备.C命令("terminal monitor")
+		# v命令.f前置否定(a开关, c不)
+		# self.m设备.f执行用户命令(v命令)
 	#内部
 	def fg版本信息(self):
 		if time.time() - self.m版本信息时间 >= 60:	#超过1分种则刷新
@@ -250,7 +259,7 @@ class C全局配置(设备.I全局配置模式):
 			v模式 = 接口.C接口配置(self, v接口)
 		思科实用.f执行模式操作命令(self, v模式, a操作)
 		return v模式
-	def f模式_用户配置(self, a, a操作 = 设备.E操作.e设置):
+	def f模式_用户(self, a, a操作 = 设备.E操作.e设置):
 		if isinstance(a, 设备.I用户配置模式):
 			if not a.m设备 is self.m设备:
 				raise ValueError("设备不匹配")
@@ -261,20 +270,20 @@ class C全局配置(设备.I全局配置模式):
 			v命令 = v模式.fg删除命令()
 			self.f执行当前模式命令(v命令)
 		return v模式
-	def f模式_登录配置(self, a方式, a范围, a操作 = 设备.E操作.e设置):
+	def f模式_登录(self, a方式, a范围 = 0, a操作 = 设备.E操作.e设置):
 		return 登录.C登录(self, a方式, a范围)
 	def f模式_时间范围(self, a, a操作 = 设备.E操作.e设置):
 		return C时间范围(self, a)
-	def f模式_访问控制列表(self, a名称, a类型 = 设备.E访问控制列表类型.e标准4, a操作 = 设备.E操作.e设置):
-		v名称 = 通用访问列表.f解析名称(a名称, a类型, 访问控制列表.C助手)
+	def f模式_访问控制列表(self, a名称, a类型 = None, a操作 = 设备.E操作.e设置):
+		v名称, v类型 = 通用访问列表.f解析名称和类型(a名称, a类型, 访问控制列表.C助手)
 		#创建访问控制列表对象
-		if a类型 == 设备.E访问控制列表类型.e标准4:
+		if v类型 == 设备.E访问控制列表类型.e标准4:
 			访问控制列表.fi标准范围(v名称)
 			v模式 = 访问控制列表.C标准4(self, v名称)
-		elif a类型 == 设备.E访问控制列表类型.e扩展4:
+		elif v类型 == 设备.E访问控制列表类型.e扩展4:
 			访问控制列表.fi扩展范围(v名称)
 			v模式 = 访问控制列表.C扩展4(self, v名称)
-		elif a类型 in (设备.E访问控制列表类型.e标准6, 设备.E访问控制列表类型.e扩展6):
+		elif v类型 in (设备.E访问控制列表类型.e标准6, 设备.E访问控制列表类型.e扩展6):
 			v模式 = 访问控制列表.C六(self, v名称)
 		else:
 			raise ValueError("未知的访问控制列表类型")

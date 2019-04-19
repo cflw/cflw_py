@@ -298,7 +298,7 @@ class S网络地址4:
 			yield S网络地址4(i, self.m前缀长度)
 	def fi范围内(self, a地址, a真子集 = False):
 		v地址 = S网络地址4.fc自动(a地址)
-		if self.m前缀长度 < v地址.m前缀长度:
+		if self.m前缀长度 > v地址.m前缀长度:
 			return False
 		if self.m前缀长度 == v地址.m前缀长度 and a真子集:
 			return False

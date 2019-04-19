@@ -5,8 +5,9 @@ import cflw时间 as 时间
 from 网络设备.思科_常量 import *
 import 网络设备.通用_登录 as 通用登录
 #命令&常量
-c命令_访问控制列表 = "access-group"
-c命令_登录协议 = "transport input"
+c命令_登录配置 = "line "
+c命令_访问控制列表 = "access-class "
+c命令_登录协议 = "transport input "
 #字典
 ca登录方式 = {
 	设备.E登录方式.e控制台: "con",
@@ -35,6 +36,8 @@ class S登录配置:
 			self.m范围 = range(int(v分割[2]), int(v分割[3])+1)
 		else:	#不是范围
 			self.m范围 = int(v分割[2])
+	def __str__(self):
+		return self.m文本
 	def fg登录方式(self):
 		return self.m方式
 	def fg范围(self):
@@ -43,9 +46,9 @@ class S登录配置:
 		v方式s = 字符串.f提取字符串周围(self.m文本, "\n", "login", "\n").strip()
 		return 运算.f字典按值找键(ca登录认证方式, v方式s)
 	def fg访问控制列表(self):
-		v数字s = 字符串.f提取字符串之间(self.m文本, c命令_访问控制列表, " ")
-		if v数字s:
-			return int(v数字s)
+		v名称 = 字符串.f提取字符串之间(self.m文本, c命令_访问控制列表, " ")
+		if v名称:
+			return v名称
 		else:
 			return None
 	def fg登录协议(self):
@@ -71,7 +74,7 @@ class C登录配置表:
 		return self.fe节()
 	def fe节(self):
 		v位置0 = 0
-		for v位置1 in 字符串.f重复找(self.m文本, "line"):
+		for v位置1 in 字符串.f重复找(self.m文本, c命令_登录配置):
 			if v位置0 != v位置1:
 				yield S登录配置(self.m文本[v位置0 : v位置1])
 				v位置0 = v位置1
@@ -84,7 +87,7 @@ class C登录(设备.I登录配置模式):
 		self.m配置 = None
 	#命令
 	def fg进入命令(self):
-		v命令 = 设备.C命令("line")
+		v命令 = 设备.C命令(c命令_登录配置)
 		v命令 += self.fg模式参数()
 		return v命令
 	def fg模式参数(self):

@@ -8,6 +8,7 @@ import 网络设备.通用_虚拟局域网 as 通用虚拟局域网
 import 网络设备.华为_实用 as 华为实用
 ca接口名称 = 设备.fc接口名称字典({
 	设备.E接口.e环回: "LoopBack",
+	设备.E接口.e内部: "InLoopBack",
 	设备.E接口.e虚拟局域网: "Vlanif",
 })
 f创建接口 = 设备.F创建接口(ca接口名称)

@@ -9,6 +9,7 @@ from 网络设备.华为_常量 import *
 import 网络设备.通用_实用 as 通用实用
 import 网络设备.华为_接口 as 接口
 import 网络设备.华为_基本表信息 as 基本表信息
+import 网络设备.华为_登录 as 登录 
 #路由
 import 网络设备.通用_路由 as 通用路由
 import 网络设备.华为_静态路由 as 静态路由
@@ -61,7 +62,7 @@ class C设备(设备.I设备):
 		self.m版本 = a版本
 		self.fs自动换页("  ---- More ----")
 		if a型号 & E型号.c云:
-			self.fs自动提交(设备.E自动提交.e退出当前模式时)
+			self.fs自动提交(设备.E自动提交.e退出配置模式时)
 	def f退出(self):
 		self.f执行命令("quit")
 	def f提交(self):
@@ -81,6 +82,7 @@ class C设备(设备.I设备):
 			self.f检测命令异常(v输出)
 		return v输出
 	def f显示_当前模式配置(self):
+		self.fg当前模式().f切换到当前模式()
 		v输出 = self.f执行显示命令("display this", a自动换页 = True)
 		return v输出
 	#助手
@@ -195,6 +197,8 @@ class C系统视图(设备.I全局配置模式):
 			if v接口.fg主序号数() != 1:
 				raise ValueError("环回口的序号只有1段")
 		return 接口.C接口视图(self, v接口)
+	def f模式_登录(self, a方式, a范围 = 0, a操作 = 设备.E操作.e设置):
+		return 登录.C登录(self, a方式, a范围)
 	def f模式_虚拟局域网(self, a序号, a操作 = 设备.E操作.e设置):	#vlan
 		v类型 = type(a序号)
 		if v类型 == int:
@@ -231,15 +235,15 @@ class C系统视图(设备.I全局配置模式):
 		else:
 			raise ValueError()
 	#其它
-	def f模式_访问控制列表(self, a名称, a类型):
-		v名称 = 通用访问列表.f解析名称(a名称, a类型, 访问控制列表.C助手)
-		if a类型 == 设备.E访问控制列表类型.e标准4:
+	def f模式_访问控制列表(self, a名称, a类型 = None, a操作 = 设备.E操作.e设置):
+		v名称, v类型 = 通用访问列表.f解析名称和类型(a名称, a类型, 访问控制列表.C助手)
+		if v类型 == 设备.E访问控制列表类型.e标准4:
 			return 访问控制列表.C基本4(self, v名称)
-		elif a类型 == 设备.E访问控制列表类型.e扩展4:
+		elif v类型 == 设备.E访问控制列表类型.e扩展4:
 			return 访问控制列表.C高级4(self, v名称)
-		elif a类型 == 设备.E访问控制列表类型.e标准6:
+		elif v类型 == 设备.E访问控制列表类型.e标准6:
 			return 访问控制列表.C基本6(self, v名称)
-		elif a类型 == 设备.E访问控制列表类型.e扩展6:
+		elif v类型 == 设备.E访问控制列表类型.e扩展6:
 			return 访问控制列表.C高级6(self, v名称)
 		else:
 			raise ValueError("错误的类型")

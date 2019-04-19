@@ -415,6 +415,9 @@ class E自动提交(enum.IntEnum):
 	e退出配置模式时 = 1
 	e退出当前模式时 = 2
 	e立即 = 3
+class E方向(enum.IntEnum):
+	e入 = 0
+	e出 = 1
 class I模式:
 	def __init__(self, a):
 		if isinstance(a, I设备):	#a是设备
@@ -679,9 +682,9 @@ class I全局配置模式(I模式):
 		raise NotImplementedError()
 	def f模式_接口配置(self, a接口, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_用户配置(self, a用户名, a操作 = E操作.e设置):
+	def f模式_用户(self, a用户名, a操作 = E操作.e设置):
 		raise NotImplementedError()
-	def f模式_登录配置(self, a方式, a范围, a操作 = E操作.e设置):	#console,vty之类的
+	def f模式_登录(self, a方式, a范围, a操作 = E操作.e设置):	#console,vty之类的
 		raise NotImplementedError()
 	def f模式_时间范围(self, a名称, a操作 = E操作.e设置):
 		raise NotImplementedError()
@@ -821,6 +824,7 @@ class I登录配置模式(I模式):
 	def fg登录协议(self):
 		raise NotImplementedError()
 	def fg访问控制列表(self):
+		"返回名称"
 		raise NotImplementedError()
 	def fg登录超时(self):
 		raise NotImplementedError()
@@ -875,6 +879,7 @@ class E接口(enum.IntEnum):#为保证取接口全名有个优先级顺序，高
 	e空 = 0x00000001	#只丢包的空接口
 	e管理 = 0x00000002
 	e环回 = 0x00000100
+	e内部 = 0x00000101	#inloop,在华三中出现
 	e十兆以太网 = 0x00000210	#10M=10'000'000
 	e以太网 = e十兆以太网
 	e百兆以太网 = 0x00000220	#100M=100'000'000
@@ -894,6 +899,7 @@ class E接口(enum.IntEnum):#为保证取接口全名有个优先级顺序，高
 	e串行 = 0x00000400
 	e虚拟局域网 = 0x00000500
 	e隧道 = 0x00000600
+	e注册隧道 = 0x00000601	#在华三中出现
 	qx = 0x000f0700	#在中兴m6000中出现
 	qx以太网 = 0x00000701	#在中兴m6000中出现
 	e无源光网络 = 0x00000800	#pon
@@ -1737,7 +1743,7 @@ class S端口号:
 	def fc范围(a值):
 		return S端口号(a值, 运算.f包含)
 	@staticmethod
-	def fc等于(*a值):	#慎用多值,只有思科支持多值
+	def fc等于(*a值):	#慎用多值,只有思科ipv4扩展访问控制列表支持多值
 		return S端口号(a值, 运算.f包含)
 	@staticmethod
 	def fc不等于(*a值):	#慎用,只有思科支持不等于
@@ -1774,8 +1780,6 @@ class S访问控制列表规则:
 	def __init__(self, **a):
 		self.m规则类型 = None
 		self.m序号 = -1	#添加规则时不使用该序号,解析规则时赋值
-		self.m地址类型 = None
-		self.m解析 = True	#是否解析参数类型
 		self.m允许 = None
 		self.m协议 = E协议.ip
 		self.m源地址 = None
@@ -1783,10 +1787,21 @@ class S访问控制列表规则:
 		self.m源端口 = None
 		self.m目的端口 = None
 		self.f更新(**a)
-	def f更新(self, **a):
+	def f更新(self, a规则 = None, **a字典):
+		if a规则:
+			self.f更新_规则(a规则)
+		self.f更新_字典(a字典)
+	def f更新_规则(self, a规则):
+		self.m允许 = a规则.m允许 if a规则.m允许 else self.m允许
+		self.m协议 = a规则.m协议 if a规则.m协议 else self.m协议
+		self.m源地址 = a规则.m源地址 if a规则.m源地址 else self.m源地址
+		self.m目的地址 = a规则.m目的地址 if a规则.m目的地址 else self.m目的地址
+		self.m源端口 = a规则.m源端口 if a规则.m源端口 else self.m源端口
+		self.m目的端口 = a规则.m目的端口 if a规则.m目的端口 else self.m目的端口
+	def f更新_字典(self, a字典):
 		for k, v in S访问控制列表规则.ca更新函数.items():
-			if k in a:
-				v(self, a[k])
+			if k in a字典:
+				v(self, a字典[k])
 	def __str__(self):
 		v = ""
 		#序号
@@ -1869,7 +1884,7 @@ class I访问控制列表(I模式):
 		raise NotImplementedError()
 	def fe规则(self):
 		raise NotImplementedError()
-	def f应用到(self, a):
+	def f应用到(self, a模式, a方向 = E方向.e入, a操作 = E操作.e设置):
 		raise NotImplementedError()
 class I访问控制列表助手:
 	"用来计算到目标设备的访问控制列表序号, 原始参数的n从0开始"
@@ -1879,7 +1894,11 @@ class I访问控制列表助手:
 	@staticmethod
 	def ft统一序号(n, a类型 = None):
 		return n
-class S访问控制列表序号:
+	@staticmethod
+	def f判断类型(n):
+		"根据特定序号判断类型"
+		raise NotImplementedError()
+class S统一序号:
 	def __init__(self, a统一, a特定 = None, a类型 = None):
 		self.m统一序号 = a统一
 		self.m特定序号 = a特定
@@ -1888,10 +1907,10 @@ class S访问控制列表序号:
 		return str(self.m特定序号)
 	@staticmethod
 	def fc特定序号(n, a类型 = None):
-		return S访问控制列表序号(None, n, a类型)
+		return S统一序号(None, n, a类型)
 	@staticmethod
 	def fc统一序号(n, a类型 = None):
-		return S访问控制列表序号(n, None, a类型)
+		return S统一序号(n, None, a类型)
 #===============================================================================
 # 前缀列表
 #===============================================================================
@@ -1927,7 +1946,7 @@ class I前缀列表(I模式):
 	c模式名 = "前缀列表配置模式"
 	def __init__(self, a):
 		I模式.__init__(self, a)
-	def fs规则(self, a序号 = None, a规则 = None, a操作 = E操作.e添加):
+	def fs规则(self, a序号 = None, a规则 = None, a操作 = E操作.e设置):
 		raise NotImplementedError()
 	def fe规则(self):
 		raise NotImplementedError()

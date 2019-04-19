@@ -1,16 +1,29 @@
 import functools
 import cflw网络设备 as 设备
 import cflw网络地址 as 地址
-import cflw网络设备_华为 as 华为
-from 网络设备.华为_常量 import *
+from 网络设备.华三_常量 import *
 import 网络设备.通用_访问控制列表 as 通用访问列表
 import 网络设备.通用_实用 as 通用实用
+c基本 = "basic"
+c高级 = "advanced"
+c网络协议4 = ""
+c网络协议6 = "ipv6"
 c源地址 = "source"
 c源端口 = "source-port"
 c目的地址 = "destination"
 c目的端口 = "destination-port"
-#生成
-def f生成名称(a名称):
+#===============================================================================
+# 生成
+#===============================================================================
+def f生成名称v5(a名称):	#序号带"number"
+	v类型 = type(a名称)
+	if v类型 == int:
+		return "number %s" % (a名称,)
+	v名称 = str(a名称)
+	if v名称.isdigit():
+		return "number %s" % (v名称,)
+	return "name %s" % (v名称,)
+def f生成名称v7(a名称):	#序号不带"number"
 	v类型 = type(a名称)
 	if v类型 == int:
 		return "%s" % (a名称,)
@@ -74,59 +87,30 @@ def fe规则行(a文本):
 # 模式
 #===============================================================================
 class I访问控制列表(设备.I访问控制列表):
-	def __init__(self, a, a名称, a协议 = ""):
+	"""华三访问控制列表基接口"""
+	def __init__(self, a, a名称, a类型 = "", a协议 = ""):
 		设备.I访问控制列表.__init__(self, a)
 		self.m名称 = a名称
+		self.m类型 = a类型
 		self.m协议 = a协议
 	def fg模式参数(self):
 		return (self.m类型, self.m名称)
-	def fg进入命令(self):
-		v命令 = 设备.C命令("acl")
-		v命令 += self.m协议
-		v命令 += f生成名称(self.m名称)
-		return v命令
-	def fg显示命令(self, a序号 = None):
-		v命令 = 设备.C命令("display acl")
-		v命令 += self.m协议
-		v命令 += f生成名称(self.m名称)
-		if a序号 != None:
-			if self.m设备.m型号 & 华为.E型号.c云:
-				v命令 += "| include rule\\s%d\\s" % (a序号,)
-			else:
-				v命令 += "| include rule_%d_" % (a序号,)
-		return v命令
 	def f删除规则(self, a序号: int):
 		v命令 = f生成规则序号(a序号)
 		v命令.f前面添加(c不)
 		self.f执行当前模式命令(v命令)
 	def fs规则(self, a序号 = None, a规则 = None, a操作 = 设备.E操作.e设置):
 		v操作 = 通用实用.f解析操作(a操作)
-		if v操作 == 设备.E操作.e设置:
+		if 通用实用.fi加操作(v操作):
 			self.f添加规则(a序号, a规则)
-		elif v操作 == 设备.E操作.e新建:
-			self.f添加规则(a序号, a规则)
-		elif v操作 == 设备.E操作.e修改:
-			v序号 = a序号 if a序号 >= 0 else a规则.m序号
-			v规则 = self.fg规则(v序号)
-			v规则.f更新_规则(a规则)
-			if not self.m设备.m型号 & 华为.E型号.c云:
-				self.f删除规则(v序号)
-			self.f添加规则(v序号, v规则)
-		elif v操作 == 设备.E操作.e删除:
+		elif 通用实用.fi减操作(v操作):
 			self.f删除规则(a序号)
 	def fe规则(self):
 		v命令 = self.fg显示命令()
 		v输出 = self.m设备.f执行显示命令(v命令)
 		for v行 in fe规则行(v输出):
 			yield self.f解析规则(v行)
-	def fg规则(self, a序号):
-		v命令 = self.fg显示命令(a序号)
-		v输出 = self.m设备.f执行显示命令(v命令)
-		for v行 in fe规则行(v输出):
-			return self.f解析规则(v行)
-class C基本4(I访问控制列表):
-	def __init__(self, a, a名称):
-		I访问控制列表.__init__(self, a, a名称)
+class C基本4:
 	def f添加规则(self, a序号 = None, a规则 = None):
 		v命令 = f生成规则序号(a序号)
 		v命令 += f生成允许(a规则.m允许)
@@ -140,9 +124,7 @@ class C基本4(I访问控制列表):
 		v规则.m允许 = v解析器.f允许()
 		v规则.m源地址 = v解析器.f地址4()
 		return v规则
-class C高级4(I访问控制列表):
-	def __init__(self, a, a名称):
-		I访问控制列表.__init__(self, a, a名称)
+class C高级4:
 	def f添加规则(self, a序号 = None, a规则 = None):
 		v命令 = f生成规则序号(a序号)
 		v命令 += f生成允许(a规则.m允许)
@@ -164,9 +146,7 @@ class C高级4(I访问控制列表):
 		v规则.m目的地址 = v解析器.f地址4()
 		v规则.m目的端口 = v解析器.f端口号()
 		return v规则
-class C基本6(I访问控制列表):
-	def __init__(self, a, a名称):
-		I访问控制列表.__init__(self, a, a名称, "ipv6")
+class C基本6:
 	def f添加规则(self, a序号 = None, a规则 = None):
 		v命令 = f生成规则序号(a序号)
 		v命令 += f生成允许(a规则.m允许)
@@ -180,9 +160,7 @@ class C基本6(I访问控制列表):
 		v规则.m允许 = v解析器.f允许()
 		v规则.m源地址 = v解析器.f地址6()
 		return v规则
-class C高级6(I访问控制列表):
-	def __init__(self, a, a名称):
-		I访问控制列表.__init__(self, a, a名称, "ipv6")
+class C高级6:
 	def f添加规则(self, a序号 = None, a规则 = None):
 		v命令 = f生成规则序号(a序号)
 		v命令 += f生成允许(a规则.m允许)
@@ -204,6 +182,63 @@ class C高级6(I访问控制列表):
 		v规则.m目的地址 = v解析器.f地址6()
 		v规则.m目的端口 = v解析器.f端口号()
 		return v规则
+#v5	============================================================================
+class I访问控制列表v5(I访问控制列表):
+	"""acl 类型 访问列表号
+	适用于: v5"""
+	def fg进入命令(self):
+		v命令 = 设备.C命令("acl")
+		v命令 += self.m协议
+		v命令 += f生成名称v5(self.m名称)
+		return v命令
+	def fg显示命令(self, a序号 = None):
+		v命令 = 设备.C命令("display acl")
+		v命令 += self.m协议
+		v命令 += f生成名称v5(self.m名称)
+		if a序号 != None:
+			v命令 += "| include rule_%d_" % (a序号,)
+		return v命令
+class C基本4v5(I访问控制列表v5, C基本4):
+	def __init__(self, a, a名称):
+		I访问控制列表v5.__init__(self, a, a名称, c基本, c网络协议4)
+class C高级4v5(I访问控制列表v5, C高级4):
+	def __init__(self, a, a名称):
+		I访问控制列表v5.__init__(self, a, a名称, c高级, c网络协议4)
+class C基本6v5(I访问控制列表v5, C基本6):
+	def __init__(self, a, a名称):
+		I访问控制列表v5.__init__(self, a, a名称, c基本, c网络协议6)
+class C高级6v5(I访问控制列表v5, C高级6):
+	def __init__(self, a, a名称):
+		I访问控制列表v5.__init__(self, a, a名称, c高级, c网络协议6)
+#v7	============================================================================
+class I访问控制列表v7(I访问控制列表):
+	"""acl 类型 访问列表号
+	适用于: v7.1"""
+	def fg进入命令(self):
+		v命令 = 设备.C命令("acl")
+		v命令 += self.m协议
+		v命令 += self.m类型
+		v命令 += f生成名称v7(self.m名称)
+		return v命令
+	def fg显示命令(self, a序号 = None):
+		v命令 = 设备.C命令("display acl")
+		v命令 += self.m协议
+		v命令 += f生成名称v7(self.m名称)
+		if a序号 != None:
+			v命令 += "| include rule.%d.[dp]" % (a序号,)
+		return v命令
+class C基本4v7(I访问控制列表v7, C基本4):
+	def __init__(self, a, a名称):
+		I访问控制列表v7.__init__(self, a, a名称, c基本, c网络协议4)
+class C高级4v7(I访问控制列表v7, C高级4):
+	def __init__(self, a, a名称):
+		I访问控制列表v7.__init__(self, a, a名称, c高级, c网络协议4)
+class C基本6v7(I访问控制列表v7, C基本6):
+	def __init__(self, a, a名称):
+		I访问控制列表v7.__init__(self, a, a名称, c基本, c网络协议6)
+class C高级6v7(I访问控制列表v7, C高级6):
+	def __init__(self, a, a名称):
+		I访问控制列表v7.__init__(self, a, a名称, c高级, c网络协议6)
 #===============================================================================
 # 其它
 #===============================================================================
