@@ -1,5 +1,5 @@
 import math
-import cflw数学 as 数学
+from . import cflw数学 as 数学
 class S颜色:
 	def __init__(self, r = 0, g = 0, b = 0, a = 1):
 		self.r = float(r)

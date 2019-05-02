@@ -1,7 +1,11 @@
+import enum
 import telnetlib
-import cflw时间 as 时间
+from . import cflw时间 as 时间
+class E连接特性(enum.IntEnum):
+	e命令行 = 0x0001
 class I连接:
 	"连接接口"
+	c连接特性 = E连接特性.e命令行
 	def f读_最新(self):#应该把没有读的内容都读出来
 		"马上读内容，可能什么都没有"
 		raise NotImplementedError()

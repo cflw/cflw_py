@@ -1,6 +1,6 @@
 import math
-import cflw数学 as 数学
-import cflw数学_矩阵 as 矩阵
+from . import cflw数学 as 数学
+from . import cflw数学_矩阵 as 矩阵
 #===============================================================================
 # 任意向量
 #===============================================================================
@@ -40,6 +40,17 @@ class S向量2:
 		if v类型 == S向量2:
 			x = self.x + a.x
 			y = self.y + a.y
+		elif v类型 == S极向量2:
+			raise NotImplementedError()
+		else:
+			raise TypeError()
+		return S向量2(x, y)
+	def __sub__(self, a):
+		"向量2 - 向量2"
+		v类型 = type(a)
+		if v类型 == S向量2:
+			x = self.x - a.x
+			y = self.y - a.y
 		elif v类型 == S极向量2:
 			raise NotImplementedError()
 		else:

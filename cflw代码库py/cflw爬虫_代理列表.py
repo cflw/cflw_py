@@ -1,4 +1,4 @@
-import cflw爬虫 as 爬虫
+from . import cflw爬虫 as 爬虫
 c地址 = "http://www.xicidaili.com/nn/"
 c请求头 = {
 	"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",

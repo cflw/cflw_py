@@ -1,5 +1,5 @@
 import sys
-import cflw字符串 as 字符串
+from . import cflw字符串 as 字符串
 g单行覆盖输出宽度 = 0
 def f单行覆盖输出(a文本):
 	"反复调用会覆盖之前输出的字符,不想覆盖了就换行"

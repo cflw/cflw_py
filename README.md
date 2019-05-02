@@ -1,15 +1,18 @@
 # 乘风龙王的代码库(python)
 主要是一些随便写写的东西，其中有很多没写完的半成品，有的甚至从来没运行过。代码文件的编码为**utf-8无bom**。
 
-此代码库所引用的其他第三方库在代码文件开头导入语句后面用注释给出库名，可通过pip安装。
+项目依赖项：此代码库所引用的其他第三方库在代码文件开头导入语句后面用注释给出库名，可通过pip安装。
+* requests
+* beautifulsoup4
+* pyserial
+* pywin32
+* paramiko
+
+**网络设备脚本**相关代码已从此代码库拆分并转移到 https://github.com/cflw/network_device_script
 
 ### 文章
 按时间顺序排列
 * [用python编写小说网站爬虫](https://zhuanlan.zhihu.com/p/51309019) \[知乎\]
-* [用python编写控制网络设备的自动化脚本1：框架设计](https://zhuanlan.zhihu.com/p/53641620) \[知乎\]
-* [用python编写控制网络设备的自动化脚本2：显示](https://zhuanlan.zhihu.com/p/56108138) \[知乎\]
-* [用python编写控制网络设备的自动化脚本3：启动](https://zhuanlan.zhihu.com/p/56833809) \[知乎\]
-* [用python编写控制网络设备的自动化脚本4：接口](https://zhuanlan.zhihu.com/p/59428605) \[知乎\]
 
 ## 内容包含
 ### 工具
@@ -27,17 +30,18 @@
 * **cflw数学_随机**：抄袭c++标准库的\<random\>
 
 ### 网络
-* **cflw网络地址**：提供对互联网协议(Internet Protocol)第4版和第6版(IPv4/IPv6)地址的解析与计算，提供对物理(Media Access Control，MAC)地址的解析与计算
+* **cflw网络地址**：提供对IPv4和IPv6地址的解析与计算，提供对物理(Media Access Control)地址的解析与计算
 * **cflw网络连接**：提供统一的接口，通过Telnet、SSH、Console等方式连接到网络设备。
-* **cflw网络设备**：提供统一的接口对路由器、交换机等网络设备进行控制。
-* **cflw网络设备_(品牌)**：控制不同品牌的网络设备
-	* 已支持：思科（Cisco）、华为（Huawei）、华三（H3C）、中兴（ZTE）、锐捷（Ruijie）、迈普（Maipu），博达（BDCOM）
-	* 对不同品牌不同型号设备的支持程度取决于有没有模拟器或者我能否拿到真机做实验。有时候没法做实验，很多代码写出来没法验证是否可用。
+* ~~cflw网络设备~~(已移到[网络设备脚本](https://github.com/cflw/network_device_script))：提供统一的接口对路由器、交换机等网络设备进行控制。
 
 ### 爬虫
 * **cflw爬虫**：提供爬虫相关实用工具
 * **cflw爬虫_代理列表**：获取可用的HTTP代理
 * **cflw小说下载**：从一些盗版小说网站上下载小说(～￣▽￣)～ 。
+
+### 输入
+* **cflw输入_win**：只有一些枚举。完整内容见[乘风龙王的代码库(c++)](https://github.com/cflw/cflw_cpp)中的**cflw输入_win**
+* **cflw按键脚本_win**：模拟键盘鼠标输入
 
 ### 其他
 * **cflw英语**：包含常用单词的字符串数组

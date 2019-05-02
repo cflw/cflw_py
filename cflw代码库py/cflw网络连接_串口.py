@@ -1,5 +1,5 @@
 import time
-import cflw网络连接 as 连接
+from . import cflw网络连接 as 连接
 import serial	#pyserial
 import win32pipe	#pywin32
 import win32file	#pywin32

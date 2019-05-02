@@ -1,7 +1,7 @@
 import time
 import paramiko	#paramiko
 #import pexpect	#pexpect
-import cflw网络连接 as 连接
+from . import cflw网络连接 as 连接
 class C安全外壳2(连接.I连接):	#使用paramiko
 	def __init__(self, a主机, a端口号 = 22, a用户名 = "", a密码 = "", a超时 = 10):
 		#连接
