@@ -2,7 +2,7 @@ import time
 import paramiko	#paramiko
 #import pexpect	#pexpect
 from . import cflw网络连接 as 连接
-class C安全外壳2(连接.I连接):	#使用paramiko
+class C安全外壳2(连接.I命令行连接):	#使用paramiko
 	def __init__(self, a主机, a端口号 = 22, a用户名 = "", a密码 = "", a超时 = 10):
 		#连接
 		self.m客户端 = paramiko.SSHClient()
@@ -11,7 +11,7 @@ class C安全外壳2(连接.I连接):	#使用paramiko
 		self.m频道 = self.m客户端.invoke_shell(width = 10000, height = 10000)
 		#其它
 		self.m编码 = "ascii"
-		self.m缓存 = 连接.C缓存()
+		self.m缓存 = 连接.C命令行缓存()
 	def f读_最新(self):
 		v数据 = b""
 		while self.m频道.recv_ready():

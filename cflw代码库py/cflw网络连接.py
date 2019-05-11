@@ -3,7 +3,9 @@ import telnetlib
 from . import cflw时间 as 时间
 class E连接特性(enum.IntEnum):
 	e命令行 = 0x0001
-class I连接:
+	e网页 = 0x0002
+	e全部 = 0xffff
+class I命令行连接:
 	"连接接口"
 	c连接特性 = E连接特性.e命令行
 	def f读_最新(self):#应该把没有读的内容都读出来
@@ -28,7 +30,7 @@ class I连接:
 	def f关闭(self):
 		"断开连接"
 		raise NotImplementedError()
-class C缓存:
+class C命令行缓存:
 	"把读到的内容临时存起来"
 	def __init__(self, a大小 = 10):
 		self.m大小 = a大小
@@ -57,13 +59,13 @@ class C缓存:
 #===============================================================================
 # 具体连接
 #===============================================================================
-class C网络终端(I连接):
+class C网络终端(I命令行连接):
 	"telnet"
-	c缓存大小 = 10	#最近读的10个文本
+	C命令行缓存大小 = 10	#最近读的10个文本
 	def __init__(self, a主机, a端口号 = 23):
 		self.m终端 = telnetlib.Telnet(a主机, a端口号)
 		self.m编码 = "ascii"
-		self.m缓存 = C缓存(C网络终端.c缓存大小)
+		self.m缓存 = C命令行缓存(C网络终端.C命令行缓存大小)
 	def f读_最新(self):
 		v内容 = self.m终端.read_very_eager().decode(self.m编码)
 		if v内容:
@@ -89,8 +91,9 @@ class C网络终端(I连接):
 		self.m终端.write(a文本.encode(self.m编码))
 	def f关闭(self):
 		self.m终端.close()
-class C空连接(I连接):
+class C空连接(I命令行连接):
 	"什么也不做"
+	c连接特性 = 0xffffffff
 	def f读_最新(self):
 		return ""
 	def f读_最近(self, a数量):

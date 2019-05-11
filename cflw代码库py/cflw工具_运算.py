@@ -54,17 +54,6 @@ f负 = operator.neg
 f乘方 = operator.pow
 f矩乘 = operator.matmul
 #序列运算
-def f字典按值找键(a字典: dict, a值):
-	for v键, v值 in a字典.items():
-		if v值 == a值:
-			return v键
-	return None
 f包含 = operator.contains
 def f不包含(a, b):
 	return not b in a
-def f整数位与键为真则添加值(a整数, a字典):
-	v列表 = []
-	for k, v in a字典.items():
-		if a整数 & k:
-			v列表.append(v)
-	return v列表

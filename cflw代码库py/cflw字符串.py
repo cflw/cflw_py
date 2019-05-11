@@ -372,6 +372,22 @@ def f提取字符串周围(a字符串: str, a前, a中, a后):
 		return a前
 	else:
 		return a字符串[a前: a后]
+class C推进取词:
+	def __init__(self, a文本):
+		self.ma词 = a文本.split()
+		self.i = 0
+	def f取词(self):
+		if self.i >= len(self.ma词):
+			return None
+		return self.ma词[self.i]
+	def f推进(self):
+		self.i += 1
+	def f取词推进(self):	#先取词再推进
+		if self.i >= len(self.ma词):
+			return None
+		v词 = self.ma词[self.i]
+		self.i += 1
+		return v词
 #===============================================================================
 # 字符串转换
 #===============================================================================
