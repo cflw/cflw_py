@@ -212,9 +212,22 @@ def f去后面(a字符串: str, a后面: str):
 	if v位置 > 0:
 		return a字符串[:v位置]
 	return a字符串
+def f去非十六进制数字(a字符串):
+	if len(a字符串) < 2:
+		v字符串 = a字符串
+	elif a字符串[1] in "xX":	#去掉0x
+		v字符串 = a字符串[2:]
+	else:
+		v字符串 = a字符串
+	v字符串 =  "".join([v for v in v字符串 if v in "0123456789abcdefABCDEF"])	#提取数字
+	return v字符串
+def f去非数字(a字符串):
+	return "".join([v for v in v字符串 if v in "0123456789"])
 def f插入字符串(a字符串, a位置, a插入字符串):
 	return a字符串[:a位置] + a插入字符串 + a字符串[a位置:]
 def f隔段插入字符串(a字符串, a插入字符串, a间隔):
+	"""每隔一段距离插入字符串
+	a间隔 的类型可以是int或range"""
 	v字符串 = str(a字符串)
 	v类型 = type(a间隔)
 	if v类型 == int:
@@ -245,8 +258,24 @@ def f隔段插入字符串(a字符串, a插入字符串, a间隔):
 			if i == 0:
 				break	#不能包含头
 	else:
-		raise TypeError
+		raise TypeError()
 	return v字符串
+def f填充_(a字符串, a填充, a目标长度, af填充):
+	"""af填充(a原字符串, a填充字符串)"""
+	if not a填充:
+		raise ValueError()
+	v当前长度 = len(a字符串)
+	if v当前长度 < a目标长度:
+		v填充数量 = (a目标长度 - v当前长度) // len(a填充)
+		return af填充(a字符串, a填充 * v填充数量)
+	else:
+		return a字符串
+def f前面填充(a字符串, a填充, a目标长度):
+	"""当a字符串长度小于a目标长度,则填充到目标长度"""
+	return f填充_(a字符串, a填充, a目标长度, lambda a, b: b + a)
+def f后面填充(a字符串, a填充, a目标长度):
+	"""当a字符串长度小于a目标长度,则填充到目标长度"""
+	return f填充_(a字符串, a填充, a目标长度, lambda a, b: a + b)
 def fe字符串特定字符之间(a字符串, a字符, a开始位置 = 0):
 	v字符长度 = len(a字符)
 	v开始位置 = a开始位置

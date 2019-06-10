@@ -527,7 +527,6 @@ class S网络地址6:
 #===============================================================================
 class S物理地址:
 	"mac地址"
-	c查找符号 = re.compile(r"[\.\-\:]")
 	def __init__(self, a值 = 0):
 		self.m值 = a值
 	@staticmethod
@@ -537,7 +536,7 @@ class S物理地址:
 	def fc字符串(a: str):
 		v类型 = type(a)
 		if v类型 == str:
-			v字符串 = re.sub(S物理地址.c查找符号, "", a)
+			v字符串 = 字符串.f去非十六进制数字(a)
 			if len(v字符串) == 12:
 				return S物理地址(int(v字符串, 16))
 			else:

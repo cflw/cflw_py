@@ -1,10 +1,12 @@
 import enum
-import telnetlib
 from . import cflw时间 as 时间
 class E连接特性(enum.IntEnum):
 	e命令行 = 0x0001
 	e网页 = 0x0002
 	e全部 = 0xffff
+#===============================================================================
+# 命令行连接接口
+#===============================================================================
 class I命令行连接:
 	"连接接口"
 	c连接特性 = E连接特性.e命令行
@@ -63,6 +65,7 @@ class C网络终端(I命令行连接):
 	"telnet"
 	C命令行缓存大小 = 10	#最近读的10个文本
 	def __init__(self, a主机, a端口号 = 23):
+		import telnetlib
 		self.m终端 = telnetlib.Telnet(a主机, a端口号)
 		self.m编码 = "ascii"
 		self.m缓存 = C命令行缓存(C网络终端.C命令行缓存大小)

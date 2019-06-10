@@ -14,11 +14,12 @@ class POINT(ctypes.Structure):
 #===============================================================================
 # 鼠标按键
 #===============================================================================
+E鼠标按键 = 输入.E鼠标按键
 ca鼠标按键 = {
 	#按键					按下							松开
-	输入.E鼠标按键.e左键: (win32con.MOUSEEVENTF_LEFTDOWN, win32con.MOUSEEVENTF_LEFTUP),
-	输入.E鼠标按键.e右键: (win32con.MOUSEEVENTF_RIGHTDOWN, win32con.MOUSEEVENTF_RIGHTUP),
-	输入.E鼠标按键.e中键: (win32con.MOUSEEVENTF_MIDDLEDOWN, win32con.MOUSEEVENTF_MIDDLEUP),
+	E鼠标按键.e左键: (win32con.MOUSEEVENTF_LEFTDOWN, win32con.MOUSEEVENTF_LEFTUP),
+	E鼠标按键.e右键: (win32con.MOUSEEVENTF_RIGHTDOWN, win32con.MOUSEEVENTF_RIGHTUP),
+	E鼠标按键.e中键: (win32con.MOUSEEVENTF_MIDDLEDOWN, win32con.MOUSEEVENTF_MIDDLEUP),
 }
 def fg鼠标坐标():
 	v点 = POINT()
@@ -53,6 +54,7 @@ def f鼠标按键(a按键, a时间 = 0):
 #===============================================================================
 # 键盘按键
 #===============================================================================
+E键盘按键 = 输入.E键盘按键
 def f键盘按下(a按键):
 	win32api.keybd_event(a按键, 0, 0, 0)
 def f键盘松开(a按键):
