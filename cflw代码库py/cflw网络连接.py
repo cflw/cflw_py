@@ -101,8 +101,9 @@ class C空连接(I命令行连接):
 		return ""
 	def f读_最近(self, a数量):
 		return ""
-	def f写(self, a文本):#向设备传输文本
-		pass
+	def f写(self, a文本: str):#向设备传输文本
+		v文本 = a文本.replace('\r', '\n')
+		print(v文本, end = '')
 	def fs编码(self, a编码):#传输文本时使用的编码
 		pass
 	def f关闭(self):

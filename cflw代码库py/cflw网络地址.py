@@ -587,3 +587,15 @@ class C连续地址4:
 Cip地址 = S网络地址4
 Cipv6地址 = S网络地址6
 Cmac地址 = S物理地址
+#函数
+def fc网络地址(*a地址):
+	"""创建版本4或版本6"""
+	v0 = a地址[0]
+	v类型0 = type(v0)
+	if v类型0 == str:
+		if ":" in v0:
+			return S网络地址6.fc自动(*a地址)
+		else:
+			return S网络地址4.fc自动(*a地址)
+	else:
+		raise TypeError("无法识别的类型")

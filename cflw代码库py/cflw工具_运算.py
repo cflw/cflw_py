@@ -7,6 +7,10 @@ def f空0():
 	pass
 def f空1(a0):
 	pass
+def f总是真(*a, **b):
+	return True
+def f总是假(*a, **b):
+	return False
 #比较
 f等于 = operator.eq
 f不等于 = operator.ne
@@ -54,6 +58,13 @@ f负 = operator.neg
 f乘方 = operator.pow
 f矩乘 = operator.matmul
 #序列运算
-f包含 = operator.contains
+f包含 = operator.contains	#b in a
 def f不包含(a, b):
+	"not b in a"
 	return not b in a
+def f倒包含(a, b):
+	"a in b"
+	return a in b
+def f不倒包含(a, b):
+	"not a in b"
+	return not a in b
