@@ -4,16 +4,21 @@ import serial	#pyserial
 class C串口(连接.I命令行连接):
 	"serial"
 	def __init__(self, a端口名, a波特率 = 9600):
+		#连接参数
+		self.m端口名 = a端口名
+		self.m波特率 = a波特率
+		#其它
+		self.m编码 = "ascii"
+		self.m缓存 = 连接.C命令行缓存()
+	def f连接(self):
 		self.m串口 = serial.Serial(#下面这些参数根据情况修改
-			port = a端口名,
-			baudrate = a波特率,
+			port = self.m端口名,
+			baudrate = self.m波特率,
 			parity = serial.PARITY_NONE,
 			stopbits = serial.STOPBITS_ONE,
 			bytesize = serial.EIGHTBITS,
 			timeout = 1
 		)
-		self.m编码 = "ascii"
-		self.m缓存 = 连接.C命令行缓存()
 	def f读_最新(self):
 		v数据 = b""
 		while self.m串口.in_waiting > 0:

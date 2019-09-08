@@ -10,6 +10,10 @@ class E连接特性(enum.IntEnum):
 class I命令行连接:
 	"连接接口"
 	c连接特性 = E连接特性.e命令行
+	def f连接(self):
+		raise NotImplementedError()
+	def fi连接(self):
+		raise NotImplementedError()
 	def f读_最新(self):#应该把没有读的内容都读出来
 		"马上读内容，可能什么都没有"
 		raise NotImplementedError()
@@ -58,6 +62,41 @@ class C命令行缓存:
 		self.m大小 = a大小
 	def fg大小(self):
 		return m大小
+class C命令行回显:
+	c连接特性 = I命令行连接.c连接特性
+	def __init__(self, a连接, af输入回显, af输出回显):
+		if not isinstance(a连接, I命令行连接):
+			raise TypeError()
+		self.m连接 = a连接
+		self.mf输入回显 = f处理回显函数(af输入回显)
+		self.mf输出回显 = f处理回显函数(af输出回显)
+	def f读_最新(self):
+		v内容 = self.m连接.f读_最新()
+		self.mf输出回显(v内容)
+		return v内容
+	def f读_最近(self, a数量):
+		v内容 =  self.m连接.f读_最近(a数量)
+		self.mf输出回显(v内容)
+		return v内容
+	def f读_直到(self, a文本 = "", a时间 = 5):
+		v内容 =  self.m连接.f读_直到(a文本, a时间)
+		self.mf输出回显(v内容)
+		return v内容
+	def f写(self, a文本):
+		self.mf输入回显(a文本)
+		self.m连接.f写(a文本)
+	def fs编码(self, a编码):
+		self.m连接.fs编码(a编码)
+	@staticmethod
+	def f处理回显函数(af):
+		if hasattr(af, "__call__"):
+			return af
+		if bool(af):
+			import functools
+			return functools.partial(print, end = '', flush = True)
+		else:
+			from . import cflw工具_运算 as 运算
+			return 运算.f空
 #===============================================================================
 # 具体连接
 #===============================================================================
@@ -65,10 +104,17 @@ class C网络终端(I命令行连接):
 	"telnet"
 	C命令行缓存大小 = 10	#最近读的10个文本
 	def __init__(self, a主机, a端口号 = 23):
-		import telnetlib
-		self.m终端 = telnetlib.Telnet(a主机, a端口号)
+		self.m主机 = a主机
+		self.m端口号 = a端口号
+		self.m终端 = None
 		self.m编码 = "ascii"
 		self.m缓存 = C命令行缓存(C网络终端.C命令行缓存大小)
+	def f连接(self):
+		assert(not self.m终端)
+		import telnetlib
+		self.m终端 = telnetlib.Telnet(self.m主机, self.m端口号)
+	def fi连接(self):
+		return bool(self.m终端)
 	def f读_最新(self):
 		v内容 = self.m终端.read_very_eager().decode(self.m编码)
 		if v内容:
@@ -94,9 +140,14 @@ class C网络终端(I命令行连接):
 		self.m终端.write(a文本.encode(self.m编码))
 	def f关闭(self):
 		self.m终端.close()
+		self.m终端 = None
 class C空连接(I命令行连接):
 	"什么也不做"
 	c连接特性 = 0xffffffff
+	def f连接(self):
+		pass
+	def fi连接(self):
+		return True
 	def f读_最新(self):
 		return ""
 	def f读_最近(self, a数量):

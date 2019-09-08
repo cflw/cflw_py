@@ -225,6 +225,10 @@ def f去非十六进制数字(a字符串):
 	return v字符串
 def f去非数字(a字符串):
 	return "".join([v for v in v字符串 if v in "0123456789"])
+def f去词(a字符串, a序号, a分隔 = " "):
+	va文本 = a字符串.split(a分隔)
+	va文本.pop(a序号)
+	return a分隔.join(va文本)
 def f插入字符串(a字符串, a位置, a插入字符串):
 	return a字符串[:a位置] + a插入字符串 + a字符串[a位置:]
 def f隔段插入字符串(a字符串, a插入字符串, a间隔):
@@ -278,6 +282,19 @@ def f前面填充(a字符串, a填充, a目标长度):
 def f后面填充(a字符串, a填充, a目标长度):
 	"""当a字符串长度小于a目标长度,则填充到目标长度"""
 	return f填充_(a字符串, a填充, a目标长度, lambda a, b: a + b)
+def f匹配补全(a字符串, aa字符串):
+	for v字符串 in aa字符串:
+		if a字符串 in v字符串:
+			return v字符串
+	return None
+def f前面匹配补全(a字符串, aa字符串, a正则标志 = 0):
+	v正则 = re.compile(r"^" + a名称, a正则标志)
+	for v字符串  in aa字符串:
+		if a名称 == v字符串:
+			return v字符串
+		elif re.search(v正则, v字符串):
+			return v字符串
+	return None
 def fe字符串特定字符之间(a字符串, a字符, a开始位置 = 0):
 	v字符长度 = len(a字符)
 	v开始位置 = a开始位置

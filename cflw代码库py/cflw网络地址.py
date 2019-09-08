@@ -308,6 +308,8 @@ class S网络地址4:
 		v长度 = self.fg前缀长度()
 		if v长度 > 0:
 			v字符串 += "/" + str(v长度)
+		elif self.fg地址i() == 0:
+			v字符串 += "/0"
 		return v字符串
 	def fi空(self):
 		"掩码全0"

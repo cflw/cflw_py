@@ -6,13 +6,12 @@ class C命名管道(连接.I命令行连接):
 	def __init__(self, a名称):
 		self.m管道 = None
 		self.m名称 = a名称
-		self.f连接(a名称)
 		self.m缓存 = 连接.C命令行缓存()
 	def __del__(self):
 		self.f关闭()
-	def f连接(self, a名称):
+	def f连接(self):
 		self.m管道 = win32file.CreateFile(
-			a名称,
+			self.m名称,
 			win32file.GENERIC_READ | win32file.GENERIC_WRITE,
 			0,
 			None,
