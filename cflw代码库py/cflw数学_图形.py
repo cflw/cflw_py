@@ -1,5 +1,8 @@
 import math
 from . import cflw数学 as 数学
+#===============================================================================
+# 颜色
+#===============================================================================
 class S颜色:
 	def __init__(self, r = 0, g = 0, b = 0, a = 1):
 		self.r = float(r)
@@ -87,14 +90,34 @@ class S颜色:
 		return self.r == a.r and self.g == a.g and self.b == a.b and self.a == a.a
 	def __ne__(self, a):
 		return self.r != a.r or self.g != a.g or self.b != a.b or self.a != a.a
-	def f分量乘(self, a颜色: S颜色):
+	def __mul__(self, a0):
+		r = self.r * a0
+		g = self.g * a0
+		b = self.b * a0
+		a = self.a * a0
+		return S颜色(r, g, b, a)
+	def f分量乘(self, a颜色):
 		r = self.r * a颜色.r
 		g = self.g * a颜色.g
 		b = self.b * a颜色.b
 		a = self.a * a颜色.a
 		return S颜色(r, g, b, a)
+	def fe分量(self):
+		yield self.r
+		yield self.g
+		yield self.b
+		yield self.a
 	def ft元组(self):
 		return (self.r, self.g, self.b, self.a)
 	def ft元组rgb(self):
 		return (self.r, self.g, self.b)
-	ft元组rbga = S颜色.ft元组
+	ft元组rbga = ft元组
+S颜色.c白 = S颜色(1, 1, 1, 1)
+S颜色.c黑 = S颜色(0, 0, 0, 1)
+S颜色.c红 = S颜色(1, 0, 0, 1)
+S颜色.c橙 = S颜色(1, 0.5, 0, 1)
+S颜色.c黄 = S颜色(1, 1, 0, 1)
+S颜色.c绿 = S颜色(0, 1, 0, 1)
+S颜色.c青 = S颜色(0, 1, 1, 1)
+S颜色.c蓝 = S颜色(0, 0, 1, 1)
+S颜色.c紫 = S颜色(1, 0, 1, 1)
