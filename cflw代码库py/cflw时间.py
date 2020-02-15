@@ -68,10 +68,15 @@ class C未来阻塞:
 				break
 class C循环阻塞:
 	'用在循环语句的条件中，自动阻塞一段时间，到时间返回False跳出循环'
-	def __init__(self, a时间 = 1.0, a次数 = 10):	#次数只是用来计算时间间隔,实际循环次数可能比指定次数少
+	def __init__(self, a时间 = 1.0, a次数 = None, a间隔 = None):	#次数只是用来计算时间间隔,实际循环次数可能比指定次数少
 		self.m秒表 = C秒表()
 		self.m时间 = a时间
-		self.m间隔 = a时间 / float(a次数)
+		if a次数:
+			self.m间隔 = a时间 / float(a次数)
+		elif a间隔:
+			self.m间隔 = a间隔
+		else:
+			self.m间隔 = 0.1
 		self.m开始 = True
 	def f滴答(self):
 		if self.m开始:	#第1次总是进入循环

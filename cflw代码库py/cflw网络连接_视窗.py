@@ -7,6 +7,7 @@ class C命名管道(连接.I命令行连接):
 		self.m管道 = None
 		self.m名称 = a名称
 		self.m缓存 = 连接.C命令行缓存()
+		self.m编码 = "utf-8"
 	def __del__(self):
 		self.f关闭()
 	def f连接(self):

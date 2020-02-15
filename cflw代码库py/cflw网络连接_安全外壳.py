@@ -13,7 +13,7 @@ class C安全外壳2(连接.I命令行连接):	#使用paramiko
 		self.m密码 = a密码
 		self.m超时 = a超时
 		#其它
-		self.m编码 = "ascii"
+		self.m编码 = "utf-8"
 		self.m缓存 = 连接.C命令行缓存()
 	def f连接(self):
 		self.m客户端.connect(hostname = self.m主机, port = self.m端口号, username = self.m用户名, password = self.m密码, timeout = self.m超时)
