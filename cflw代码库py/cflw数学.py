@@ -14,6 +14,43 @@ def f限制(a值, a最小值, a最大值):
 		return a最大值
 	else:
 		return a值
+def fi限制内(a值, a最小值, a最大值):
+	assert(a最小值 <= a最大值)
+	if a值 < a最小值:
+		return False
+	elif a值 > a最大值:
+		return False
+	else:
+		return True
+def fi限制外(a值, a最小值, a最大值):
+	assert(a最小值 < a最大值)
+	if a值 < a最小值:
+		return True
+	elif a值 > a最大值:
+		return True
+	else:
+		return False
+def f镜面(a值: float, a最小值: float, a最大值: float):
+	"""像镜子一样循环"""
+	assert(a最小值 < a最大值)
+	v差 = a最大值 - a最小值
+	v基本倍 = math.floor(a值 / v差)
+	v循环倍 = math.ceil(a最小值 / v差)
+	v倍差 = v基本倍 - v循环倍
+	v循环 = a值 - v差 * v倍差
+	return f对称(v循环, (a最大值 + a最小值) / 2) if v倍差 % 2 else v循环
+def f整数镜面(a值: int, a最小值: int, a最大值: int):
+	"""[最小值, 最大值]
+	1,2,3|3,2,1|1,2,3 这样的"""
+	assert(a最小值 < a最大值)
+	v结束 = a最大值 + 1
+	v差 = v结束 - a最小值
+	v基本倍 = a值 // v差
+	v相对位置 = a值 - v差 * v基本倍
+	return a最大值 - v相对位置 if v基本倍 % 2 else a最小值 + v相对位置	
+def f对称(a值, a对称):
+	"值关于对称点对称"
+	return 2 * a对称 - a值	# a对称 - (a值 - a对称) 
 def f插值(a0, a1, a插值):
 	return a0 + (a1 - a0) * a插值
 def ft合适(a):

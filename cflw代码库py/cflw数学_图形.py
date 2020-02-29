@@ -1,6 +1,17 @@
 import math
 from . import cflw数学 as 数学
 #===============================================================================
+# 颜色转换
+#===============================================================================
+def f红绿蓝到平均f(r: float, g: float, b: float):
+	return (r + g + b) / 3
+def f红绿蓝到平均b(r: int, g: int, b: int):
+	return (r + g + b) // 3
+def f红绿蓝到灰度f(r: float, g: float, b: float):
+	return r * 0.299 + g * 0.587 + b * 0.114
+def f红绿蓝到灰度b(r: int, g: int, b: int):
+	return (r*76 + g*150 + b*30) >> 8
+#===============================================================================
 # 颜色
 #===============================================================================
 class S颜色:
@@ -107,11 +118,15 @@ class S颜色:
 		yield self.g
 		yield self.b
 		yield self.a
-	def ft元组(self):
+	def ft元组rgba(self):
+		"""包含rgba"""
 		return (self.r, self.g, self.b, self.a)
 	def ft元组rgb(self):
+		"""包含rgb"""
 		return (self.r, self.g, self.b)
-	ft元组rbga = ft元组
+	def fg灰度(self):
+		return f红绿蓝到灰度f(self.r, self.g, self.b)
+	ft元祖 = ft元组rgba
 S颜色.c白 = S颜色(1, 1, 1, 1)
 S颜色.c黑 = S颜色(0, 0, 0, 1)
 S颜色.c红 = S颜色(1, 0, 0, 1)
