@@ -16,16 +16,16 @@ ipOperStatus = "1.3.6.1.2.1.2.2.1.8"
 # 接口
 #===============================================================================
 class I简单网管:
-	def f获取(self, a对象标识符):
+	def f获取(self, a标识):
 		"""snmpget"""
 		raise NotImplementedError()
-	def f遍历(self, a对象标识符):
+	def f遍历(self, a开始, a结束):
 		"""snmpwalk"""
 		raise NotImplementedError()
-	def f设置(self, a对象标识符, a值):
+	def f设置(self, a标识, a值):
 		"""snmpset"""
 		raise NotImplementedError()
-	def f陷阱(self, a对象标识符):
+	def f陷阱(self, a标识):
 		"""snmptrap"""
 		raise NotImplementedError()
 #===============================================================================
@@ -55,3 +55,5 @@ class S对象标识符:
 		return S对象标识符(self.ma值 + [a值])
 	def f删除末尾(self):
 		return S对象标识符(self.ma值[:-1])
+	def f末尾加一(self):
+		return S对象标识符(self.ma值[:-1] + [self.ma值[-1] + 1])
