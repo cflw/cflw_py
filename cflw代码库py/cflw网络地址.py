@@ -135,9 +135,9 @@ class S网络地址4:
 			if "/" in v0:
 				v地址0, v1 = v0.split("/")
 				if "." in v1:
-					return S网络地址4.fc地址掩码(v地址0, v1)
+					return S网络地址4.fc地址掩码(v地址0, v1)	#格式: x.x.x.x/x.x.x.x
 				else:
-					return S网络地址4.fc地址前缀长度(v地址0, v1)
+					return S网络地址4.fc地址前缀长度(v地址0, v1)	#格式: x.x.x.x/n
 			else:
 				v地址0 = v0
 			#赋值
@@ -161,9 +161,24 @@ class S网络地址4:
 		else:
 			raise TypeError("无法解析参数类型")
 	@staticmethod
-	def fc地址字符串(a地址):
+	def fc主机地址字符串(a地址: str):
+		"""格式: x.x.x.x"""
 		v地址 = S网络地址4.f地址字符串转整数(a地址)
 		return S网络地址4(v地址, 32)
+	@staticmethod
+	def fc地址前缀长度字符串(a地址: str):
+		"""格式: x.x.x.x/n"""
+		v地址s, v长度s = a地址.split("/")
+		v地址 = S网络地址4.f地址字符串转整数(a地址)
+		v长度 = int(v长度s)
+		return S网络地址4(v地址, v长度)
+	@staticmethod
+	def fc地址空格掩码字符串(a地址: str):
+		"""格式: x.x.x.x m.m.m.m"""
+		v地址s, v掩码s = a地址.split()
+		v地址 = S网络地址4.f地址字符串转整数(v地址s)
+		v长度 = S网络地址4.f掩码字符串转前缀长度(v掩码s)
+		return S网络地址4(v地址, v长度)
 	@staticmethod
 	def fc地址前缀长度(a地址, a前缀长度):
 		if type(a地址) == str:

@@ -7,13 +7,15 @@
 * pyserial
 * pywin32
 * paramiko
+* pillow
 
-**网络设备脚本**相关代码已从此代码库拆分并转移到 https://github.com/cflw/network_device_script
+**网络设备脚本**相关代码已从此代码库拆分并转移到 https://github.com/cflw/network_device_script <br>
 **小说下载器**已移到 https://github.com/cflw/novel_downloader
 
 ### 文章
 按时间顺序排列
 * [用python编写小说网站爬虫](https://zhuanlan.zhihu.com/p/51309019) \[知乎\]
+* [用python给图片添加数字水印](https://zhuanlan.zhihu.com/p/111163052) \[知乎\]
 
 ## 内容包含
 ### 工具
@@ -41,6 +43,9 @@
 * **cflw爬虫**：提供爬虫相关实用工具
 * **cflw爬虫_代理列表**：获取可用的HTTP代理
 * ~~cflw小说下载~~(已移到[小说下载器](https://github.com/cflw/novel_downloader))：从一些盗版小说网站上下载小说(～￣▽￣)～ 。
+
+### 图形&图像
+* **cflw图像**：处理图像
 
 ### 输入
 * **cflw输入_win**：只有一些枚举。完整内容见[乘风龙王的代码库(c++)](https://github.com/cflw/cflw_cpp)中的**cflw输入_win**

@@ -13,10 +13,6 @@ def f折叠(af运算, a初始值, a序列):
 def f映射(af运算, a序列):
 	for v元素 in a序列:
 		yield af运算(v元素)
-def F切片(a开始, a结束, a间距 = None):
-	def f切片(a序列):
-		return a序列[slice(a开始, a结束, a间距)]
-	return f切片
 #===============================================================================
 # 字典
 #===============================================================================
@@ -37,3 +33,33 @@ def f字典有键则运算(a字典, a键, af运算):
 	if a键 in a字典:
 		return af运算(a字典[a键])
 	return None
+#===============================================================================
+# 切片
+#===============================================================================
+def F切片(a开始, a结束, a间距 = None):
+	def f切片(a序列):
+		return a序列[slice(a开始, a结束, a间距)]
+	return f切片
+class C切片组:
+	"""指定一组序号,按索引取切片"""
+	def __init__(self, *aa索引):
+		if aa索引[0] == 0:
+			self.ma索引 = aa索引
+		else:
+			self.ma索引 = (0,) + aa索引
+		self.m长度 = len(self.ma索引)
+	def __getitem__(self, k):
+		if self.m长度 > k + 1:
+			return slice(self.ma索引[k], self.ma索引[k+1])
+		elif self.m长度 == k + 1:
+			return slice(self.ma索引[k], None)
+		else:
+			raise IndexError()
+	def __iter__(self):
+		for i in range(self.m长度):
+			yield self[i]
+	def F切片(self, k):
+		v切片 = self.__getitem__(k)
+		def f切片(a序列):
+			return a序列[v切片]
+		return f切片

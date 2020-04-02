@@ -1,7 +1,8 @@
 import enum
 import urllib.parse
-from selenium import webdriver	#selenium
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities	#selenium
+from . import cflw网页连接_微软 as 微软
+from . import cflw网页连接_火狐 as 火狐
+from . import cflw网页连接_谷歌 as 谷歌
 class E浏览器(enum.IntEnum):
 	ie = enum.auto()
 	edge = enum.auto()
@@ -12,41 +13,17 @@ class E浏览器(enum.IntEnum):
 def f创建浏览器(a浏览器, a地址 = ""):
 	#去掉ssl提示:https://stackoverflow.com/questions/24507078/how-to-deal-with-certificates-using-selenium
 	if a浏览器 == E浏览器.firefox:
-		v能力 = webdriver.DesiredCapabilities.FIREFOX.copy()
-		v能力['acceptInsecureCerts'] = True
-		v帐户 = webdriver.FirefoxProfile()
-		v帐户.accept_untrusted_certs = True
-		v浏览器 = webdriver.Firefox(capabilities = v能力, firefox_profile = v帐户)
-		if a地址:
-			v浏览器.get(a地址)
+		v浏览器 = 火狐.C火狐()
 	elif a浏览器 == E浏览器.chrome:
-		v能力 = webdriver.DesiredCapabilities.CHROME.copy()
-		v选项 = webdriver.ChromeOptions()
-		v选项.add_argument('--allow-running-insecure-content')
-		v选项.add_argument('--ignore-certificate-errors')
-		v选项.add_argument('--allow-insecure-localhost')
-		v选项.add_argument('--unsafely-treat-insecure-origin-as-secure')
-		v浏览器 = webdriver.Chrome(capabilities = v能力, chrome_options = v选项)
-		if a地址:
-			v浏览器.get(a地址)
+		v浏览器 = 谷歌.C谷歌()
 	elif a浏览器 == E浏览器.ie:
-		v能力 = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
-		v能力['acceptSslCerts'] = True
-		v浏览器 = webdriver.Ie(capabilities = v能力)
-		if a地址:
-			v浏览器.get(a地址)
-		if any((s in v浏览器.title) for s in ("证书错误", "Certificate error")):
-			v浏览器.get("javascript:document.getElementById('invalidcert_continue').click()")
+		v浏览器 = 微软.Cie()
 	elif a浏览器 == E浏览器.edge:
-		v能力 = webdriver.DesiredCapabilities.EDGE.copy()
-		v能力['javascriptEnabled'] = True
-		v浏览器 = webdriver.Edge(capabilities = v能力)
-		if a地址:
-			v浏览器.get(a地址)
-		if any((s in v浏览器.title) for s in ("证书错误", "Certificate error")):
-			v浏览器.get("javascript:document.getElementById('invalidcert_continue').click()")
+		v浏览器 = 微软.Cedge()
 	else:
 		raise ValueError("无法识别的参数")
+	if a地址:
+		v浏览器.f打开(a地址)
 	return v浏览器
 def f创建地址(a地址, a用户名 = "", a密码 = ""):
 	v地址 = urllib.parse.urlparse(a地址)
