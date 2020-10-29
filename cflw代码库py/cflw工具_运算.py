@@ -62,9 +62,17 @@ f包含 = operator.contains	#b in a
 def f不包含(a, b):
 	"not b in a"
 	return not b in a
-def f倒包含(a, b):
+def f属于(a, b):
 	"a in b"
 	return a in b
-def f不倒包含(a, b):
+def f不属于(a, b):
 	"not a in b"
 	return not a in b
+def F包含(a):
+	def f包含(b):
+		return b in a
+	return f包含
+def F属于(a):
+	def f属于(b):
+		return a in b
+	return f属于

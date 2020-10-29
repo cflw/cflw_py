@@ -1,6 +1,7 @@
 from selenium import webdriver	#selenium
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities	#selenium
 class C谷歌(webdriver.Chrome):
+	c连接特性 = 0x0002
 	def __init__(self):
 		v能力 = webdriver.DesiredCapabilities.CHROME.copy()
 		v选项 = webdriver.ChromeOptions()

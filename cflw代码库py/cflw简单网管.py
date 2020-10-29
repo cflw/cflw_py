@@ -1,18 +1,5 @@
 import functools
 #===============================================================================
-# 常见的对象标识符
-#===============================================================================
-sysName  	= "1.3.6.1.2.1.1.5"
-sysDescr 	= "1.3.6.1.2.1.1.1"
-ifNumber 	= "1.3.6.1.2.1.2.1"
-ifDescr 	= "1.3.6.1.2.1.2.2.1.2"
-ifInOctet 	= "1.3.6.1.2.1.2.2.1.10"
-ifOutOctet 	= "1.3.6.1.2.1.2.2.1.16"
-ifInUcastPkts = "1.3.6.1.2.1.2.2.1.11"
-ifOutUcastPkts = "1.3.6.1.2.1.2.2.1.17"
-ipNetToMediaPhysAddress = "1.3.6.1.2.1.4.22.1.2"
-ipOperStatus = "1.3.6.1.2.1.2.2.1.8"
-#===============================================================================
 # 接口
 #===============================================================================
 class I简单网管:
@@ -45,12 +32,32 @@ class S对象标识符:
 		return self.ma值[k]
 	def __setitem__(self, k, v):
 		self.ma值[k] = v
+	def __str__(self):
+		return "." + ".".join(map(str, self.ma值))
+	@staticmethod
+	def fc自动(*a):
+		v长度 = len(a)
+		if v长度 > 1:	#视为多个值
+			return S对象标识符.fc值(*a)
+		v = a[0]
+		v类型 = type(v)
+		if v类型 == str:
+			return S对象标识符.fc字符串(v)
+		elif v类型 in (tuple, list):
+			return S对象标识符.fc值(*v)
+		elif v类型 == S对象标识符:
+			return v
+		else:
+			raise TypeError("无法解析的类型")
 	@staticmethod
 	def fc值(*aa值):
 		return S对象标识符(aa值)
 	@staticmethod
 	def fc字符串(a: str):
-		return S对象标识符(a.split("."))
+		if a[0] == '.':
+			return S对象标识符(map(int, a[1:].split(".")))
+		else:
+			return S对象标识符(map(int, a.split(".")))
 	def f添加(self, a值):
 		return S对象标识符(self.ma值 + [a值])
 	def f删除末尾(self):

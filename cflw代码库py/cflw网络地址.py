@@ -189,12 +189,20 @@ class S网络地址4:
 		return S网络地址4(v地址, v前缀长度)
 	@staticmethod
 	def fc地址掩码(a地址, a掩码):
-		if type(a地址) == str:
+		#地址
+		v地址类型 = type(a地址)
+		if v地址类型 == str:
 			v地址 = S网络地址4.f地址字符串转整数(a地址)
+		elif v地址类型 in (bytes, bytearray):
+			v地址 = int.from_bytes(a地址, byteorder = "big", signed = False)
 		else:
 			v地址 = int(a地址)
-		if type(a掩码) == str:
+		#掩码
+		v掩码类型 = type(a掩码)
+		if v掩码类型 == str:
 			v前缀长度 = S网络地址4.f掩码字符串转前缀长度(a掩码)
+		elif v掩码类型 in (bytes, bytearray):
+			v前缀长度 = S网络地址4.f掩码整数转前缀长度(int.from_bytes(a掩码, byteorder = "big", signed = False))
 		else:
 			v前缀长度 = S网络地址4.f掩码整数转前缀长度(int(a掩码))
 		return S网络地址4(v地址, v前缀长度)
@@ -203,7 +211,7 @@ class S网络地址4:
 		v整数 = S网络地址4.f四段转整数(a0, a1, a2, a3)
 		return S网络地址4(v整数, a前缀长度)
 	@staticmethod
-	def f地址字符串转整数(a):
+	def f地址字符串转整数(a: str):
 		assert(type(a) == str)
 		if a.count(".") != 3:
 			raise ValueError()
@@ -218,10 +226,12 @@ class S网络地址4:
 			return v
 		return f(a0) * 2 ** 24 + f(a1) * 2 ** 16 + f(a2) * 2 ** 8 + f(a3)
 	@staticmethod
-	def f掩码字符串转前缀长度(a):
+	def f掩码字符串转前缀长度(a: str):
 		"处理正掩码,反掩码,前缀长度3种格式"
 		if "." in a:
 			v整数 = S网络地址4.f地址字符串转整数(a)
+			if v整数 == 0:	#全0
+				return 0
 			#1..0
 			if v整数 & 0x80000000:
 				v整数 = S网络地址4.c全f - v整数
@@ -234,15 +244,15 @@ class S网络地址4:
 		else:
 			return int(a)
 	@staticmethod
-	def f掩码整数转前缀长度(a):
+	def f掩码整数转前缀长度(a: int):
 		"参数必需是正掩码或前缀长度"
 		if a > 32:
 			return int(32 - math.log2(S网络地址4.c全f - a + 1))
 		else:
 			return a
 	@staticmethod
-	def f字节转整数(a):
-		struct.unpack(">L", a)
+	def f字节转整数(a: bytes):
+		return int.from_bytes(a, byteorder = "big", signed = False)
 	@staticmethod
 	def f地址整数转字符串(a):
 		if type(a) != int:
@@ -544,7 +554,7 @@ class S网络地址6:
 #===============================================================================
 class S物理地址:
 	"mac地址"
-	def __init__(self, a值 = 0):
+	def __init__(self, a值: int = 0):
 		self.m值 = a值
 	@staticmethod
 	def fc整数(a: int):
@@ -561,6 +571,10 @@ class S物理地址:
 		else:
 			raise TypeError()
 		return None
+	@staticmethod
+	def fc字节(a: bytes):
+		"""从字节集创建物理地址"""
+		return S物理地址(int.from_bytes(a, byteorder = "big", signed = False))
 	def __str__(self):
 		return self.fg字符串()
 	def fg字符串(self, a分隔符 = "", a分隔位数 = 4):
