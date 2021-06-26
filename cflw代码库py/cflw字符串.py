@@ -1,5 +1,6 @@
 import string
 import re
+import functools
 from . import cflw工具_运算 as 运算
 #===============================================================================
 # 常量
@@ -391,7 +392,7 @@ def f覆盖(a原: str, a新: str, a开始位置 = 0):
 		return a原[0 : a开始位置] + a新
 	else:
 		return a原[0 : a开始位置] + a新 + a原[v目标长度:]
-def f提取字符串周围(a字符串: str, a前, a中, a后):
+def f提取字符串周围(a字符串: str, a前: str, a中: str, a后: str):
 	"""找包含中间的字符串,返回前后字符串.\n
 找不到中间则返回"",找不到两边则取头尾\n
 例如: f提取字符串周围("123 456 789", " ", "5", " ")返回" 456 " """
@@ -421,18 +422,29 @@ def f提取字符串周围(a字符串: str, a前, a中, a后):
 		return a前
 	else:
 		return a字符串[a前: a后]
+def F提取字符串周围(a前: str, a中: str, a后: str):
+	return functools.partial(f提取字符串周围, a前 = a前, a中 = a中, a后 = a后)
+def f提取包含行(a字符串: str, a包含: str):
+	"""从字符串中提取包含指定文本的行, 返回的字符串不含换行符, 找不到则返回"" """
+	for v行 in a字符串.split("\n"):
+		if a包含 in v行:
+			return v行
+	return ""
+def F提取包含行(a包含: str):
+	return functools.partial(f提取包含行, a包含 = a包含)
 class C推进取词:
-	def __init__(self, a文本):
+	def __init__(self, a文本: str):
 		self.ma词 = a文本.split()
+		self.m数量 = len(self.ma词)
 		self.i = 0
-	def f取词(self):
-		if self.i >= len(self.ma词):
+	def f取词(self)->str:
+		if self.i >= self.m数量:
 			return None
 		return self.ma词[self.i]
 	def f推进(self):
 		self.i += 1
-	def f取词推进(self):	#先取词再推进
-		if self.i >= len(self.ma词):
+	def f取词推进(self)->str:	#先取词再推进
+		if self.i >= self.m数量:
 			return None
 		v词 = self.ma词[self.i]
 		self.i += 1

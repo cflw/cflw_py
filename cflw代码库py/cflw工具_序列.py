@@ -49,17 +49,24 @@ class C切片组:
 			self.ma索引 = (0,) + aa索引
 		self.m长度 = len(self.ma索引)
 	def __getitem__(self, k):
+		return self.fg切片(k)
+	def __iter__(self):
+		for i in range(self.m长度):
+			yield self.fg切片(i)
+	def fg切片(self, k):
 		if self.m长度 > k + 1:
 			return slice(self.ma索引[k], self.ma索引[k+1])
 		elif self.m长度 == k + 1:
 			return slice(self.ma索引[k], None)
 		else:
 			raise IndexError()
-	def __iter__(self):
-		for i in range(self.m长度):
-			yield self[i]
 	def F切片(self, k):
-		v切片 = self.__getitem__(k)
+		v切片 = self.fg切片(k)
 		def f切片(a序列):
 			return a序列[v切片]
+		return f切片
+	def F多切片(self, *k):
+		va切片 = list(self.fg切片(kk) for kk in k)
+		def f切片(a序列):
+			return (a序列[v切片] for v切片 in va切片)
 		return f切片

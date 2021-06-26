@@ -48,6 +48,14 @@ f位与 = operator.and_
 f位或 = operator.or_
 f位异或 = operator.xor
 f位反 = operator.invert
+def f位拆分(a整数: int)->list:
+	v位 = 1
+	v列表 = []
+	while v位 <= a整数:
+		if a整数 & v位:
+			v列表.append(v位)
+		v位 *= 2
+	return v列表
 #四则运算
 f加 = operator.add
 f减 = operator.sub

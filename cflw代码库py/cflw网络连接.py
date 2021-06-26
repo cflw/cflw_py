@@ -103,13 +103,13 @@ class C命令行回显:
 #===============================================================================
 class C网络终端(I命令行连接):
 	"telnet"
-	C命令行缓存大小 = 10	#最近读的10个文本
+	c命令行缓存大小 = 10	#最近读的10个文本
 	def __init__(self, a主机, a端口号 = 23):
 		self.m主机 = a主机
 		self.m端口号 = a端口号
 		self.m终端 = None
 		self.m编码 = "utf-8"
-		self.m缓存 = C命令行缓存(C网络终端.C命令行缓存大小)
+		self.m缓存 = C命令行缓存(C网络终端.c命令行缓存大小)
 	def f连接(self):
 		assert(not self.m终端)
 		import telnetlib
@@ -117,7 +117,8 @@ class C网络终端(I命令行连接):
 	def fi连接(self):
 		return bool(self.m终端)
 	def f读_最新(self):
-		v内容 = self.m终端.read_very_eager().decode(self.m编码)
+		v数据 = self.m终端.read_very_eager()
+		v内容 = v数据.decode(self.m编码)
 		if v内容:
 			self.m缓存.f存入(v内容)
 		return v内容
