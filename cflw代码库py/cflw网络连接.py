@@ -56,21 +56,21 @@ class C命令行缓存:
 			s += self.m缓存[i]
 		return s
 	def f存取(self, a存内容, a取数量):
-		assert(a数量 <= self.m大小)
+		assert(a取数量 <= self.m大小)
 		self.f存入(a存内容)
 		return self.f取出(a取数量)
 	def fs大小(self, a大小):
 		self.m大小 = a大小
 	def fg大小(self):
-		return m大小
+		return self.m大小
 class C命令行回显:
 	c连接特性 = I命令行连接.c连接特性
 	def __init__(self, a连接, af输入回显, af输出回显):
 		if not isinstance(a连接, I命令行连接):
 			raise TypeError()
 		self.m连接 = a连接
-		self.mf输入回显 = f处理回显函数(af输入回显)
-		self.mf输出回显 = f处理回显函数(af输出回显)
+		self.mf输入回显 = C命令行回显.f处理回显函数(af输入回显)
+		self.mf输出回显 = C命令行回显.f处理回显函数(af输出回显)
 	def f读_最新(self):
 		v内容 = self.m连接.f读_最新()
 		self.mf输出回显(v内容)

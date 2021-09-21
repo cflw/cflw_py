@@ -654,7 +654,7 @@ class C连续地址4:
 		if '-' in a地址[0]:
 			v地址 = a地址[0].split('-')
 			self.m地址0 = ipaddress.IPv4Address(v地址[0])
-			self.m地址1 = ipaddress.IPv4Address(f补全地址(v地址[0], v地址[1]))
+			self.m地址1 = ipaddress.IPv4Address(C互联网协议4.f补全地址(v地址[0], v地址[1]))
 		elif len(a地址) == 2:
 			self.m地址0 = ipaddress.IPv4Address(a地址[0])
 			self.m地址1 = ipaddress.IPv4Address(a地址[1])
