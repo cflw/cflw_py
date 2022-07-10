@@ -5,6 +5,7 @@ c超文本传输协议错误正则表达式 = re.compile(r"\d\d\d")
 def fc解析器bs(a文本):
 	return BeautifulSoup(a文本, "html.parser")
 def f获取文档(a地址, a请求头 = None, a失败重试次数 = 5):
+	e = RuntimeError("失败重试次数过多")
 	for i in range(a失败重试次数):
 		try:
 			v请求 = requests.get(url = a地址, headers = a请求头)

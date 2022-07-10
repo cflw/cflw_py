@@ -112,6 +112,25 @@ class S网络地址4:
 		self.m前缀长度 = a前缀长度
 	def __str__(self):
 		return self.ft字符串()
+	def __add__(self, a):	#地址加
+		v类型 = type(a)
+		if v类型 == int:
+			return S网络地址4(self.m地址 + a, self.m前缀长度)
+		raise TypeError("不支持的类型")
+	def __sub__(self, a):	#地址减
+		v类型 = type(a)
+		if v类型 == int:
+			return S网络地址4(self.m地址 - a, self.m前缀长度)
+		raise TypeError("不支持的类型")
+	def __getitem__(self, a):
+		"""按索引获取当前网段地址, 0是网络号, -1是广播地址"""
+		v类型 = type(a)
+		if v类型 == int:
+			if a >= 0:
+				return S网络地址4(self.fg网络号i() + a, self.m前缀长度)
+			else:
+				return S网络地址4(self.fg广播地址i() - a + 1, self.m前缀长度)
+		raise TypeError("不支持的类型")
 	@staticmethod
 	def fc自动(*a):
 		"""
@@ -349,12 +368,18 @@ class S网络地址4:
 			return 3
 		else:
 			return 4
+	def fg地址数(self):
+		return 2 ** (S网络地址4.c最大前缀长度 - self.m前缀长度) 
 	def fg主机地址数(self):
-		return 2 ** (S网络地址4.c最大前缀长度 - self.m前缀长度) - 2
+		return self.fg地址数() - 2
 	def fe主机地址(self):
 		v范围 = range(self.fg网络号i() + 1, self.fg广播地址i())
 		for i in v范围:
 			yield S网络地址4(i, self.m前缀长度)
+	def f地址偏移(self, a: int):
+		return S网络地址4(self.m地址 + a, self.m前缀长度)
+	def f网段偏移(self, a: int):
+		return S网络地址4(self.m地址 + a * self.fg地址数(), self.m前缀长度)
 	def fi范围内(self, a地址, a真子集 = False):
 		v地址 = S网络地址4.fc自动(a地址)
 		if self.m前缀长度 > v地址.m前缀长度:
