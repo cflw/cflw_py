@@ -73,6 +73,7 @@ def f统计汉字数量(a字符串):
 			v数量 += 1
 	return v数量
 def f全部找(a字符串: str, a找: str):
+	"""a找 在 a字符串 中出现位置,返回列表"""
 	v列表 = []
 	v位置 = 0
 	while True:
@@ -83,7 +84,8 @@ def f全部找(a字符串: str, a找: str):
 		else:
 			break
 	return v列表
-def f重复找(a字符串: str, a找: str):
+def fe找(a字符串: str, a找: str):
+	"""返回迭代器"""
 	v位置 = 0
 	while True:
 		v位置 = a字符串.find(a找, v位置)

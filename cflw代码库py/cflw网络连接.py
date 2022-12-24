@@ -118,7 +118,7 @@ class C网络终端(I命令行连接):
 		return bool(self.m终端)
 	def f读_最新(self):
 		v数据 = self.m终端.read_very_eager()
-		v内容 = v数据.decode(self.m编码)
+		v内容 = v数据.decode(self.m编码, "backslashreplace")
 		if v内容:
 			self.m缓存.f存入(v内容)
 		return v内容
@@ -130,7 +130,7 @@ class C网络终端(I命令行连接):
 如果没有指定文本，直到读出任何内容时返回。
 		"""
 		if a文本:	#直到读出相应文本
-			return self.m终端.read_until(a文本.encode(self.m编码), a时间).decode(self.m编码)
+			return self.m终端.read_until(a文本.encode(self.m编码), a时间).decode(self.m编码, "backslashreplace")
 		else:	#直到有内容出现
 			v阻塞 = 时间.C循环阻塞(a时间)
 			while v阻塞.f滴答():

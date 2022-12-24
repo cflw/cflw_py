@@ -32,7 +32,7 @@ class C命名管道(连接.I命令行连接):
 				time.sleep(0.1)
 			except:	#没有数据时会抛异常,无视
 				break
-		v内容 = v数据.decode(self.m编码)
+		v内容 = v数据.decode(self.m编码, "backslashreplace")
 		if v内容:
 			self.m缓存.f存入(v内容)
 		return v内容

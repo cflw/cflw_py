@@ -1,3 +1,4 @@
+import os
 from selenium import webdriver	#selenium
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities	#selenium
 class C谷歌(webdriver.Chrome):

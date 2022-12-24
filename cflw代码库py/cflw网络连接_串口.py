@@ -24,7 +24,7 @@ class C串口(连接.I命令行连接):
 		while self.m串口.in_waiting > 0:
 			v数据 += self.m串口.read(self.m串口.in_waiting)
 			time.sleep(0.1)
-		v内容 = v数据.decode(self.m编码)
+		v内容 = v数据.decode(self.m编码, "backslashreplace")
 		if v内容:
 			self.m缓存.f存入(v内容)
 		return v内容

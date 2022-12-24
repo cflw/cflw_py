@@ -128,8 +128,8 @@ class S网络地址4:
 		if v类型 == int:
 			if a >= 0:
 				return S网络地址4(self.fg网络号i() + a, self.m前缀长度)
-			else:
-				return S网络地址4(self.fg广播地址i() - a + 1, self.m前缀长度)
+			else:	#负数,从后面开始
+				return S网络地址4(self.fg广播地址i() + a + 1, self.m前缀长度)
 		raise TypeError("不支持的类型")
 	@staticmethod
 	def fc自动(*a):

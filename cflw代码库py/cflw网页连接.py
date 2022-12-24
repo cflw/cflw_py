@@ -34,6 +34,6 @@ def f创建地址(a地址, a用户名 = "", a密码 = ""):
 	v地址 = urllib.parse.urljoin(v地址.geturl(), "//" + v主机名)
 	return v地址
 def f创建连接(a地址, a浏览器 = E浏览器.firefox):
-	v地址 = f创建地址(a地址)
+	# v地址 = f创建地址(a地址)
 	v网页 = f创建浏览器(a浏览器, a地址)
 	return v网页

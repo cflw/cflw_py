@@ -16,14 +16,14 @@ class C安全外壳2(连接.I命令行连接):	#使用paramiko
 		self.m编码 = "utf-8"
 		self.m缓存 = 连接.C命令行缓存()
 	def f连接(self):
-		self.m客户端.connect(hostname = self.m主机, port = self.m端口号, username = self.m用户名, password = self.m密码, timeout = self.m超时)
+		self.m客户端.connect(hostname = self.m主机, port = self.m端口号, username = self.m用户名, password = self.m密码, timeout = self.m超时, look_for_keys = False)
 		self.m频道 = self.m客户端.invoke_shell(width = 10000, height = 10000)
 	def f读_最新(self):
 		v数据 = b""
 		while self.m频道.recv_ready():
 			v数据 += self.m频道.recv(1024)
 			time.sleep(0.1)
-		v内容 = v数据.decode(self.m编码)
+		v内容 = v数据.decode(self.m编码, "backslashreplace")
 		self.m缓存.f存入(v内容)
 		return v内容
 	def f读_最近(self, a数量 = 1):
