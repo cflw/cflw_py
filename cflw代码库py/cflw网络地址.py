@@ -181,6 +181,16 @@ class S网络地址4:
 		else:
 			raise TypeError("无法解析参数类型")
 	@staticmethod
+	def fc字符串(a地址: str):
+		"""尝试从多种格式中解析字符串"""
+		if "/" in a地址:	#x.x.x.x/n
+			return S网络地址4.fc地址前缀长度字符串(a地址)
+		v点数 = a地址.count(".")
+		if " " in a地址 and v点数 == 6:	#x.x.x.x m.m.m.m
+			return S网络地址4.fc地址空格掩码字符串(a地址)
+		#x.x.x.x
+		return S网络地址4.fc主机地址字符串(a地址)
+	@staticmethod
 	def fc主机地址字符串(a地址: str):
 		"""格式: x.x.x.x"""
 		v地址 = S网络地址4.f地址字符串转整数(a地址)
@@ -443,7 +453,7 @@ class S网络地址6:
 	@staticmethod
 	def fc自动(*a):
 		"""
-		字符串格式："x:x:x:x:x:x:x:x/64"（可以使用缩写地址）
+		字符串格式：x:x:x:x:x:x:x:x/64（可以使用缩写地址）
 		"""
 		v长度 = len(a)
 		if v长度 > 1:
@@ -477,7 +487,7 @@ class S网络地址6:
 		else:
 			raise TypeError("无法解析参数类型")
 	@staticmethod
-	def fc地址前缀长度(a地址, a前缀长度):
+	def fc地址前缀长度(a地址, a前缀长度: int):
 		if type(a地址) == str:
 			v地址 = S网络地址6.f地址字符串转整数(a地址)
 		else:
@@ -488,7 +498,22 @@ class S网络地址6:
 		v整数 = S网络地址6.f八段转整数(a0, a1, a2, a3, a4, a5, a6, a7)
 		return S网络地址6(v整数, a前缀长度)
 	@staticmethod
+	def fc地址前缀长度字符串(a地址: str):
+		"""格式: x:x:x:x:x:x:x:x/64"""
+		if a地址.count("/") != 1:
+			raise ValueError("斜杠太多")
+		v地址, v前缀长度 = a地址.split("/")
+		v前缀长度 = int(v前缀长度)
+		v地址 = S网络地址6.f地址字符串转整数(v地址)
+		return S网络地址6(v地址, v前缀长度)
+	@staticmethod
+	def fc主机地址字符串(a地址: str):
+		"""格式: x:x:x:x:x:x:x:x"""
+		v地址 = S网络地址6.f地址字符串转整数(a地址)
+		return S网络地址6(v地址, 128)
+	@staticmethod
 	def f地址字符串转整数(a):
+		"""把ipv6地址转换成128位整数, 可以使用缩写地址"""
 		v类型 = type(a)
 		if v类型 == str:
 			v字符串 = str(a)
@@ -497,8 +522,9 @@ class S网络地址6:
 				raise ValueError("冒号太少或太多")
 			#填充,把::改为:0:0:0:0
 			v位置 = a.find("::")
-			v插入字符串 = ":0" * (8 - v冒号数量)
-			v字符串 = v字符串[:v位置] + v插入字符串 + v字符串[v位置+1:]
+			if v位置 >= 0:
+				v插入字符串 = ":0" * (8 - v冒号数量)
+				v字符串 = v字符串[:v位置] + v插入字符串 + v字符串[v位置+1:]
 			#转换
 			v数字 = 0
 			v分割 = v字符串.split(":")
