@@ -199,23 +199,41 @@ def fe包含行(a字符串: str, a查找: str, a开始位置: int = 0, a换行�
 			break
 		yield a字符串[v切片]
 		v位置 = v切片.stop
-def f找当前行(a字符串: str, a位置: int, a换行符: str = c换行符)->slice:
+def f找上一行位置(a字符串: str, a位置: int, a换行符: str = c换行符, a循环: int = 1)->int:
+	v行结束位置 = a位置
+	for i in range(a循环):
+		v行结束位置 = a字符串.rfind(a换行符, 0, v行结束位置)
+		if v行结束位置 == -1:
+			return -1	#没有上一行
+		v行开始位置 = f找行开始位置(a字符串, v行结束位置)
+	return v行开始位置
+def f找下一行位置(a字符串: str, a位置: int, a换行符: str = c换行符, a循环: int = 1)->int:
+	v行开始位置 = a位置
+	for i in range(a循环):
+		v行开始位置 = a字符串.find(a换行符, v行开始位置)
+		if v行开始位置 == -1:
+			return -1	#没有下一行
+		v行开始位置 = v行开始位置 + 1
+	return v行开始位置
+def f找当前行切片(a字符串: str, a位置: int, a换行符: str = c换行符)->slice:
 	"""定位当前行的切片"""
 	v行开始位置 = a字符串.rfind(a换行符, 0, a位置) + 1	#找到换行符位置,+1才是行开始位置
 	v行结束位置 = a字符串.find(a换行符, a位置)
 	return slice(max(v行开始位置, 0), v行结束位置)
-def f找上一行(a字符串: str, a位置: int, a换行符: str = c换行符, a循环: int = 1)->slice:
+def f找上一行切片(a字符串: str, a位置: int, a换行符: str = c换行符, a循环: int = 1)->slice:
 	"""往前定位行"""
+	v行结束位置 = a位置
 	for i in range(a循环):
-		v行结束位置 = a字符串.rfind(a换行符, 0, a位置)
+		v行结束位置 = a字符串.rfind(a换行符, 0, v行结束位置)
 		if v行结束位置 == -1:
 			return None	#没有上一行
 		v行开始位置 = f找行开始位置(a字符串, v行结束位置)
 	return slice(v行开始位置, v行结束位置)
-def f找下一行(a字符串: str, a位置: int, a换行符: str = c换行符, a循环: int = 1)->slice:
-	"""往后定位行"""
+def f找下一行切片(a字符串: str, a位置: int, a换行符: str = c换行符, a循环: int = 1)->slice:
+	"""往后定位行, 循环0次是当前行, 循环1次是下一行"""
+	v行开始位置 = a位置
 	for i in range(a循环):
-		v行开始位置 = a字符串.find(a换行符, a位置)
+		v行开始位置 = a字符串.find(a换行符, v行开始位置)
 		if v行开始位置 == -1:
 			return None	#没有下一行
 		v行开始位置 = v行开始位置 + 1
