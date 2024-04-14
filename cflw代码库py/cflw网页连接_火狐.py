@@ -1,8 +1,9 @@
-from selenium import webdriver	#selenium
+from selenium import webdriver	#selenium >= 4
 from selenium.webdriver.firefox.options import Options as FirefoxOptions	#selenium >= 4
+c驱动程序 = "geckodriver"
 class C火狐(webdriver.Firefox):
 	c连接特性 = 0x0002
-	def __init__(self):
+	def __init__(self, a驱动路径 = None):
 		v选项 = FirefoxOptions()	#selenium4的写法
 		#能力
 		v选项.set_capability('acceptInsecureCerts', True)
@@ -24,8 +25,10 @@ class C火狐(webdriver.Firefox):
 		]
 		v选项.set_preference("browser.helperApps.neverAsk.saveToDisk", ",".join(va文件类型))	#不询问下载路径的文件类型
 		v选项.set_preference("security.tls.version.min", 1)	#允许tls1.0
+		#服务
+		v服务 = webdriver.FirefoxService(executable_path = a驱动路径)	#selenium 4.11似乎无法搜索PATH,需要指定绝对路径
 		#创建对象
-		webdriver.Firefox.__init__(self, options = v选项)
+		webdriver.Firefox.__init__(self, options = v选项, service = v服务)
 	def f打开(self, a地址):
 		self.get(a地址)
 	def fs下载路径(self, a路径):
