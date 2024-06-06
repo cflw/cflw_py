@@ -3,7 +3,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities	#
 def f跳过证书(a浏览器):
 	if any((s in a浏览器.title) for s in ("证书错误", "Certificate error")):
 		a浏览器.get("javascript:document.getElementById('invalidcert_continue').click()")
-class Cie(webdriver.Ie):
+class Cie(webdriver.Ie, a驱动路径 = None, a浏览器路径 = None):
 	c连接特性 = 0x0002
 	def __init__(self):
 		v能力 = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
@@ -14,7 +14,7 @@ class Cie(webdriver.Ie):
 		f跳过证书(self)
 	def fs下载路径(self, a路径):
 		raise NotImplementedError()
-class Cedge(webdriver.Edge):
+class Cedge(webdriver.Edge, a驱动路径 = None, a浏览器路径 = None):
 	c连接特性 = 0x0002
 	def __init__(self):
 		v能力 = webdriver.DesiredCapabilities.EDGE.copy()

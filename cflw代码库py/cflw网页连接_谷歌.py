@@ -3,7 +3,7 @@ from selenium import webdriver	#selenium >= 4
 c驱动程序 = "chromedriver"
 class C谷歌(webdriver.Chrome):
 	c连接特性 = 0x0002
-	def __init__(self, a驱动路径 = None):
+	def __init__(self, a驱动路径 = None, a浏览器路径 = None):
 		#选项
 		v选项 = webdriver.ChromeOptions()
 		v选项.add_argument('--allow-running-insecure-content')

@@ -1,10 +1,11 @@
-from selenium import webdriver	#selenium >= 4
+from selenium import webdriver	#selenium >= 4.11
 from selenium.webdriver.firefox.options import Options as FirefoxOptions	#selenium >= 4
 c驱动程序 = "geckodriver"
 class C火狐(webdriver.Firefox):
 	c连接特性 = 0x0002
-	def __init__(self, a驱动路径 = None):
+	def __init__(self, a驱动路径 = None, a浏览器路径 = None):
 		v选项 = FirefoxOptions()	#selenium4的写法
+		v选项.binary_location = a浏览器路径
 		#能力
 		v选项.set_capability('acceptInsecureCerts', True)
 		#档案
