@@ -242,6 +242,7 @@ class S网络地址4:
 		return S网络地址4(v整数, a前缀长度)
 	@staticmethod
 	def f地址字符串转整数(a: str)->int:
+		"x.x.x.x转32位整数"
 		assert(type(a) == str)
 		if a.count(".") != 3:
 			raise ValueError()
@@ -249,6 +250,7 @@ class S网络地址4:
 		return S网络地址4.f四段转整数(v[0], v[1], v[2], v[3])
 	@staticmethod
 	def f四段转整数(a0, a1, a2, a3)->int:
+		"(a, b, c, d)转32位整数"
 		def f(a):
 			v = int(a)
 			if v < 0 or v > 0xff:
@@ -273,6 +275,20 @@ class S网络地址4:
 			return 32 - int(math.log2(v整数 + 1))
 		else:
 			return int(a)
+	@staticmethod
+	def f正掩码字符串转前缀长度(a: str)->int:
+		"""处理正掩码,已知掩码类型时可以减少判断"""
+		v整数 = S网络地址4.f地址字符串转整数(a)
+		if v整数 == 0:	#全0
+			return 0
+		return 32 - int(math.log2(S网络地址4.c全f - v整数 + 1))
+	@staticmethod
+	def f反掩码字符串转前缀长度(a: str)->int:
+		"""处理反掩码,已知掩码类型时可以减少判断"""
+		v整数 = S网络地址4.f地址字符串转整数(a)
+		if v整数 == 0:	#全0
+			return 32
+		return 31 - int(math.log2(v整数))
 	@staticmethod
 	def f掩码整数转前缀长度(a: int)->int:
 		"参数必需是正掩码或前缀长度"
@@ -441,7 +457,7 @@ class S网络地址4:
 # 网络地址6
 #===============================================================================
 class S网络地址6:
-	"ipv6地址"
+	"ipv6地址,默认小写表示"
 	c最大前缀长度 = 128
 	c全f = 0xffffffffffffffffffffffffffffffff
 	c多个零正则 = re.compile(r"(\:0){2,6}")
@@ -450,6 +466,28 @@ class S网络地址6:
 		self.m前缀长度 = a前缀长度
 	def __str__(self):
 		return self.ft字符串()
+	def __add__(self, a):	#地址加
+		v类型 = type(a)
+		if v类型 == int:
+			return S网络地址6(self.m地址 + a, self.m前缀长度)
+		raise TypeError("不支持的类型")
+	def __sub__(self, a):	#地址减
+		v类型 = type(a)
+		if v类型 == int:
+			return S网络地址6(self.m地址 - a, self.m前缀长度)
+		raise TypeError("不支持的类型")
+	def __getitem__(self, a):
+		"""按主机地址获取当前网段完整地址
+		例如: S网络地址6.fc自动("fc00::/64").__getitem__("::1")返回"fc00::1/64" """
+		v类型 = type(a)
+		if v类型 == int:	#地址整数偏移,类似 S网络地址4.__getitem__
+			if a >= 0:
+				return S网络地址6(self.fg网络号i() + a, self.m前缀长度)
+			else:	#负数,从后面开始
+				return S网络地址6(self.fg广播地址i() + a + 1, self.m前缀长度)
+		elif v类型 == str:	#主机地址覆盖
+			return self.f合并主机地址(a)
+		raise TypeError("不支持的类型")
 	@staticmethod
 	def fc自动(*a):
 		"""
@@ -513,7 +551,7 @@ class S网络地址6:
 		return S网络地址6(v地址, 128)
 	@staticmethod
 	def f地址字符串转整数(a):
-		"""把ipv6地址转换成128位整数, 可以使用缩写地址"""
+		"""把ipv6地址转换成128位整数, 可以使用缩写地址, 自动识别大小写"""
 		v类型 = type(a)
 		if v类型 == str:
 			v字符串 = str(a)
@@ -521,7 +559,7 @@ class S网络地址6:
 			if v冒号数量 < 2 or v冒号数量 > 8:
 				raise ValueError("冒号太少或太多")
 			#填充,把::改为:0:0:0:0
-			v位置 = a.find("::")
+			v位置 = v字符串.find("::")
 			if v位置 >= 0:
 				v插入字符串 = ":0" * (8 - v冒号数量)
 				v字符串 = v字符串[:v位置] + v插入字符串 + v字符串[v位置+1:]
@@ -580,6 +618,7 @@ class S网络地址6:
 	def fg地址s(self):
 		return S网络地址6.f地址整数转字符串(self.m地址)
 	def fg网络号(self):
+		"""取该网段第一个ip. ipv6没有保留网络号,所以该地址可以用在主机上"""
 		v地址 = self.fg网络号i()
 		return S网络地址6.fc地址前缀长度(v地址, self.m前缀长度)
 	def fg网络号i(self):
@@ -587,6 +626,7 @@ class S网络地址6:
 	def fg网络号s(self):
 		return S网络地址6.f地址整数转字符串(self.fg网络号i())
 	def fg广播地址(self):
+		"""取该网段最后一个ip. ipv6没有广播地址,所以该地址可以用在主机上"""
 		v地址 = self.fg广播地址i()
 		return S网络地址6.fc地址前缀长度(v地址, self.m前缀长度)
 	def fg广播地址i(self):
@@ -616,6 +656,11 @@ class S网络地址6:
 		return 2 ** (S网络地址6.c最大前缀长度 - self.m前缀长度) - 2
 	def fg前缀长度(self):
 		return self.m前缀长度
+	def f合并主机地址(self, a: str):
+		"""网络号+主机地址"""
+		v主机整数 = S网络地址6.f地址字符串转整数(a)
+		v新地址 = self.fg网络号i() | v主机整数
+		return S网络地址6(v新地址, self.m前缀长度)
 	@staticmethod
 	def f计算最长零段(a分段):
 		"返回(索引,数量)"

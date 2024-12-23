@@ -400,14 +400,14 @@ def f提取字符串之间(a字符串, a开始, a结束, a包含开始 = False, 
 	a反向查找: 
 	a结束严谨: 结果找不到结束就返回"", 不严谨则返回开始到字符串结尾"""
 	v位置 = f找字符串之间(a字符串, a开始, a结束, a包含开始, a反向查找)
-	#找不到则返回空字符串
+	#找不到则返回空
 	if v位置.start == None:
-		return ""
+		return None
 	if v位置.stop == None:
 		if not a结束:	#没有 a结束
 			return a字符串[v位置.start:]
 		if a结束严谨:	#有 a结束
-			return ""
+			return None
 		return a字符串[v位置.start:]
 	#正常返回
 	return a字符串[v位置]
